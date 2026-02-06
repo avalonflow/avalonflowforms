@@ -16,9 +16,6 @@
   .particle { position:absolute; border-radius:50%; opacity:0.6; animation:floatParticles linear infinite; box-shadow:0 0 10px #6b2cd8,0 0 20px #6b2cd8; }
   @keyframes floatParticles { 0%{transform:translateY(100vh) scale(0.3);opacity:0;} 50%{opacity:1;} 100%{transform:translateY(-10vh) scale(1);opacity:0;} }
 
-  /* Header */
-  header { background:rgba(107,44,216,0.4); backdrop-filter:blur(15px); border-radius:18px; color:white; padding:20px; text-align:center; margin:20px; box-shadow:0 8px 30px rgba(0,0,0,0.3); }
-
   /* Glass cards */
   .glass-card { background:rgba(255,255,255,0.12); backdrop-filter:blur(12px); border-radius:18px; padding:28px; margin-bottom:28px; box-shadow:0 10px 30px rgba(0,0,0,0.35); max-width:600px; margin-left:auto; margin-right:auto; }
 
@@ -36,8 +33,24 @@
   <!-- Floating Background -->
   <div id="floating-bg"></div>
 
-<header>
-  <img src="assets/pictures/logo.png" alt="AvalonFlow Logo" style="max-width:160px;">
+<header style="text-align: center; padding: 40px 0;">
+  <div style="
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 350px;                /* slightly bigger frame */
+      height: 180px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.12);  /* a little more visible */
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.3); /* stronger border */
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);  /* deeper shadow */
+      margin: 0 auto;
+    ">
+    <img src="assets/pictures/imagitool-export (26).jpg" 
+         alt="AvalonFlow Logo" 
+         style="max-width: 90%; max-height: 90%; height: auto;">
+  </div>
 </header>
 
 <section id="section3">
