@@ -146,10 +146,10 @@
         </div>
 
 <!-- NEXT BUTTON IN ITS OWN GLASS PANEL -->
-<div class="glass-card" style="max-width:300px;margin:0 auto;text-align:center;">
+<div class="glass-card" style="max-width:300px;margin:50px auto;text-align:center;position:relative;z-index:2;">
   <a href="section2.html"
      style="display:inline-block; padding:12px 24px; font-size:16px; font-weight:bold; 
-            border:none; border-radius:12px; background:rgba(107,44,216,0.6); color:#fff; 
+            border:none; border-radius:12px; background:rgba(107,44,216,0.8); color:#fff; 
             text-decoration:none; cursor:pointer;">
     Next
   </a>
@@ -197,12 +197,6 @@
         }
         const section1Data = loadSection1Data();
 
-// Optional: Confirm leaving page
-document.querySelector('a[href="section2.html"]').addEventListener('click', function(e){
-    if(!confirm("Are you ready to go to the next page?")){
-        e.preventDefault(); // Stop navigation if user cancels
-    }
-});
     </script>
 </body>
             </html>
