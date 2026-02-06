@@ -1,11 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0;url=forms.html">
-  <title>AvalonFlow</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AvalonFlow</title>
+<style>
+  body {
+    font-family: Georgia, serif;
+    background: #0d0d0d;
+    color: #fff;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  #floating-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at bottom, #1a0d3a, #0d0d0d);
+    overflow: hidden;
+  }
+
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: floatParticles linear infinite;
+    box-shadow: 0 0 10px #6b2cd8, 0 0 20px #6b2cd8;
+  }
+
+  @keyframes floatParticles {
+    0% { transform: translateY(100vh) scale(0.3); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+  }
+
+  .glass-card {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(12px);
+    border-radius: 18px;
+    padding: 40px 30px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    z-index: 2;
+    max-width: 500px;
+  }
+
+  .glass-card h1 {
+    font-weight: bold;
+    margin-bottom: 24px;
+  }
+
+  .glass-card a {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 12px 24px;
+    border-radius: 12px;
+    background: rgba(107,44,216,0.6);
+    color: #fff;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    padding: 18px 0;
+    font-size: 14px;
+    color: #aaa;
+    background: rgba(15,15,25,0.95);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.4);
+    z-index: 6;
+  }
+</style>
 </head>
 <body>
-  <p>If you are not redirected, <a href="forms.html">click here</a>.</p>
+
+<div id="floating-bg"></div>
+
+<div class="glass-card">
+  <h1>Welcome to AvalonFlow</h1>
+  <a href="forms.html">Kindly Start Membership Form</a>
+</div>
+
+<footer>
+  © 2026 AvalonFlow • Powered by Centrical™
+</footer>
+
+<script>
+  // Floating Particles
+  const bg = document.getElementById('floating-bg');
+  const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
+  function particle() {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const s = Math.random()*20+10;
+    p.style.width = s+'px';
+    p.style.height = s+'px';
+    p.style.left = Math.random()*100+'vw';
+    p.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random()*3)]}, transparent)`;
+    p.style.animationDuration = (Math.random()*20+10)+'s';
+    bg.appendChild(p);
+    setTimeout(()=>p.remove(),30000);
+  }
+  setInterval(particle,800);
+</script>
+
 </body>
-</html>
+  </html>
