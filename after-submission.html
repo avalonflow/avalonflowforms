@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AvalonFlow – Thank You</title>
+
+<style>
+  body {
+    font-family: Georgia, serif;
+    margin: 0;
+    background: #0d0d0d;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .thank-you-card {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(12px);
+    border-radius: 18px;
+    padding: 40px 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    max-width: 600px;
+  }
+
+  h2 {
+    font-weight: bold;
+    margin-bottom: 16px;
+  }
+
+  p {
+    font-weight: bold;
+    font-style: italic;
+    font-size: 16px;
+  }
+</style>
+</head>
+
+<body>
+<div class="thank-you-card">
+  <h2>Thank You for Submitting!</h2>
+  <p>Check your inbox for the next steps to initiate your AvalonCare Wing dashboard.</p>
+</div>
+
+<script>
+  // Block form access if Section 4 is already submitted
+  const section4Data = localStorage.getItem('section4Data');
+  if (!section4Data) {
+    // If Section 4 not submitted yet, redirect to form start
+    window.location.href = 'section1.html'; // or section1.html depending on your flow
+  }
+
+  // Optional: you can clear previous form sections so the user can't resubmit accidentally
+  // localStorage.removeItem('section1Data');
+  // localStorage.removeItem('section2Data');
+  // localStorage.removeItem('section3Data');
+</script>
+</body>
+  </html>
