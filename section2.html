@@ -193,7 +193,7 @@
     const location = document.getElementById("location");
     const jobRole = document.getElementById("jobRole");
 
-    // Option selection
+    /* Option buttons */
     let experience = "";
     document.querySelectorAll(".option-btn").forEach(btn => {
         btn.onclick = () => {
@@ -203,10 +203,9 @@
         };
     });
 
-    // Next button
-    window.addEventListener("DOMContentLoaded", () => {
+    /* Navigation */
     document.getElementById("prevBtn").onclick = () => {
-        window.location.href = "forms.html";
+        window.location.href = "forms.html"; // Section 1
     };
 
     document.getElementById("nextBtn").onclick = () => {
@@ -234,8 +233,9 @@
             })
         });
 
-        window.location.href = "section3.html";
+        window.location.href = "section3.html"; // Section 3
     };
+
 });
 </script>
 
