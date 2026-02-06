@@ -180,7 +180,7 @@ footer {
      <!-- Navigation Buttons -->
 <div id="navButtons" style="max-width:600px;margin:40px auto 100px; display:flex;justify-content:space-between; position:relative; z-index:5;">
     <button id="prevBtn" style="background: rgba(107,44,216,0.9); border:1px solid #fff; padding:12px 24px; border-radius:12px; font-weight:bold; color:#fff;">Previous</button>
-    <button id="nextBtn" style="background: rgba(107,44,216,0.9); border:1px solid #fff; padding:12px 24px; border-radius:12px; font-weight:bold; color:#fff;">Next</button>
+    <button id="submitBtn" style="background: rgba(107,44,216,0.9); border:1px solid #fff; padding:12px 24px; border-radius:12px; font-weight:bold; color:#fff;">Submit</button>
 </div>
 
 <footer>
@@ -206,11 +206,11 @@ function particle() {
 setInterval(particle,800);
 
 /* Navigation logic */
-document.getElementById('nextBtn').onclick = () => {
+document.getElementById('submitBtn').onclick = () => {
   const confirmation = document.getElementById('confirmation');
   const notes = document.getElementById('notes');
 
-  if (!confirmation.checked) return;
+  if (!confirmation.checked) return; // required checkbox
 
   const data = {
     confirmation: true,
