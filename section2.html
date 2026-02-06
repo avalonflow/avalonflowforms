@@ -158,9 +158,9 @@
   </div>
 
   <!-- Navigation Buttons -->
-<div style="max-width:600px;margin:20px auto; display:flex;justify-content:space-between;">
-    <button id="prevBtn">Previous</button>
-    <button id="nextBtn">Next</button>
+<div id="navButtons" style="max-width:600px;margin:40px auto 100px; display:flex;justify-content:space-between; position:relative; z-index:5;">
+    <button id="prevBtn" style="background: rgba(107,44,216,0.9); border:1px solid #fff; padding:12px 24px; border-radius:12px; font-weight:bold; color:#fff;">Previous</button>
+    <button id="nextBtn" style="background: rgba(107,44,216,0.9); border:1px solid #fff; padding:12px 24px; border-radius:12px; font-weight:bold; color:#fff;">Next</button>
 </div>
 
 </section>
@@ -198,6 +198,10 @@
     });
 
     // Next button
+    document.getElementById("prevBtn").onclick = () => {
+        window.location.href = "section1.html"; // Navigate to Section 1
+    };
+
     document.getElementById("nextBtn").onclick = () => {
         const data = {
             fullName: fullName.value.trim(),
@@ -223,12 +227,7 @@
             })
         });
 
-        alert("Section saved. Moving forward.");
-    };
-
-    // Previous button
-    document.getElementById("prevBtn").onclick = () => {
-        alert("Back to Section 1");
+        window.location.href = "section3.html"; // Navigate to Section 3
     };
 </script>
 
