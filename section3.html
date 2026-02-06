@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AvalonFlow – Section 3</title>
 
@@ -16,11 +16,13 @@
   .particle { position:absolute; border-radius:50%; opacity:0.6; animation:floatParticles linear infinite; box-shadow:0 0 10px #6b2cd8,0 0 20px #6b2cd8; }
   @keyframes floatParticles { 0%{transform:translateY(100vh) scale(0.3);opacity:0;} 50%{opacity:1;} 100%{transform:translateY(-10vh) scale(1);opacity:0;} }
 
+  /* Header */
   header { background:rgba(107,44,216,0.4); backdrop-filter:blur(15px); border-radius:18px; color:white; padding:20px; text-align:center; margin:20px; box-shadow:0 8px 30px rgba(0,0,0,0.3); }
 
+  /* Glass cards */
   .glass-card { background:rgba(255,255,255,0.12); backdrop-filter:blur(12px); border-radius:18px; padding:28px; margin-bottom:28px; box-shadow:0 10px 30px rgba(0,0,0,0.35); max-width:600px; margin-left:auto; margin-right:auto; }
 
-  input { width:100%; padding:14px; margin-bottom:14px; border-radius:12px; border:none; background:rgba(255,255,255,0.15); color:#fff; }
+  input { width:100%; padding:14px; margin-top:10px; border-radius:12px; border:none; background:rgba(255,255,255,0.15); color:#fff; }
 
   button { padding:12px 24px; border-radius:12px; border:none; font-weight:bold; background:rgba(107,44,216,0.6); color:#fff; cursor:pointer; }
 
@@ -28,7 +30,6 @@
   .option-btn.active { background: rgba(107,44,216,0.9); }
 
   footer { position:fixed; bottom:0; left:0; width:100%; text-align:center; padding:18px 0; font-size:14px; color:#aaa; background:rgba(15,15,25,0.95); backdrop-filter:blur(12px); box-shadow:0 -5px 20px rgba(0,0,0,0.4); z-index:6; }
-
 </style>
 </head>
 <body>
@@ -39,16 +40,17 @@
 
 <section id="section3">
 
-<div class="glass-card" style="max-width:600px;margin:80px auto 30px;text-align:center;">
-  <h2 style="font-weight:bold;">Payments</h2>
-  <p style="font-style:italic;">Destination for your AvalonCare Interest Units.</p>
-</div>
+  <!-- Heading -->
+  <div class="glass-card" style="text-align:center;">
+    <h2 style="font-weight:bold;">Payments</h2>
+    <p style="font-style:italic;">Destination for your AvalonCare Interest Units.</p>
+  </div>
 
-  <!-- Question 1: Payment Method -->
+  <!-- Question 1: Preference Method -->
   <div class="glass-card">
     <h2>1. Preference Method</h2>
     <p style="font-style:italic;">Stable Digital Settlement — USD-pegged.</p>
-    <div style="display:flex;gap:10px; flex-wrap:wrap; margin-top:10px;">
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
       <button class="option-btn" data-value="Tether USDT on ERC-20">Tether USDT on ERC-20</button>
       <button class="option-btn" data-value="USDC on ERC-20">USDC on ERC-20</button>
       <button class="option-btn" data-value="Gift card / Voucher">Gift card / Voucher</button>
@@ -63,7 +65,14 @@
     <input id="acuAccount" placeholder="ACU Withdrawal Account (Optional)" style="display:none;">
   </div>
 
-  <!-- Navigation Buttons -->
+  <!-- Question 3: PayPal / Cash App Input -->
+  <div class="glass-card">
+    <h2>3. PayPal / Cash App Account (Optional)</h2>
+    <p style="font-style:italic;">Only if choosing PayPal or Cash App above. Enter your email or username for payment.</p>
+    <input id="paypalInput" placeholder="PayPal / Cash App Email/Username" style="display:none;">
+  </div>
+
+  <!-- Navigation -->
   <div class="glass-card" style="display:flex; justify-content:space-between;">
     <button id="prevBtn">Previous</button>
     <button id="nextBtn">Next</button>
@@ -76,7 +85,7 @@
 <script>
 window.addEventListener("DOMContentLoaded", () => {
 
-  /* Floating Particles */
+  // Floating particles
   const bg = document.getElementById('floating-bg');
   const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
   function particle() {
@@ -93,10 +102,11 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   setInterval(particle,800);
 
-  /* Inputs */
+  // Inputs
   const acuInput = document.getElementById("acuAccount");
+  const paypalInput = document.getElementById("paypalInput");
 
-  /* Option Buttons Logic */
+  // Option buttons
   let preference = "";
   document.querySelectorAll(".option-btn").forEach(btn => {
     btn.onclick = () => {
@@ -104,16 +114,25 @@ window.addEventListener("DOMContentLoaded", () => {
       document.querySelectorAll(".option-btn").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
 
+      // Show ACU input for crypto
       if (preference === "Tether USDT on ERC-20" || preference === "USDC on ERC-20") {
         acuInput.style.display = "block";
       } else {
         acuInput.style.display = "none";
         acuInput.value = "";
       }
+
+      // Show PayPal input if selected
+      if (preference === "PayPal / Cash App") {
+        paypalInput.style.display = "block";
+      } else {
+        paypalInput.style.display = "none";
+        paypalInput.value = "";
+      }
     };
   });
 
-  /* Navigation */
+  // Navigation
   document.getElementById("prevBtn").onclick = () => {
     window.location.href = "section2.html"; // Back to Section 2
   };
@@ -126,7 +145,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
     const data = {
       preference,
-      acuAccount: acuInput.value.trim()
+      acuAccount: acuInput.value.trim(),
+      paypalAccount: paypalInput.value.trim()
     };
 
     localStorage.setItem("section3Data", JSON.stringify(data));
