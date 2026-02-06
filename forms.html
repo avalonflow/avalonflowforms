@@ -146,15 +146,23 @@
         </div>
 
 <!-- NEXT BUTTON IN ITS OWN GLASS PANEL -->
-<div class="glass-card" style="max-width:300px;margin:50px auto;text-align:center;position:relative;z-index:2;">
-  <a href="section2.html"
-     style="display:inline-block; padding:12px 24px; font-size:16px; font-weight:bold; 
-            border:none; border-radius:12px; background:rgba(107,44,216,0.8); color:#fff; 
-            text-decoration:none; cursor:pointer;">
+<div class="glass-card"
+     style="max-width:300px;
+            margin:60px auto 160px;
+            text-align:center;
+            position:relative;
+            z-index:3;">
+  <button id="nextBtn"
+          style="padding:12px 24px;
+                 font-size:16px;
+                 font-weight:bold;
+                 border:none;
+                 border-radius:12px;
+                 background:rgba(107,44,216,0.6);
+                 color:#fff;">
     Next
-  </a>
+  </button>
 </div>
-</section>
 
 <!-- Sticky Footer -->
     <footer>
@@ -188,16 +196,34 @@
         });
 
         /* ---------- LocalStorage ---------- */
-        const section1Key = 'section1Data';
-        function saveSection1Data(data) {
-            localStorage.setItem(section1Key, JSON.stringify(data));
-        }
-        function loadSection1Data() {
-            const saved = localStorage.getItem(section1Key);
-            return saved ? JSON.parse(saved) : {};
-        }
-        const section1Data = loadSection1Data();
+const section1Key = 'section1Data';
 
+function saveSection1Data(data) {
+    localStorage.setItem(section1Key, JSON.stringify(data));
+}
+
+function loadSection1Data() {
+    const saved = localStorage.getItem(section1Key);
+    return saved ? JSON.parse(saved) : {};
+}
+
+const section1Data = loadSection1Data();
+
+/* ---------- Navigation ---------- */
+document.addEventListener("DOMContentLoaded", () => {
+    const nextBtn = document.getElementById("nextBtn");
+
+    if (nextBtn) {
+        nextBtn.addEventListener("click", () => {
+            // optional: save before leaving
+            saveSection1Data(section1Data);
+
+            window.location.href = "section2.html";
+        });
+    } else {
+        console.warn("nextBtn not found in DOM");
+    }
+});
     </script>
 </body>
             </html>
