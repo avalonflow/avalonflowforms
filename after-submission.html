@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AvalonFlow – Thank You</title>
 
@@ -48,17 +48,11 @@
 </div>
 
 <script>
-  // Block form access if Section 4 is already submitted
-  const section4Data = localStorage.getItem('section4Data');
-  if (!section4Data) {
-    // If Section 4 not submitted yet, redirect to form start
-    window.location.href = 'section1.html'; // or section1.html depending on your flow
-  }
-
-  // Optional: you can clear previous form sections so the user can't resubmit accidentally
-  // localStorage.removeItem('section1Data');
-  // localStorage.removeItem('section2Data');
-  // localStorage.removeItem('section3Data');
+  // Prevent user from going back to the form
+  history.pushState(null, null, location.href);
+  window.onpopstate = function () {
+    history.go(1); // keeps them on this page
+  };
 </script>
 </body>
-  </html>
+</html>
