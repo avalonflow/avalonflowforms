@@ -171,6 +171,12 @@
 <script>
 window.addEventListener("DOMContentLoaded", () => {
 
+// Block access if form is already submitted
+if (localStorage.getItem('formSubmitted') === 'true') {
+// Redirect directly to Thank You page
+window.location.href = 'thank-you.html';
+}
+
     /* ---------- Floating Particles ---------- */
     const bg = document.getElementById('floating-bg');
     const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
