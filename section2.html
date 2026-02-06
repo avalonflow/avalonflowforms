@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AvalonFlow – Section 1</title>
+
+    <style>
+        /* ---------- Base ---------- */
+        body {
+            font-family: Georgia, serif;
+            margin: 0;
+            background: #0d0d0d;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        button { cursor: pointer; }
+        a { color: inherit; text-decoration: none; }
+
+        /* ---------- Floating Background ---------- */
+        #floating-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at bottom, #1a0d3a, #0d0d0d);
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: floatParticles linear infinite;
+            box-shadow: 0 0 10px #6b2cd8, 0 0 20px #6b2cd8;
+        }
+        @keyframes floatParticles {
+            0% { transform: translateY(100vh) scale(0.3); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        /* ---------- Panels & Glass Cards ---------- */
+        .panel, .glass-card {
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(12px);
+            border-radius: 18px;
+            padding: 28px;
+            margin-bottom: 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        }
+
+        /* ---------- Header / Banner ---------- */
+        header { 
+            background: rgba(107,44,216,0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 18px;
+            color: white; 
+            padding: 20px; 
+            text-align: center; 
+            position: relative;
+            z-index: 2;
+            margin: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+
+       /* ---------- Footer ---------- */
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            padding: 18px 0;
+            font-size: 14px;
+            color: #aaa;
+            background: rgba(15,15,25,0.95);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.4);
+            z-index: 6;
+        }
+
+        /* ---------- Notification Bar ---------- */
+        .notification-bar {
+            position: fixed;
+            top: -80px;
+            right: 20px;
+            background: rgba(30, 144, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(30,144,255,0.4);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 14px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+            transition: top 0.5s ease, opacity 0.5s ease;
+            z-index: 9999;
+            opacity: 0;
+            max-width: 350px;
+            white-space: normal;
+            overflow: hidden;
+        }
+        .notification-bar.show {
+            top: 20px;
+            opacity: 1;
+        }
+        .notification-bar::before {
+            content: '';
+            position: absolute;
+            left: -50%;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            background: rgba(255,255,255,0.3);
+            transform: skewX(-25deg);
+            animation: liquidWave 2s linear infinite;
+        }
+        @keyframes liquidWave {
+            0% { left: -50%; }
+            100% { left: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Background -->
+    <div id="floating-bg"></div>
+
+    <!-- Header / Banner -->
+    <header>
+        <!-- Image version -->
+        <img src="assets/pictures/logo.png" alt="AvalonFlow Logo">
+    </header>
+
+    <!-- Section 1 -->
+    <section id="section1">
+        <!-- Notification Bar -->
+        <div id="planNotification" class="notification-bar"></div>
+
+        <!-- Glass Card -->
+        <div class="glass-card" style="max-width:500px; margin:100px auto;text-align:center;padding:40px 20px;background:rgba(107,44,216,0.25);backdrop-filter:blur(15px);box-shadow:0 10px 30px rgba(0,0,0,0.35);border-radius:18px;">
+            <h2 style="font-weight:bold;">AvalonCare Wing Membership Form</h2>
+            <p style="font-weight:bold; font-style:italic; margin-top:16px;">
+                This information is kept strictly confidential
+            </p>
+        </div>
+
+        <!-- Next Button BELOW the card -->
+        <div style="text-align:center; margin-top:20px;">
+            <button id="nextBtn" style="padding:12px 24px;font-size:16px;font-weight:bold;border:none;border-radius:12px;background:rgba(107,44,216,0.6);color:#fff;cursor:pointer;">
+                Next
+            </button>
+        </div>
+    </section>
+
+<!-- Sticky Footer -->
+    <footer>
+        © 2026 AvalonFlow • Powered by Centrical™
+    </footer>
+
+    <script>
+        /* ---------- Floating Particles ---------- */
+        const bg = document.getElementById('floating-bg');
+        const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
+        function particle() {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            const s = Math.random()*20+10;
+            p.style.width = s+'px';
+            p.style.height = s+'px';
+            p.style.left = Math.random()*100+'vw';
+            p.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random()*3)]}, transparent)`;
+            p.style.animationDuration = (Math.random()*20+10)+'s';
+            bg.appendChild(p);
+            setTimeout(()=>p.remove(),30000);
+        }
+        setInterval(particle,800);
+
+        /* ---------- Notification ---------- */
+        window.addEventListener("load", () => {
+            const notification = document.getElementById("planNotification");
+            notification.textContent = "Welcome! Let’s get started.";
+            setTimeout(() => notification.classList.add("show"), 300);
+            setTimeout(() => notification.classList.remove("show"), 3300);
+        });
+
+        /* ---------- LocalStorage ---------- */
+        const section1Key = 'section1Data';
+        function saveSection1Data(data) {
+            localStorage.setItem(section1Key, JSON.stringify(data));
+        }
+        function loadSection1Data() {
+            const saved = localStorage.getItem(section1Key);
+            return saved ? JSON.parse(saved) : {};
+        }
+        const section1Data = loadSection1Data();
+
+        /* ---------- Next / Prev Navigation ---------- */
+        function showSection(sectionId) {
+            document.querySelectorAll('section').forEach(sec => sec.style.display = 'none');
+            const sec = document.getElementById(sectionId);
+            if(sec) sec.style.display = 'block';
+        }
+
+        // Initially show Section 1
+        showSection('section1');
+    </script>
+</body>
+</html>
