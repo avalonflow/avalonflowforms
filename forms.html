@@ -123,6 +123,11 @@
     </style>
 </head>
 <body>
+<div id="next">
+    <button onclick="window.location.href='/dashboard'">Dashboard</button>
+</div>
+<div id="overlay" onclick="toggleSidebar()"></div>
+
     <!-- Floating Background -->
     <div id="floating-bg"></div>
 
@@ -147,21 +152,8 @@
 
 <!-- NEXT BUTTON IN ITS OWN GLASS PANEL -->
 <div class="glass-card"
-     style="max-width:300px;
-            margin:60px auto 160px;
-            text-align:center;
-            position:relative;
-            z-index:3;">
-  <button id="nextBtn"
-          style="padding:12px 24px;
-                 font-size:16px;
-                 font-weight:bold;
-                 border:none;
-                 border-radius:12px;
-                 background:rgba(107,44,216,0.6);
-                 color:#fff;">
-    Next
-  </button>
+  style="max-width:300px;margin:60px auto;text-align:center;padding:30px 20px;background:rgba(107,44,216,0.25);backdrop-filter:blur(15px);box-shadow:0 10px 30px rgba(0,0,0,0.35);border-radius:18px;">
+        <button id="nextBtn" style="padding:12px 24px;font-size:16px;font-weight:bold;border:none;border-radius:12px;background:rgba(107,44,216,0.6);color:#fff;cursor:pointer;">Next</button>
 </div>
 
 <!-- Sticky Footer -->
@@ -208,22 +200,6 @@ function loadSection1Data() {
 }
 
 const section1Data = loadSection1Data();
-
-/* ---------- Navigation ---------- */
-document.addEventListener("DOMContentLoaded", () => {
-    const nextBtn = document.getElementById("nextBtn");
-
-    if (nextBtn) {
-        nextBtn.addEventListener("click", () => {
-            // optional: save before leaving
-            saveSection1Data(section1Data);
-
-            window.location.href = "section2.html";
-        });
-    } else {
-        console.warn("nextBtn not found in DOM");
-    }
-});
     </script>
 </body>
             </html>
