@@ -191,7 +191,7 @@ footer {
 // Block access if form is already submitted
 if (localStorage.getItem('formSubmitted') === 'true') {
     // Redirect directly to Thank You page
-    window.location.href = 'thank-you.html';
+    window.location.href = 'after-submission.html';
 }
 
 /* Floating particles */
@@ -236,7 +236,7 @@ document.getElementById('nextBtn').onclick = () => {
     })
   }).finally(() => {
     // Redirect to Thank You
-    window.location.href = 'thank-you.html';
+    window.location.href = 'after-submission.html';
   });
 };
 </script>
