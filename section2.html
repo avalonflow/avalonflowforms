@@ -66,21 +66,21 @@
     }
 
 /* Glass input style (same as Section 3) */
-.glass-input {
+.dark-glass-input {
     width: 100%;
     padding: 14px;
     margin-bottom: 14px;
-    border-radius: 12px;                 /* Rounded corners */
+    border-radius: 12px;                         /* Rounded corners like Section 3 */
     border: none;
-    background: rgba(255, 255, 255, 0.15); /* Subtle glass background */
-    color: #fff;                          /* White text */
+    background: rgba(0, 0, 0, 0.3);             /* Dark glass background */
+    color: #fff;                                 /* White text */
     font-size: 16px;
-    backdrop-filter: blur(12px);          /* Glass effect */
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Depth */
+    backdrop-filter: blur(12px);                 /* Glass effect */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);  /* Depth shadow */
 }
 
-.glass-input::placeholder {
-    color: rgba(255,255,255,0.7);         /* Stylish placeholder */
+.dark-glass-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);           /* Lighter placeholder for contrast */
 }
 
     button {
