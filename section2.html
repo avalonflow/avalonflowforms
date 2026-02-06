@@ -66,14 +66,21 @@
     }
 
     input {
-        width: 100%;
-        padding: 14px;
-        margin-top: 10px;
-        border-radius: 12px;
-        border: none;
-        background: rgba(255,255,255,0.15);
-        color: #fff;
-    }
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 14px;
+    border-radius: 12px;                 /* Rounded corners */
+    border: none;
+    background: rgba(255, 255, 255, 0.15); /* Subtle glass background */
+    color: #fff;                          /* White text */
+    font-size: 16px;
+    backdrop-filter: blur(12px);          /* Glass effect */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Depth */
+}
+
+input::placeholder {
+    color: rgba(255,255,255,0.7);         /* Stylish placeholder */
+}
 
     button {
         padding: 12px 24px;
