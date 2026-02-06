@@ -197,15 +197,12 @@
         }
         const section1Data = loadSection1Data();
 
-        /* ---------- Next / Prev Navigation ---------- */
-        function showSection(sectionId) {
-            document.querySelectorAll('section').forEach(sec => sec.style.display = 'none');
-            const sec = document.getElementById(sectionId);
-            if(sec) sec.style.display = 'block';
-        }
-
-        // Initially show Section 1
-        showSection('section1');
+// Optional: Confirm leaving page
+document.querySelector('a[href="section2.html"]').addEventListener('click', function(e){
+    if(!confirm("Are you ready to go to the next page?")){
+        e.preventDefault(); // Stop navigation if user cancels
+    }
+});
     </script>
 </body>
             </html>
