@@ -150,6 +150,11 @@ footer {
 
 <section id="section4">
 
+  <!-- Heading -->
+  <div class="glass-card" style="text-align:center;">
+    <h2 style="font-weight:bold;">Final Step</h2>
+  </div>
+
   <!-- Glass Card 1: Confirmation -->
   <div class="glass-card">
     <h2 style="font-weight:bold;">Confirmation</h2>
@@ -157,7 +162,7 @@ footer {
       <input type="checkbox" id="confirmation" required>
       <label for="confirmation" style="font-weight:500; line-height:1.6;">
         I understand that submitting this form initiates my AvalonCare Wing Membership
-        and that access is granted after Settlement Confirmation.
+        and that access is granted after Digital Settlement Confirmation.
       </label>
     </div>
   </div>
@@ -165,20 +170,18 @@ footer {
   <!-- Glass Card 2: Notes -->
   <div class="glass-card">
     <h2 style="font-weight:bold;">Notes / Special Instructions</h2>
-    <p style="font-style:italic;">Optional — keep it short.</p>
+    <p style="font-style:italic;">Optional — Kindly keep it short.</p>
     <textarea
       id="notes"
       placeholder="Any additional info you'd like to provide."
       rows="4"></textarea>
   </div>
 
-  <!-- Navigation Buttons -->
-  <div class="button-row">
-    <button id="prevBtn">Previous</button>
-    <button id="nextBtn">Submit</button>
-  </div>
-
-</section>
+     <!-- Navigation Buttons -->
+<div id="navButtons" style="max-width:600px;margin:40px auto 100px; display:flex;justify-content:space-between; position:relative; z-index:5;">
+    <button id="prevBtn" style="background: rgba(107,44,216,0.9); border:1px solid #fff; padding:12px 24px; border-radius:12px; font-weight:bold; color:#fff;">Previous</button>
+    <button id="nextBtn" style="background: rgba(107,44,216,0.9); border:1px solid #fff; padding:12px 24px; border-radius:12px; font-weight:bold; color:#fff;">Next</button>
+</div>
 
 <footer>
   © 2026 AvalonFlow • Powered by Centrical™
