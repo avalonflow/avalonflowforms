@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AvalonFlow – Section 3</title>
+
+<style>
+  /* ---------- Base ---------- */
+  body {
+    font-family: Georgia, serif;
+    margin: 0;
+    background: #0d0d0d;
+    color: #fff;
+    overflow-x: hidden;
+  }
+  button { cursor: pointer; }
+  a { color: inherit; text-decoration: none; }
+
+  /* ---------- Floating Background ---------- */
+  #floating-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at bottom, #1a0d3a, #0d0d0d);
+    overflow: hidden;
+  }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: floatParticles linear infinite;
+    box-shadow: 0 0 10px #6b2cd8, 0 0 20px #6b2cd8;
+  }
+  @keyframes floatParticles {
+    0% { transform: translateY(100vh) scale(0.3); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+  }
+
+  /* ---------- Header / Banner ---------- */
+  header {
+    background: rgba(107,44,216,0.4);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 18px;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    margin: 20px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+
+  /* ---------- Panels & Glass Cards ---------- */
+  .panel, .glass-card {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(12px);
+    border-radius: 18px;
+    padding: 28px;
+    margin-bottom: 28px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+
+  input {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 14px;
+    border-radius: 12px;
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+  }
+
+  button {
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: none;
+    font-weight: bold;
+    background: rgba(107,44,216,0.6);
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .option-btn {
+    background: rgba(255,255,255,0.15);
+  }
+
+  .option-btn.active {
+    background: rgba(107,44,216,0.9);
+  }
+
+  /* ---------- Footer ---------- */
+  footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    padding: 18px 0;
+    font-size: 14px;
+    color: #aaa;
+    background: rgba(15,15,25,0.95);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.4);
+    z-index: 6;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="assets/pictures/logo.png" alt="AvalonFlow Logo" style="max-width:160px;">
+</header>
+
+<section id="section3">
+
+  <!-- QUESTIONS CARD -->
+  <div class="glass-card" style="max-width:600px;margin:80px auto 30px;">
+    <h2 style="font-weight:bold;">
+      Payments
+    </h2>
+    <p style="font-weight:bold;font-style:italic;">
+      Destination for your AvalonCare Interest Units.
+    </p>
+
+    <p><strong>1. Preference Method</strong></p>
+    <p style="font-weight:bold;font-style:italic;">
+      Stable Digital Settlement — USD-pegged.
+    </p>
+
+    <p><strong>2. ACU Withdrawal Accounts (Optional)</strong></p>
+    <p style="font-weight:bold;font-style:italic;">
+      Only if chosen USD-Pegged Cryptocurrency Wallets: Tether USDT or USDC.
+      ℹ️ Make sure to copy your token address exactly, including uppercase/lowercase letters, and double-check it before submitting.
+    </p>
+  </div>
+
+  <!-- INPUTS / OPTIONS -->
+  <div style="max-width:600px;margin:0 auto;">
+    <div style="display:flex;gap:10px;justify-content:center;margin:20px 0;">
+      <button class="option-btn" data-value="Tether USDT on ERC-20">Tether USDT on ERC-20</button>
+      <button class="option-btn" data-value="USDC on ERC-20">USDC on ERC-20</button>
+      <button class="option-btn" data-value="Gift card / Voucher">Gift card / Voucher</button>
+      <button class="option-btn" data-value="PayPal / Cash App">PayPal / Cash App</button>
+    </div>
+
+    <input id="acuAccount" placeholder="ACU Withdrawal Account (Optional)" style="display:none;">
+
+    <div style="display:flex;justify-content:space-between;">
+      <button id="prevBtn">Previous</button>
+      <button id="nextBtn">Next</button>
+    </div>
+  </div>
+
+</section>
+
+<!-- Sticky Footer -->  
+    <footer>  
+        © 2026 AvalonFlow • Powered by Centrical™  
+    </footer>  
+
+<script>
+  /* ---------- Floating Particles ---------- */
+  const bg = document.getElementById('floating-bg');
+  const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
+  function particle() {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const s = Math.random()*20+10;
+    p.style.width = s+'px';
+    p.style.height = s+'px';
+    p.style.left = Math.random()*100+'vw';
+    p.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random()*3)]}, transparent)`;
+    p.style.animationDuration = (Math.random()*20+10)+'s';
+    bg.appendChild(p);
+    setTimeout(()=>p.remove(),30000);
+  }
+  setInterval(particle,800);
+
+  // Section 3 logic
+  let preference = "";
+
+  const optionBtns = document.querySelectorAll(".option-btn");
+  const acuInput = document.getElementById("acuAccount");
+
+  optionBtns.forEach(btn => {
+    btn.onclick = () => {
+      preference = btn.dataset.value;
+      optionBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      // Show ACU input only if crypto chosen
+      if (preference === "Tether USDT on ERC-20" || preference === "USDC on ERC-20") {
+        acuInput.style.display = "block";
+      } else {
+        acuInput.style.display = "none";
+        acuInput.value = "";
+      }
+    };
+  });
+
+  document.getElementById("nextBtn").onclick = () => {
+    if (!preference) return; // required field
+
+    const data = {
+      preference,
+      acuAccount: acuInput.value.trim()
+    };
+
+    localStorage.setItem("section3Data", JSON.stringify(data));
+
+    fetch("/.netlify/functions/sendSection", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ section: "Section 3 – Payments", payload: data })
+    });
+  };
+
+  document.getElementById("prevBtn").onclick = () => {
+    // Navigate back to Section 2
+    // e.g., showSection("section2");
+  };
+</script>
+
+</body>
+  </html>
