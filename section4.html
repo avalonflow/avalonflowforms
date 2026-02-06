@@ -212,7 +212,7 @@ function particle() {
 setInterval(particle,800);
 
 /* Navigation logic */
-document.getElementById('submitBtn').onclick = () => {
+document.getElementById('nextBtn').onclick = () => {
   const confirmation = document.getElementById('confirmation');
   const notes = document.getElementById('notes');
 
@@ -222,8 +222,11 @@ document.getElementById('submitBtn').onclick = () => {
     confirmation: true,
     notes: notes.value.trim()
   };
-  localStorage.setItem('section4Data', JSON.stringify(data));
 
+  // ✅ Step 1: Mark form as submitted
+  localStorage.setItem('formSubmitted', 'true');
+
+  // Send data to Netlify
   fetch('/.netlify/functions/sendSection', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -232,12 +235,9 @@ document.getElementById('submitBtn').onclick = () => {
       payload: data
     })
   }).finally(() => {
-    window.location.href = 'after-submission.html';
+    // Redirect to Thank You
+    window.location.href = 'thank-you.html';
   });
-};
-
-document.getElementById('prevBtn').onclick = () => {
-  window.location.href = 'section3.html';
 };
 </script>
 
