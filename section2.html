@@ -189,47 +189,83 @@ window.addEventListener("DOMContentLoaded", () => {
     setInterval(particle,800);
 
     /* Input elements */
-    const fullName = document.getElementById("fullName");
-    const email = document.getElementById("email");
-    const location = document.getElementById("location");
-    const jobRole = document.getElementById("jobRole");
+    document.addEventListener("DOMContentLoaded", () => {
 
-    /* Option buttons */
-    let experience = "";
-    document.querySelectorAll(".option-btn").forEach(btn => {
-        btn.onclick = () => {
-            experience = btn.dataset.value;
-            document.querySelectorAll(".option-btn").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-        };
-    });
+  const fullName = document.getElementById("fullName");
+  const email = document.getElementById("email");
+  const location = document.getElementById("location");
+  const jobRole = document.getElementById("jobRole");
 
-    /* Navigation */
-    document.getElementById("prevBtn").onclick = () => {
-        window.location.href = "forms.html"; // Section 1
+  let experience = "";
+
+  /* ---------- RESTORE SAVED DATA ---------- */
+  const savedData = JSON.parse(localStorage.getItem("section2Data")) || {};
+
+  if (savedData.fullName) fullName.value = savedData.fullName;
+  if (savedData.email) email.value = savedData.email;
+  if (savedData.location) location.value = savedData.location;
+  if (savedData.jobRole) jobRole.value = savedData.jobRole;
+  if (savedData.experience) experience = savedData.experience;
+
+  /* Restore experience button UI */
+  document.querySelectorAll(".option-btn").forEach(btn => {
+    if (btn.dataset.value === experience) {
+      btn.classList.add("active");
+    }
+  });
+
+  /* ---------- AUTO-SAVE ON INPUT ---------- */
+  function saveSection2() {
+    localStorage.setItem("section2Data", JSON.stringify({
+      fullName: fullName.value.trim(),
+      email: email.value.trim(),
+      location: location.value.trim(),
+      jobRole: jobRole.value.trim(),
+      experience
+    }));
+  }
+
+  fullName.addEventListener("input", saveSection2);
+  email.addEventListener("input", saveSection2);
+  location.addEventListener("input", saveSection2);
+  jobRole.addEventListener("input", saveSection2);
+
+  /* ---------- EXPERIENCE BUTTONS ---------- */
+  document.querySelectorAll(".option-btn").forEach(btn => {
+    btn.onclick = () => {
+      experience = btn.dataset.value;
+
+      document.querySelectorAll(".option-btn")
+        .forEach(b => b.classList.remove("active"));
+
+      btn.classList.add("active");
+      saveSection2(); // persist experience immediately
     };
+  });
 
-    document.getElementById("nextBtn").onclick = () => {
-        const data = {
-            fullName: fullName.value.trim(),
-            email: email.value.trim(),
-            location: location.value.trim(),
-            jobRole: jobRole.value.trim(),
-            experience
-        };
+  /* ---------- NAVIGATION ---------- */
+  document.getElementById("prevBtn").onclick = () => {
+    window.location.href = "forms.html"; // Section 1
+  };
 
-        if (!data.fullName || !data.email || !data.location || !data.experience) {
-            alert("Please complete all required fields.");
-            return;
-        }
+  document.getElementById("nextBtn").onclick = () => {
 
-        localStorage.setItem("section2Data", JSON.stringify(data));
+    if (
+      !fullName.value.trim() ||
+      !email.value.trim() ||
+      !location.value.trim() ||
+      !experience
+    ) {
+      alert("Please complete all required fields.");
+      return;
+    }
 
-        window.location.href = "section3.html"; // Section 3
-    };
-
+    saveSection2(); // final save
+    window.location.href = "section3.html";
+  };
 });
 
+/* ---------- FINGERPRINT ---------- */
 function getFingerprint() {
   return btoa(
     navigator.userAgent +
@@ -238,10 +274,10 @@ function getFingerprint() {
   );
 }
 
-// Any section except Section 4
-if (localStorage.getItem('formSubmitted') === 'true') {
-  window.location.href = 'after-submission.html';
-    }
+/* ---------- BLOCK ACCESS AFTER SUBMISSION ---------- */
+if (localStorage.getItem("formSubmitted") === "true") {
+  window.location.href = "after-submission.html";
+}
 </script>
 
 </body>
