@@ -215,17 +215,17 @@ function getFingerprint() {
 }
 
 // Submit button logic
-document.getElementById('submitBtn').onclick = async (e) => {
+document.getElementById('submitBtn').onclick = (e) => {
   e.preventDefault(); // Prevent default form reload
 
   const confirmation = document.getElementById('confirmation');
 
   // Get email & country stored from section2.html
   const section2Data = JSON.parse(localStorage.getItem("section2Data")) || {};
+  const email = section2Data.email || "";
+  const country = section2Data.location || "";
 
-const email = section2Data.email || "";
-const country = section2Data.location || "";
-
+  // Validation
   if (!confirmation.checked) {
     alert("Please confirm before submitting.");
     return;
@@ -241,39 +241,11 @@ const country = section2Data.location || "";
     return;
   }
 
-  // Timestamp + fingerprint
-  const timestamp = new Date().toISOString();
-  const fingerprint = getFingerprint();
+  // Optional: save flag locally
+  localStorage.setItem('formSubmitted', 'true');
 
-  const payload = { email, country, timestamp, fingerprint };
-
-  try {
-    const res = await fetch(
-      "https://script.google.com/macros/s/AKfycbxKkBABIuDkyV_BXtEzzCe60j5UR89kbIP4D9XYQIvfM-AvGNbYW6eCbWmOtBvQb_pn/exec",
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      }
-    );
-
-    const text = await res.text();
-  console.log("Server response:", text);
-
-    if (data.status === "duplicate" || data.status === "success") {
-      localStorage.setItem('formSubmitted', 'true');
-
-      // Redirect on success
-      window.location.href = 'after-submission.html';
-      return;
-    }
-
-    throw new Error(data.message || "Submission failed");
-
-  } catch (err) {
-    console.error("Submission error:", err);
-    alert("Submission failed. Please try again.");
-  }
+  // Redirect on success
+  window.location.href = 'after-submission.html';
 };
 
 // Previous button logic
