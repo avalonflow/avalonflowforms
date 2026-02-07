@@ -212,32 +212,50 @@ function particle() {
 setInterval(particle,800);
 
 /* Navigation logic */
-document.getElementById('nextBtn').onclick = () => {
+function getFingerprint() {
+  return btoa(
+    navigator.userAgent +
+    screen.width + screen.height +
+    navigator.language
+  );
+}
+
+document.getElementById('nextBtn').onclick = async () => {
   const confirmation = document.getElementById('confirmation');
   const notes = document.getElementById('notes');
 
-  if (!confirmation.checked) return; // required checkbox
+  if (!confirmation.checked) return;
 
-  const data = {
+  const payload = {
     confirmation: true,
     notes: notes.value.trim()
   };
 
-  // ✅ Step 1: Mark form as submitted
-  localStorage.setItem('formSubmitted', 'true');
+  try {
+    const res = await fetch('/.netlify/functions/submitFinal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fingerprint: getFingerprint(),
+        payload
+      })
+    });
 
-  // Send data to Netlify
-  fetch('/.netlify/functions/sendSection', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      section: 'Section 4 – Final Confirmation',
-      payload: data
-    })
-  }).finally(() => {
-    // Redirect to Thank You
+    if (res.status === 409) {
+      // Already submitted
+      window.location.href = 'after-submission.html';
+      return;
+    }
+
+    if (!res.ok) throw new Error("Submission failed");
+
+    // Optional client-side flag (UX only)
+    localStorage.setItem('formSubmitted', 'true');
+
     window.location.href = 'after-submission.html';
-  });
+  } catch (err) {
+    alert("Submission failed. Please try again.");
+  }
 };
 </script>
 
