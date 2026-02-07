@@ -48,11 +48,19 @@
 </div>
 
 <script>
-  // Prevent user from going back to the form
+  // Prevent user from going back to previous pages
   history.pushState(null, null, location.href);
-  window.onpopstate = function () {
-    history.go(1); // keeps them on this page
-  };
+
+  window.addEventListener('popstate', function () {
+    history.go(1); // keeps user on this page
+  });
+
+  // Optional: also prevent back with keyboard shortcuts
+  window.addEventListener('keydown', function (e) {
+    if ((e.key === 'Backspace' && e.target === document.body) || e.key === 'ArrowLeft') {
+      e.preventDefault();
+    }
+  });
 </script>
 </body>
 </html>
