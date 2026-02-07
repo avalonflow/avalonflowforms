@@ -99,12 +99,6 @@
 </footer>
 
 <script>
-// Block access if form is already submitted
-if (localStorage.getItem('formSubmitted') === 'true') {
-// Redirect directly to Thank You page
-window.location.href = 'after-submission.html';
-}
-
   // Floating Particles
   const bg = document.getElementById('floating-bg');
   const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
@@ -121,6 +115,14 @@ window.location.href = 'after-submission.html';
     setTimeout(()=>p.remove(),30000);
   }
   setInterval(particle,800);
+
+fetch('/.netlify/functions/checkSubmission')
+  .then(res => res.json())
+  .then(data => {
+    if (data.submitted) {
+      window.location.replace('after-submission.html');
+    }
+  });
 </script>
 
 </body>
