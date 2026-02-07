@@ -229,19 +229,10 @@ function getFingerprint() {
   );
 }
 
-fetch('/.netlify/functions/checkSubmission', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    fingerprint: getFingerprint()
-  })
-})
-.then(res => res.json())
-.then(data => {
-  if (data.submitted) {
-    window.location.replace('after-submission.html');
-  }
-});
+// Any section except Section 4
+if (localStorage.getItem('formSubmitted') === 'true') {
+  window.location.href = 'after-submission.html';
+        }
     </script>
 </body>
 </html>
