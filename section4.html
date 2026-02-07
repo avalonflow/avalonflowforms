@@ -232,7 +232,7 @@ document.getElementById('submitBtn').onclick = async () => {
   const payload = { email, country };
 
   try {
-    const res = await fetch("YOUR_SCRIPT_URL_HERE", {
+    const res = await fetch("https://script.google.com/macros/s/AKfycbxKkBABIuDkyV_BXtEzzCe60j5UR89kbIP4D9XYQIvfM-AvGNbYW6eCbWmOtBvQb_pn/exec", {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
