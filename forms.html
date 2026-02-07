@@ -221,13 +221,27 @@
             window.location.href = 'section2.html'; // Navigate to your next page
         });
 
-fetch('/.netlify/functions/checkSubmission')
-  .then(res => res.json())
-  .then(data => {
-    if (data.submitted) {
-      window.location.replace('after-submission.html');
-    }
-  });
+function getFingerprint() {
+  return btoa(
+    navigator.userAgent +
+    screen.width + screen.height +
+    navigator.language
+  );
+}
+
+fetch('/.netlify/functions/checkSubmission', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    fingerprint: getFingerprint()
+  })
+})
+.then(res => res.json())
+.then(data => {
+  if (data.submitted) {
+    window.location.replace('after-submission.html');
+  }
+});
     </script>
 </body>
 </html>
