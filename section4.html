@@ -221,8 +221,10 @@ document.getElementById('submitBtn').onclick = async (e) => {
   const confirmation = document.getElementById('confirmation');
 
   // Get email & country stored from section2.html
-  const email = localStorage.getItem('userEmail') || '';
-  const country = localStorage.getItem('userCountry') || '';
+  const section2Data = JSON.parse(localStorage.getItem("section2Data")) || {};
+
+const email = section2Data.email || "";
+const country = section2Data.location || "";
 
   if (!confirmation.checked) {
     alert("Please confirm before submitting.");
