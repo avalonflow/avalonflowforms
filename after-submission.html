@@ -19,6 +19,11 @@
     padding: 20px;
   }
 
+  /* Floating Background */
+  #floating-bg { position:fixed; inset:0; z-index:0; pointer-events:none; background:radial-gradient(circle at bottom, #1a0d3a,#0d0d0d); overflow:hidden; }
+  .particle { position:absolute; border-radius:50%; opacity:0.6; animation:floatParticles linear infinite; box-shadow:0 0 10px #6b2cd8,0 0 20px #6b2cd8; }
+  @keyframes floatParticles { 0%{transform:translateY(100vh) scale(0.3);opacity:0;} 50%{opacity:1;} 100%{transform:translateY(-10vh) scale(1);opacity:0;} }
+
   .thank-you-card {
     background: rgba(255,255,255,0.12);
     backdrop-filter: blur(12px);
@@ -42,12 +47,32 @@
 </head>
 
 <body>
+  <!-- Floating Background -->
+  <div id="floating-bg"></div>
+
 <div class="thank-you-card">
   <h2>Thank You for Submitting!</h2>
   <p>Check your inbox for the next steps to initiate your AvalonCare Wing dashboard.</p>
 </div>
 
 <script>
+  // Floating particles
+  const bg = document.getElementById('floating-bg');
+  const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
+  function particle() {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const s = Math.random()*20+10;
+    p.style.width = s+'px';
+    p.style.height = s+'px';
+    p.style.left = Math.random()*100+'vw';
+    p.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random()*3)]}, transparent)`;
+    p.style.animationDuration = (Math.random()*20+10)+'s';
+    bg.appendChild(p);
+    setTimeout(()=>p.remove(),30000);
+  }
+  setInterval(particle,800);
+
   // Prevent user from going back to previous pages
   history.pushState(null, null, location.href);
 
