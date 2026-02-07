@@ -188,12 +188,6 @@ footer {
 </footer>
 
 <script>
-// Block access if form is already submitted
-if (localStorage.getItem('formSubmitted') === 'true') {
-    // Redirect directly to Thank You page
-    window.location.href = 'after-submission.html';
-}
-
 /* Floating particles */
 const bg = document.getElementById('floating-bg');
 const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
@@ -257,6 +251,14 @@ document.getElementById('nextBtn').onclick = async () => {
     alert("Submission failed. Please try again.");
   }
 };
+
+fetch('/.netlify/functions/checkSubmission')
+  .then(res => res.json())
+  .then(data => {
+    if (data.submitted) {
+      window.location.replace('after-submission.html');
+    }
+  });
 </script>
 
 </body>
