@@ -214,64 +214,47 @@ function getFingerprint() {
   );
 }
 
-// Check if already submitted on page load
-fetch('/.netlify/functions/checkSubmission', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ fingerprint: getFingerprint() })
-})
-.then(res => res.json())
-.then(data => {
-  if (data.submitted) {
-    window.location.replace('after-submission.html');
-  }
-});
-
-// Submit final step
 document.getElementById('submitBtn').onclick = async () => {
   const confirmation = document.getElementById('confirmation');
-  const notes = document.getElementById('notes');
+  const email = document.getElementById('email').value.trim();
+  const country = document.getElementById('country').value.trim();
 
   if (!confirmation.checked) {
     alert("Please confirm before submitting.");
     return;
   }
 
-  const payload = {
-    confirmation: true,
-    notes: notes.value.trim()
-  };
+  if (!email) {
+    alert("Email is required.");
+    return;
+  }
+
+  const payload = { email, country };
 
   try {
-    const res = await fetch('/.netlify/functions/submitFinal', {
+    const res = await fetch("YOUR_SCRIPT_URL_HERE", {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        fingerprint: getFingerprint(),
-        payload
-      })
+      body: JSON.stringify(payload)
     });
 
     const data = await res.json();
 
-    if (res.status === 409 || data.status === "duplicate") {
+    if (data.status === "duplicate") {
       // Already submitted
       window.location.href = 'after-submission.html';
       return;
     }
 
-    if (res.status !== 200 || data.status !== "ok") {
-      console.error("Submission response:", data);
-      throw new Error("Submission failed");
-    }
+    if (data.status !== "success") throw new Error(data.message || "Submission failed");
 
-    // Optional client-side flag for UX only
+    // Optional UX flag
     localStorage.setItem('formSubmitted', 'true');
 
-    // Redirect to Thank You / After Submission page
     window.location.href = 'after-submission.html';
+
   } catch (err) {
-    console.error("Final submit error:", err);
+    console.error(err);
     alert("Submission failed. Please try again.");
   }
 };
