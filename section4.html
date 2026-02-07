@@ -207,67 +207,66 @@ setInterval(particle,800);
 
 /* Navigation logic */
 function getFingerprint() {
-      return btoa(
-        navigator.userAgent +
-        screen.width + screen.height +
-        navigator.language
-      );
+  return btoa(
+    navigator.userAgent +
+    screen.width + screen.height +
+    navigator.language
+  );
+}
+
+document.getElementById('submitBtn').onclick = async (e) => {
+  e.preventDefault(); // prevents default form submit reload
+
+  const confirmation = document.getElementById('confirmation');
+  const email = document.getElementById('email').value.trim();
+  const country = document.getElementById('country').value.trim();
+
+  if (!confirmation.checked) {
+    alert("Please confirm before submitting.");
+    return;
+  }
+
+  if (!email) {
+    alert("Email is required.");
+    return;
+  }
+
+  // Timestamp
+  const timestamp = new Date().toISOString();
+  const fingerprint = getFingerprint();
+
+  const payload = { email, country, timestamp, fingerprint };
+
+  try {
+    const res = await fetch(
+      "https://script.google.com/macros/s/AKfycbxKkBABIuDkyV_BXtEzzCe60j5UR89kbIP4D9XYQIvfM-AvGNbYW6eCbWmOtBvQb_pn/exec",
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }
+    );
+
+    // Make sure the server responds with JSON
+    const data = await res.json();
+    console.log("Server response:", data);
+
+    if (data.status === "duplicate" || data.status === "success") {
+      // Optional UX flag
+      localStorage.setItem('formSubmitted', 'true');
+
+      // Redirect on success
+      window.location.href = 'after-submission.html';
+      return;
     }
 
-    document.getElementById('submitBtn').onclick = async (e) => {
-      e.preventDefault(); // just in case
+    throw new Error(data.message || "Submission failed");
 
-      console.log("Submit button clicked"); // Debug
-
-      const confirmation = document.getElementById('confirmation');
-      const email = document.getElementById('email').value.trim();
-      const country = document.getElementById('country').value.trim();
-
-      if (!confirmation.checked) {
-        alert("Please confirm before submitting.");
-        return;
-      }
-
-      if (!email) {
-        alert("Email is required.");
-        return;
-      }
-
-      const fingerprint = getFingerprint();
-      const payload = { email, country, fingerprint };
-
-      console.log("Payload ready:", payload); // Debug
-
-      try {
-        const res = await fetch(
-          "https://script.google.com/macros/s/AKfycbxKkBABIuDkyV_BXtEzzCe60j5UR89kbIP4D9XYQIvfM-AvGNbYW6eCbWmOtBvQb_pn/exec",
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          }
-        );
-
-        console.log("Response received:", res);
-
-        // Make sure server returns valid JSON
-        const data = await res.json();
-        console.log("Response data:", data);
-
-        if (data.status === "duplicate" || data.status === "success") {
-          localStorage.setItem('formSubmitted', 'true');
-          console.log("Redirecting to after-submission.html"); // Debug
-          window.location.href = 'after-submission.html';
-          return;
-        }
-
-        throw new Error(data.message || "Submission failed");
-
-      } catch (err) {
-        console.error("Error during submission:", err);
-        alert("Submission failed. Please try again.");
-      }
-    };
+  } catch (err) {
+    console.error("Submission error:", err);
+    alert("Submission failed. Please try again.");
+  }
+};
 </script>
 
 </body>
