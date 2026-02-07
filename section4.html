@@ -257,8 +257,8 @@ const country = section2Data.location || "";
       }
     );
 
-    const data = await res.json();
-    console.log("Server response:", data);
+    const text = await res.text();
+  console.log("Server response:", text);
 
     if (data.status === "duplicate" || data.status === "success") {
       localStorage.setItem('formSubmitted', 'true');
