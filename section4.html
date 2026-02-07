@@ -214,11 +214,25 @@ function getFingerprint() {
   );
 }
 
-document.getElementById('nextBtn').onclick = async () => {
+// Check if already submitted on page load
+fetch('/.netlify/functions/checkSubmission', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ fingerprint: getFingerprint() })
+})
+.then(res => res.json())
+.then(data => {
+  if (data.submitted) {
+    window.location.replace('after-submission.html');
+  }
+});
+
+// Submit final step
+document.getElementById('submitBtn').onclick = async () => {
   const confirmation = document.getElementById('confirmation');
   const notes = document.getElementById('notes');
 
-  if (!confirmation.checked) return;
+  if (!confirmation.checked) return; // Require confirmation
 
   const payload = {
     confirmation: true,
@@ -243,36 +257,16 @@ document.getElementById('nextBtn').onclick = async () => {
 
     if (!res.ok) throw new Error("Submission failed");
 
-    // Optional client-side flag (UX only)
+    // Optional client-side flag for UX only
     localStorage.setItem('formSubmitted', 'true');
 
+    // Redirect to Thank You / After Submission page
     window.location.href = 'after-submission.html';
   } catch (err) {
+    console.error(err);
     alert("Submission failed. Please try again.");
   }
 };
-
-function getFingerprint() {
-  return btoa(
-    navigator.userAgent +
-    screen.width + screen.height +
-    navigator.language
-  );
-}
-
-fetch('/.netlify/functions/checkSubmission', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    fingerprint: getFingerprint()
-  })
-})
-.then(res => res.json())
-.then(data => {
-  if (data.submitted) {
-    window.location.replace('after-submission.html');
-  }
-});
 </script>
 
 </body>
