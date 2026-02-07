@@ -207,6 +207,7 @@ setInterval(particle,800);
 
 /* Navigation logic */
 function getFingerprint() {
+function getFingerprint() {
   return btoa(
     navigator.userAgent +
     screen.width + screen.height +
@@ -215,23 +216,24 @@ function getFingerprint() {
 }
 
 document.getElementById('submitBtn').onclick = async (e) => {
-  e.preventDefault(); // prevents default form submit reload
+  e.preventDefault(); // prevent default form reload
 
+  // Get values from localStorage
+  const email = localStorage.getItem('userEmail') || '';
+  const country = localStorage.getItem('userCountry') || '';
   const confirmation = document.getElementById('confirmation');
-  const email = document.getElementById('email').value.trim();
-  const country = document.getElementById('country').value.trim();
 
   if (!confirmation.checked) {
     alert("Please confirm before submitting.");
     return;
   }
 
-  if (!email) {
-    alert("Email is required.");
+  if (!email || !country) {
+    alert("Email and country are required.");
     return;
   }
 
-  // Timestamp
+  // Timestamp + fingerprint
   const timestamp = new Date().toISOString();
   const fingerprint = getFingerprint();
 
@@ -247,15 +249,13 @@ document.getElementById('submitBtn').onclick = async (e) => {
       }
     );
 
-    // Make sure the server responds with JSON
     const data = await res.json();
     console.log("Server response:", data);
 
     if (data.status === "duplicate" || data.status === "success") {
-      // Optional UX flag
       localStorage.setItem('formSubmitted', 'true');
 
-      // Redirect on success
+      // Redirect to after-submission.html
       window.location.href = 'after-submission.html';
       return;
     }
