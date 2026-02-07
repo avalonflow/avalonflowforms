@@ -214,7 +214,9 @@ function getFingerprint() {
   );
 }
 
-document.getElementById('submitBtn').onclick = async () => {
+document.getElementById('submitBtn').onclick = async (e) => {
+  e.preventDefault(); // Prevent form submission reload
+
   const confirmation = document.getElementById('confirmation');
   const email = document.getElementById('email').value.trim();
   const country = document.getElementById('country').value.trim();
@@ -229,29 +231,30 @@ document.getElementById('submitBtn').onclick = async () => {
     return;
   }
 
-  const payload = { email, country };
+  // Include fingerprint
+  const fingerprint = getFingerprint();
+  const payload = { email, country, fingerprint };
 
   try {
-    const res = await fetch("https://script.google.com/macros/s/AKfycbxKkBABIuDkyV_BXtEzzCe60j5UR89kbIP4D9XYQIvfM-AvGNbYW6eCbWmOtBvQb_pn/exec", {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    const res = await fetch(
+      "https://script.google.com/macros/s/AKfycbxKkBABIuDkyV_BXtEzzCe60j5UR89kbIP4D9XYQIvfM-AvGNbYW6eCbWmOtBvQb_pn/exec",
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }
+    );
 
-    const data = await res.json();
+    const data = await res.json(); // Make sure server returns JSON
+    console.log(data); // Debug: check what comes back
 
-    if (data.status === "duplicate") {
-      // Already submitted
+    if (data.status === "duplicate" || data.status === "success") {
+      localStorage.setItem('formSubmitted', 'true');
       window.location.href = 'after-submission.html';
       return;
     }
 
-    if (data.status !== "success") throw new Error(data.message || "Submission failed");
-
-    // Optional UX flag
-    localStorage.setItem('formSubmitted', 'true');
-
-    window.location.href = 'after-submission.html';
+    throw new Error(data.message || "Submission failed");
 
   } catch (err) {
     console.error(err);
