@@ -232,7 +232,10 @@ document.getElementById('submitBtn').onclick = async () => {
   const confirmation = document.getElementById('confirmation');
   const notes = document.getElementById('notes');
 
-  if (!confirmation.checked) return; // Require confirmation
+  if (!confirmation.checked) {
+    alert("Please confirm before submitting.");
+    return;
+  }
 
   const payload = {
     confirmation: true,
@@ -249,13 +252,18 @@ document.getElementById('submitBtn').onclick = async () => {
       })
     });
 
-    if (res.status === 409) {
+    const data = await res.json();
+
+    if (res.status === 409 || data.status === "duplicate") {
       // Already submitted
       window.location.href = 'after-submission.html';
       return;
     }
 
-    if (!res.ok) throw new Error("Submission failed");
+    if (res.status !== 200 || data.status !== "ok") {
+      console.error("Submission response:", data);
+      throw new Error("Submission failed");
+    }
 
     // Optional client-side flag for UX only
     localStorage.setItem('formSubmitted', 'true');
@@ -263,7 +271,7 @@ document.getElementById('submitBtn').onclick = async () => {
     // Redirect to Thank You / After Submission page
     window.location.href = 'after-submission.html';
   } catch (err) {
-    console.error(err);
+    console.error("Final submit error:", err);
     alert("Submission failed. Please try again.");
   }
 };
