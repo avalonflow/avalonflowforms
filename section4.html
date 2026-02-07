@@ -214,21 +214,28 @@ function getFingerprint() {
   );
 }
 
+// Submit button logic
 document.getElementById('submitBtn').onclick = async (e) => {
-  e.preventDefault(); // prevent default form reload
+  e.preventDefault(); // Prevent default form reload
 
-  // Get values from localStorage
+  const confirmation = document.getElementById('confirmation');
+
+  // Get email & country stored from section2.html
   const email = localStorage.getItem('userEmail') || '';
   const country = localStorage.getItem('userCountry') || '';
-  const confirmation = document.getElementById('confirmation');
 
   if (!confirmation.checked) {
     alert("Please confirm before submitting.");
     return;
   }
 
-  if (!email || !country) {
-    alert("Email and country are required.");
+  if (!email) {
+    alert("Email is required.");
+    return;
+  }
+
+  if (!country) {
+    alert("Country is required.");
     return;
   }
 
@@ -254,7 +261,7 @@ document.getElementById('submitBtn').onclick = async (e) => {
     if (data.status === "duplicate" || data.status === "success") {
       localStorage.setItem('formSubmitted', 'true');
 
-      // Redirect to after-submission.html
+      // Redirect on success
       window.location.href = 'after-submission.html';
       return;
     }
@@ -265,6 +272,12 @@ document.getElementById('submitBtn').onclick = async (e) => {
     console.error("Submission error:", err);
     alert("Submission failed. Please try again.");
   }
+};
+
+// Previous button logic
+document.getElementById("prevBtn").onclick = () => {
+  // Go back to Section 2 to edit email/country
+  window.location.href = "section3.html";
 };
 </script>
 
