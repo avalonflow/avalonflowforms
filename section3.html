@@ -164,12 +164,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
     localStorage.setItem("section3Data", JSON.stringify(data));
 
-    fetch("/.netlify/functions/sendSection", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ section: "Section 3 – Payments", payload: data })
-    });
-
     window.location.href = "section4.html"; // Go to Section 4
   };
 
@@ -183,19 +177,10 @@ function getFingerprint() {
   );
 }
 
-fetch('/.netlify/functions/checkSubmission', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    fingerprint: getFingerprint()
-  })
-})
-.then(res => res.json())
-.then(data => {
-  if (data.submitted) {
-    window.location.replace('after-submission.html');
-  }
-});
+// Any section except Section 4
+if (localStorage.getItem('formSubmitted') === 'true') {
+  window.location.href = 'after-submission.html';
+    }
 </script>
 
 </body>
