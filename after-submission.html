@@ -51,6 +51,47 @@ font-style: italic;
 font-size: 16px;
 }
 
+        /* ---------- Notification Bar ---------- */
+        .notification-bar {
+            position: fixed;
+            top: -80px;
+            right: 20px;
+            background: rgba(30, 144, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(30,144,255,0.4);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 14px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+            transition: top 0.5s ease, opacity 0.5s ease;
+            z-index: 9999;
+            opacity: 0;
+            max-width: 350px;
+            white-space: normal;
+            overflow: hidden;
+        }
+        .notification-bar.show {
+            top: 20px;
+            opacity: 1;
+        }
+        .notification-bar::before {
+            content: '';
+            position: absolute;
+            left: -50%;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            background: rgba(255,255,255,0.3);
+            transform: skewX(-25deg);
+            animation: liquidWave 2s linear infinite;
+        }
+        @keyframes liquidWave {
+            0% { left: -50%; }
+            100% { left: 100%; }
+        }
+
   footer {
     position: fixed;
     bottom: 0;
@@ -91,6 +132,9 @@ font-size: 16px;
          style="max-width: 90%; max-height: 90%; height: auto;">
   </div>
   </header>
+
+        <!-- Notification Bar -->
+        <div id="after-submissionNotification" class="notification-bar"></div>
   
 <div class="thank-you-card">
   <h2>Thank You for Submitting!</h2>
@@ -136,7 +180,14 @@ font-size: 16px;
 setTimeout(function() {
     window.location.href = "";
   }, 5000); // 5000 = 5 seconds
-</script>
+
+        /* ---------- Notification ---------- */
+        window.addEventListener("load", () => {
+            const notification = document.getElementById("planNotification");
+            notification.textContent = "Hang tight! Redirecting you in 5 seconds.";
+            setTimeout(() => notification.classList.add("show"), 300);
+            setTimeout(() => notification.classList.remove("show"), 3300);
+        });
 </script>
 </body>
 </html>
