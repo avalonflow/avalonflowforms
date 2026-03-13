@@ -227,6 +227,14 @@ window.addEventListener("DOMContentLoaded", () => {
     }
     setInterval(particle,800);
 
+        /* ---------- Notification ---------- */
+        window.addEventListener("load", () => {
+            const notification = document.getElementById("planNotification");
+            notification.textContent = "Welcome! Let’s get started.";
+            setTimeout(() => notification.classList.add("show"), 300);
+            setTimeout(() => notification.classList.remove("show"), 3300);
+        });
+
     /* Input elements */
   const fullName = document.getElementById("fullName");
   const email = document.getElementById("email");
