@@ -75,6 +75,47 @@
         background: rgba(107,44,216,0.9);
     }
 
+        /* ---------- Notification Bar ---------- */
+        .notification-bar {
+            position: fixed;
+            top: -80px;
+            right: 20px;
+            background: rgba(30, 144, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(30,144,255,0.4);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 14px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+            transition: top 0.5s ease, opacity 0.5s ease;
+            z-index: 9999;
+            opacity: 0;
+            max-width: 350px;
+            white-space: normal;
+            overflow: hidden;
+        }
+        .notification-bar.show {
+            top: 20px;
+            opacity: 1;
+        }
+        .notification-bar::before {
+            content: '';
+            position: absolute;
+            left: -50%;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            background: rgba(255,255,255,0.3);
+            transform: skewX(-25deg);
+            animation: liquidWave 2s linear infinite;
+        }
+        @keyframes liquidWave {
+            0% { left: -50%; }
+            100% { left: 100%; }
+        }
+
     footer {
         position: fixed;
         bottom: 0;
@@ -94,6 +135,9 @@
 
 <body>
 <div id="floating-bg"></div>
+
+        <!-- Notification Bar -->
+        <div id="planNotification" class="notification-bar"></div>
 
 <header style="text-align: center; padding: 40px 0;">
   <div style="
@@ -120,20 +164,17 @@
   <!-- Heading -->
   <div class="glass-card" style="text-align:center;">
     <h2 style="font-weight:bold;">Account Setup {Basic Information}</h2>
-    <p style="font-style:italic;">Kindly provide your details so we can assist you better.</p>
   </div>
 
   <!-- Question 1 -->
   <div class="glass-card" style="max-width:600px;margin:80px auto 30px;">
     <h2 style="font-weight:bold;">1. Full Name</h2>
-    <p style="font-weight:bold;font-style:italic;">As it should appear on your Dashboard.</p>
     <input id="fullName" placeholder="Full Name" required>
   </div>
 
   <!-- Question 2 -->
   <div class="glass-card" style="max-width:600px;margin:30px auto;">
     <h2 style="font-weight:bold;">2. Email Address</h2>
-    <p style="font-weight:bold;font-style:italic;">For personalized updates and next steps sent to this address.</p>
     <input id="email" type="email" placeholder="Email Address" required>
   </div>
 
@@ -146,15 +187,7 @@
 
   <!-- Question 4 -->
   <div class="glass-card" style="max-width:600px;margin:30px auto;">
-    <h2 style="font-weight:bold;">4. Job Role / Field of Work (Optional)</h2>
-    <p style="font-weight:bold;font-style:italic;">This helps us connect you with relevant opportunities.</p>
-    <input id="jobRole" placeholder="Job Role / Field of Work (Optional)">
-  </div>
-
-  <!-- Question 5 -->
-  <div class="glass-card" style="max-width:600px;margin:30px auto;">
-    <h2 style="font-weight:bold;">5. How familiar are you with digital earning systems?</h2>
-    <p style="font-weight:bold;font-style:italic;">Answer honestly to help us assist you better.</p>
+    <h2 style="font-weight:bold;">4. Familiarity with digital systems</h2>
     <div style="display:flex;gap:10px;justify-content:center;margin-top:14px;">
       <button class="option-btn" data-value="Beginner">Beginner</button>
       <button class="option-btn" data-value="Intermediate">Intermediate</button>
