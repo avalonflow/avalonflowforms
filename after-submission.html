@@ -45,27 +45,36 @@
   left: 50%;
   transform: translate(-50%, -50%);
 
-  width: calc(100% - 40px);  /* leaves 20px gap left & right */
+  /* Responsive width */
+  width: calc(100% - 40px); /* leaves some gap on sides */
   max-width: 350px;
-  padding: 30px 40px;
 
-  background: rgba(255,255,255,0.12);
+  /* Padding inside card */
+  padding: 30px 20px;
+
+  /* Visuals */
+  background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(12px);
   border-radius: 18px;
   text-align: center;
+
+  /* Layering & animation */
   z-index: 10;
   transition: transform 0.3s ease;
 
-  /* Outer glow pulse animation */
+  /* Glow pulse */
   box-shadow:
     0 0 20px rgba(107,44,216,0.8),
     0 0 40px rgba(107,44,216,0.6),
     0 0 60px rgba(107,44,216,0.4),
     0 0 120px rgba(107,44,216,0.25);
   animation: cardGlow 2.5s ease-in-out infinite alternate;
+
+  /* Make sure padding is counted in width */
+  box-sizing: border-box;
 }
 
-/* Pulse keyframes */
+/* Pulse animation */
 @keyframes cardGlow {
   0% {
     box-shadow:
@@ -87,6 +96,14 @@
       0 0 30px rgba(107,44,216,0.3),
       0 0 45px rgba(107,44,216,0.2),
       0 0 90px rgba(107,44,216,0.15);
+  }
+}
+
+/* Mobile tweaks */
+@media (max-width: 400px) {
+  .thank-you-card {
+    padding: 25px 15px;
+    width: calc(100% - 30px); /* smaller gap on very small screens */
   }
 }
 
