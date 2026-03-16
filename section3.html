@@ -158,6 +158,11 @@ backdrop-filter: blur(8px);
   filter: drop-shadow(0 0 4px rgba(0,0,0,0.4));
 }
 
+.payment-container{
+max-width:600px;
+margin:0 auto;
+}
+
 /* Input styling */
 .payment-method input{
   width: 100%;
@@ -205,57 +210,67 @@ backdrop-filter: blur(8px);
 
 <section id="section3">
 
-  <!-- ======= Section 3: Payout Destination ======= -->
-<div class="glass-card">
+  <!-- Trust line -->
+<div class="top-trust">
+Secure payout systems supported by global payment networks
+</div>
 
-  <!-- Top trust line -->
-  <div class="top-trust">
-    Secure payout systems supported by global payment networks
-  </div>
 
-  <!-- Payment Methods -->
+<!-- USDT -->
+<div class="payment-method glass-card" data-method="USDT / USDC ERC20">
 
-  <!-- USDT / USDC -->
-  <div class="payment-method" data-method="USDT / USDC ERC20">
-    <div class="payment-header">
-      <img class="payment-logo" src="https://cryptologos.cc/logos/tether-usdt-logo.png">
-      <span>USDT / USDC (ERC-20)</span>
-    </div>
-    <input id="acuAccount" placeholder="Enter your ERC-20 wallet address">
-  </div>
+<div class="payment-header">
+<img class="payment-logo" src="https://cryptologos.cc/logos/tether-usdt-logo.png">
+<span>USDT / USDC (ERC-20)</span>
+</div>
 
-  <!-- PayPal -->
-  <div class="payment-method" data-method="PayPal">
-    <div class="payment-header">
-      <img class="payment-logo" src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg">
-      <span>PayPal</span>
-    </div>
-    <input id="paypalInput" placeholder="Enter your PayPal email">
-  </div>
+<input id="acuAccount" placeholder="Enter your ERC-20 wallet address">
 
-  <!-- Cash App -->
-  <div class="payment-method" data-method="Cash App">
-    <div class="payment-header">
-      <img class="payment-logo" src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Cash_App_logo.svg">
-      <span>Cash App</span>
-    </div>
-    <input id="cashInput" placeholder="Enter your $Cashtag">
-  </div>
+</div>
 
-  <!-- Venmo -->
-  <div class="payment-method" data-method="Venmo">
-    <div class="payment-header">
-      <img class="payment-logo" src="https://upload.wikimedia.org/wikipedia/commons/3/39/Venmo_logo.png">
-      <span>Venmo</span>
-    </div>
-    <input id="venmoInput" placeholder="Enter your Venmo username">
-  </div>
 
-  <!-- Bottom reassurance line -->
-  <div class="bottom-note">
-    Your payout destination can be updated later inside your AvalonFlow dashboard.
-  </div>
+<!-- PayPal -->
+<div class="payment-method glass-card" data-method="PayPal">
 
+<div class="payment-header">
+<img class="payment-logo" src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg">
+<span>PayPal</span>
+</div>
+
+<input id="paypalInput" placeholder="Enter your PayPal email">
+
+</div>
+
+
+<!-- Cash App -->
+<div class="payment-method glass-card" data-method="Cash App">
+
+<div class="payment-header">
+<img class="payment-logo" src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Cash_App_logo.svg">
+<span>Cash App</span>
+</div>
+
+<input id="cashInput" placeholder="Enter your $Cashtag">
+
+</div>
+
+
+<!-- Venmo -->
+<div class="payment-method glass-card" data-method="Venmo">
+
+<div class="payment-header">
+<img class="payment-logo" src="https://upload.wikimedia.org/wikipedia/commons/3/39/Venmo_logo.png">
+<span>Venmo</span>
+</div>
+
+<input id="venmoInput" placeholder="Enter your Venmo username">
+
+</div>
+
+
+<!-- Bottom reassurance -->
+<div class="bottom-note">
+Your payout destination can be updated later inside your AvalonFlow dashboard.
 </div>
 
     <!-- Navigation Buttons -->
