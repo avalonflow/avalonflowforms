@@ -132,6 +132,84 @@ button:hover {
   background: rgba(107,44,216,0.8);
 }
 
+/* Neon glass card */
+.neon-card {
+  background: rgba(107,44,216,0.15);
+  backdrop-filter: blur(12px);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 
+    0 0 10px rgba(107,44,216,0.5),
+    0 0 20px rgba(107,44,216,0.4),
+    0 0 40px rgba(107,44,216,0.3),
+    0 0 80px rgba(107,44,216,0.2);
+  max-width: 600px;
+  margin: 30px auto;
+  position: relative;
+  animation: neonPulse 2.5s ease-in-out infinite alternate;
+  overflow: hidden;
+}
+
+/* Inner glow */
+.neon-card::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 16px;
+  border: 2px solid rgba(107,44,216,0.6);
+  box-shadow:
+    0 0 10px rgba(107,44,216,0.8),
+    0 0 20px rgba(107,44,216,0.6),
+    0 0 30px rgba(107,44,216,0.4);
+  pointer-events: none;
+  z-index: 0;
+  animation: innerPulse 2.5s ease-in-out infinite alternate;
+}
+
+/* Purple halo behind card */
+.neon-card::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(circle, rgba(107,44,216,0.4) 0%, transparent 70%);
+  transform: translate(-50%, -50%) scale(1);
+  border-radius: 50%;
+  z-index: -1; /* behind card content */
+  animation: haloPulse 2.5s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+/* Red warning glow */
+.neon-card.warning {
+  animation: warning-glow 0.8s ease-in-out 2;
+  box-shadow: 0 0 20px 4px rgba(255,77,77,0.9);
+}
+
+/* Pulsing neon animations */
+@keyframes neonPulse {
+  0% { box-shadow: 0 0 10px rgba(107,44,216,0.4),0 0 20px rgba(107,44,216,0.3),0 0 40px rgba(107,44,216,0.2); }
+  50% { box-shadow: 0 0 20px rgba(107,44,216,0.8),0 0 40px rgba(107,44,216,0.6),0 0 60px rgba(107,44,216,0.4); }
+  100% { box-shadow: 0 0 10px rgba(107,44,216,0.4),0 0 20px rgba(107,44,216,0.3),0 0 40px rgba(107,44,216,0.2); }
+}
+@keyframes innerPulse {
+  0% { box-shadow: 0 0 5px rgba(107,44,216,0.5),0 0 10px rgba(107,44,216,0.4),0 0 15px rgba(107,44,216,0.3); }
+  50% { box-shadow: 0 0 15px rgba(107,44,216,0.8),0 0 25px rgba(107,44,216,0.6),0 0 35px rgba(107,44,216,0.4); }
+  100% { box-shadow: 0 0 5px rgba(107,44,216,0.5),0 0 10px rgba(107,44,216,0.4),0 0 15px rgba(107,44,216,0.3); }
+}
+@keyframes haloPulse {
+  0% { transform: translate(-50%, -50%) scale(1); opacity:0.5; }
+  50% { transform: translate(-50%, -50%) scale(1.15); opacity:0.7; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity:0.5; }
+}
+@keyframes warning-glow {
+  0% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
+  50% { box-shadow: 0 0 20px 6px rgba(255,77,77,0.9); }
+  100% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
+}
+
 /* ================= Header Logo Card Neon ================= */
 header .logo-card {
   display: inline-flex;
@@ -304,21 +382,21 @@ footer {
   </div>
 
   <!-- Glass Card 1: Confirmation -->
-  <div class="glass-card">
-    <h2 style="font-weight:bold;">Confirmation</h2>
-    <div class="checkbox-container">
-      <input type="checkbox" id="confirmation" required>
-      <label for="confirmation" style="font-weight:500; line-height:1.6;">
-        I understand that submission initiates my AvalonCare Membership
-        and access is granted after Plan Confirmation
-      </label>
-    </div>
+  <!-- Glass Card: Confirmation with Neon + Halo + Red Glow -->
+<div class="glass-card neon-card" id="confirmationCard" style="margin:30px auto;">
+  <div class="checkbox-container">
+    <input type="checkbox" id="confirmation">
+    <label for="confirmation" style="font-weight:500; line-height:1.4; color:#a46cff;">
+      I confirm that submission initiates my AvalonCare Membership,
+and access unlocks after my plan payment
+    </label>
   </div>
+</div>
 
      <!-- Navigation Buttons -->
 <div id="navButtons" style="max-width:600px;margin:40px auto 100px; display:flex;justify-content:space-between; position:relative; z-index:5;">
     <button id="prevBtn" style="background: rgba(107,44,216,0.9); border:1px solid #fff; padding:12px 24px; border-radius:12px; font-weight:bold; color:#fff;">Previous</button>
-    <button id="submitBtn" style="background: rgba(107,44,216,0.9); border:1px solid #fff; padding:12px 24px; border-radius:12px; font-weight:bold; color:#fff;">Submit</button>
+    <button id="submitBtn" style="background: rgba(107,44,216,0.9); border:1px solid #fff; padding:12px 24px; border-radius:12px; font-weight:bold; color:#fff;">Let’s Go</button>
 </div>
 
 <footer>
@@ -356,33 +434,26 @@ function getFingerprint() {
 document.getElementById('submitBtn').onclick = (e) => {
   e.preventDefault(); // Prevent default form reload
 
-  const confirmation = document.getElementById('confirmation');
+// Restore confirmation state
+const checkbox = document.getElementById('confirmation');
+const card = document.getElementById('confirmationCard');
+if(localStorage.getItem('membershipConfirmed') === 'true') checkbox.checked = true;
 
-  // Get email & country stored from section2.html
-  const section2Data = JSON.parse(localStorage.getItem("section2Data")) || {};
-  const email = section2Data.email || "";
-  const country = section2Data.location || "";
+// Submit button logic
+document.getElementById('submitBtn').onclick = (e) => {
+  e.preventDefault();
 
-  // Validation
-  if (!confirmation.checked) {
-    alert("Please confirm before submitting.");
+  if(!checkbox.checked) {
+    // Trigger red warning glow
+    card.classList.add('warning');
+    setTimeout(()=> card.classList.remove('warning'),2200);
     return;
   }
 
-  if (!email) {
-    alert("Email is required.");
-    return;
-  }
+  // Save confirmation locally
+  localStorage.setItem('membershipConfirmed','true');
 
-  if (!country) {
-    alert("Country is required.");
-    return;
-  }
-
-  // Optional: save flag locally
-  localStorage.setItem('formSubmitted', 'true');
-
-  // Redirect on success
+  // Redirect after submission
   window.location.href = 'https://link.avalonflow.site/after-submission';
 };
 
