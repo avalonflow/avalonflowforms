@@ -420,13 +420,18 @@ localStorage.setItem("section3Data", JSON.stringify(data));
 }
 
   // Navigation
-  document.getElementById("nextBtn").onclick = () => {
+ 
+// ✅ Previous button
+  document.getElementById("prevBtn").onclick = () => {
+    window.location.href = "section2"; // Back to Section 2
+  };
+ document.getElementById("nextBtn").onclick = () => {
   const container = document.querySelector(".payment-container");
 
   if (!preference) {
     container.scrollIntoView({ behavior: "smooth", block: "center" });
     container.classList.add("warning");
-    setTimeout(() => container.classList.remove("warning"), 1600);
+    setTimeout(() => container.classList.remove("warning"), 2200);
     return; // stop navigation
   }
 
@@ -443,7 +448,7 @@ localStorage.setItem("section3Data", JSON.stringify(data));
   if (!input || input.value.trim() === "") {
     container.scrollIntoView({ behavior: "smooth", block: "center" });
     container.classList.add("warning");
-    setTimeout(() => container.classList.remove("warning"), 1600);
+    setTimeout(() => container.classList.remove("warning"), 2200);
     return; // stop navigation
   }
 
