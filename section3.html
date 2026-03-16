@@ -410,15 +410,13 @@ localStorage.setItem("section3Data", JSON.stringify(data));
   document.getElementById("nextBtn").onclick = () => {
   const container = document.querySelector(".payment-container");
 
-  // If no payment method selected
   if (!preference) {
     container.scrollIntoView({ behavior: "smooth", block: "center" });
     container.classList.add("warning");
     setTimeout(() => container.classList.remove("warning"), 1600);
-    return;
+    return; // stop navigation
   }
 
-  // Get the input field for the selected payment method
   let inputId = "";
   switch (preference) {
     case "USDT / USDC ERC20": inputId = "acuAccount"; break;
@@ -429,16 +427,13 @@ localStorage.setItem("section3Data", JSON.stringify(data));
 
   const input = document.getElementById(inputId);
 
-  // If input is empty
   if (!input || input.value.trim() === "") {
     container.scrollIntoView({ behavior: "smooth", block: "center" });
     container.classList.add("warning");
     setTimeout(() => container.classList.remove("warning"), 1600);
-    alert(`Please enter your ${preference} details before proceeding.`);
-    return;
+    return; // stop navigation
   }
 
-  // Save data and proceed
   saveData();
   window.location.href = "https://link.avalonflow.site/section4";
 };
