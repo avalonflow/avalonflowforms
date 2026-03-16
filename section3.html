@@ -151,6 +151,9 @@
 display:flex;
 align-items:center;
 gap:6px;
+font-weight: bold;
+  font-size: 16px;
+  position: relative;
 }
 
 .payment-logo{
@@ -160,9 +163,31 @@ gap:6px;
   filter: drop-shadow(0 0 4px rgba(0,0,0,0.4));
 }
 
-.payment-container{
-max-width:600px;
-margin:0 auto;
+.payment-container {
+  position: relative;  /* required for z-index & box-shadow */
+  max-width: 600px;
+  margin: 0 auto;
+  z-index: 1;          /* base */
+}
+
+/* Red warning glow around container */
+.payment-container.warning {
+  z-index: 10; /* above cards */
+  box-shadow: 0 0 20px 4px rgba(255,77,77,0.9);
+  border-radius: 24px;
+  animation: warning-glow 0.8s ease-in-out 2;
+}
+
+/* Keyframes for pulsing red glow */
+@keyframes warning-glow {
+  0% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
+  50% { box-shadow: 0 0 20px 6px rgba(255,77,77,0.9); }
+  100% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
+}
+
+/* Suppress the purple card glows during warning */
+.payment-container.warning .payment-method::before {
+  opacity: 0 !important;
 }
 
 /* Input styling */
@@ -190,18 +215,6 @@ opacity:0.9;
   .payment-method input::placeholder{
   color: #ccc;
   font-style: italic;
-}
-
-.payment-container.warning {
-  animation: warning-glow 0.8s ease-in-out 2; /* glow twice */
-  border: 2px solid #ff4d4d; /* red border */
-  border-radius: 20px;
-}
-
-@keyframes warning-glow {
-  0% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
-  50% { box-shadow: 0 0 12px rgba(255,77,77,0.9); }
-  100% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
 }
 
   footer { position:fixed; bottom:0; left:0; width:100%; text-align:center; padding:18px 0; font-size:14px; color:#aaa; background:rgba(15,15,25,0.95); backdrop-filter:blur(12px); box-shadow:0 -5px 20px rgba(0,0,0,0.4); z-index:6; }
