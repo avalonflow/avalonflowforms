@@ -56,6 +56,41 @@
     /* ---------- Panels & Glass Cards ---------- */
       .glass-card { background:rgba(255,255,255,0.12); backdrop-filter:blur(12px); border-radius:18px; padding:28px; margin-bottom:28px; box-shadow:0 10px 30px rgba(0,0,0,0.35); max-width:600px; margin-left:auto; margin-right:auto; }
 
+/* Reuse Section 3 glow + hover for cards */
+.payment-method {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(12px);
+  border-radius: 18px;
+  padding: 28px;
+  margin-bottom: 28px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  transition: 0.3s ease, transform 0.2s ease;
+}
+
+.payment-method:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 18px rgba(107,44,216,0.5); /* purple glow on hover */
+}
+
+.payment-method input {
+  width: 100%;
+  padding: 14px 16px;
+  margin-top: 12px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  box-sizing: border-box;
+  display: block; /* visible by default */
+}
+
+.payment-method input::placeholder {
+  color: #ccc;
+  font-style: italic;
+}
+
     input { width:100%; padding:14px; margin-top:10px; border-radius:12px; border:none; background:rgba(255,255,255,0.15); color:#fff; }
 
     button {
@@ -69,11 +104,48 @@
     }
 
     .option-btn {
-        background: rgba(255,255,255,0.15);
-    }
-    .option-btn.active {
-        background: rgba(107,44,216,0.9);
-    }
+  background: rgba(255,255,255,0.15);
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.2);
+  font-weight: bold;
+  color: #fff;
+  cursor: pointer;
+  transition: 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  position: relative;
+}
+
+.option-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 18px rgba(107,44,216,0.5); /* purple glow */
+}
+
+.option-btn.active {
+  border: 1px solid #6b2cd8;
+  box-shadow: 0 0 18px rgba(107,44,216,0.5); /* purple glow when selected */
+}
+
+/* Animated purple glow for heading */
+.heading-glow::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(107,44,216,0.25), transparent 70%);
+  opacity: 0.5;
+  transform: scale(1);
+  animation: glowPulse 2.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes glowPulse {
+  0% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.05); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 0.4; }
+}
 
         /* ---------- Notification Bar ---------- */
         .notification-bar {
@@ -159,36 +231,49 @@
   </div>
 </header>
 
+<!-- Section 2 Glass Cards -->
 <section id="section2">
 
-  <!-- Heading -->
-  <div class="glass-card" style="text-align:center;">
-    <h2 style="font-weight:bold;">Account Setup {Basic Information}</h2>
+<!-- Heading Card with Animated Glow -->
+<div class="glass-card heading-glow" style="
+    text-align: center;
+    padding: 36px 28px;
+    border: 1px solid rgba(107,44,216,0.6);
+    box-shadow: 0 0 25px rgba(107,44,216,0.4);
+    position: relative;
+    overflow: hidden;
+">
+  <h2 style="
+      font-weight: bold;
+      font-size: 1.8rem;
+      color: #fff;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  ">Account Setup {Basic Information}</h2>
+</div>
+
+  <!-- Full Name -->
+  <div class="glass-card payment-method">
+    <h2 style="font-weight:bold;">Full Name</h2>
+    <input id="fullName" placeholder="Enter your full name">
   </div>
 
-  <!-- Question 1 -->
-  <div class="glass-card" style="max-width:600px;margin:80px auto 30px;">
-    <h2 style="font-weight:bold;">1. Full Name</h2>
-    <input id="fullName" placeholder="Full Name" required>
+  <!-- Email Address -->
+  <div class="glass-card payment-method">
+    <h2 style="font-weight:bold;">Email Address</h2>
+    <input id="email" type="email" placeholder="Enter your email address">
   </div>
 
-  <!-- Question 2 -->
-  <div class="glass-card" style="max-width:600px;margin:30px auto;">
-    <h2 style="font-weight:bold;">2. Email Address</h2>
-    <input id="email" type="email" placeholder="Email Address" required>
+  <!-- Location -->
+  <div class="glass-card payment-method">
+    <h2 style="font-weight:bold;">Where are you located?</h2>
+    <p style="font-style:italic; font-weight:bold;">This helps us personalize your experience.</p>
+    <input id="location" placeholder="Enter your location">
   </div>
 
-  <!-- Question 3 -->
-  <div class="glass-card" style="max-width:600px;margin:30px auto;">
-    <h2 style="font-weight:bold;">3. Where are you located?</h2>
-    <p style="font-weight:bold;font-style:italic;">This helps us personalize your experience.</p>
-    <input id="location" placeholder="Location" required>
-  </div>
-
-  <!-- Question 4 -->
-  <div class="glass-card" style="max-width:600px;margin:30px auto;">
-    <h2 style="font-weight:bold;">4. Familiarity with digital systems</h2>
-    <div style="display:flex;gap:10px;justify-content:center;margin-top:14px;">
+  <!-- Digital Systems Experience -->
+  <div class="glass-card payment-method">
+    <h2 style="font-weight:bold;">Familiarity with digital systems</h2>
+    <div style="display:flex; gap:10px; justify-content:center; margin-top:14px;">
       <button class="option-btn" data-value="Beginner">Beginner</button>
       <button class="option-btn" data-value="Intermediate">Intermediate</button>
       <button class="option-btn" data-value="Expert">Expert</button>
@@ -290,20 +375,33 @@ window.addEventListener("DOMContentLoaded", () => {
   };
 
   document.getElementById("nextBtn").onclick = () => {
+  let hasError = false;
 
-    if (
-      !fullName.value.trim() ||
-      !email.value.trim() ||
-      !location.value.trim() ||
-      !experience
-    ) {
-      alert("Please complete all required fields.");
-      return;
+  // Text Inputs
+  const inputs = [fullName, email, location];
+  inputs.forEach(input => {
+    if (!input.value.trim()) {
+      hasError = true;
+      // Red glow for empty inputs
+      input.style.boxShadow = "0 0 10px rgba(255,0,0,0.9)";
+      setTimeout(() => input.style.boxShadow = "", 1500);
     }
+  });
 
-    saveSection2(); // final save
-    window.location.href = "https://link.avalonflow.site/section3";
-  };
+  // Option Buttons Container (card)
+  if (!experience) {
+    hasError = true;
+    const optionContainer = document.querySelector(".glass-card:nth-of-type(4)");
+    optionContainer.style.boxShadow = "0 0 18px rgba(255,0,0,0.9)";
+    setTimeout(() => optionContainer.style.boxShadow = "0 10px 30px rgba(0,0,0,0.35)", 1500);
+  }
+
+  if (hasError) return; // stop navigation if any field is missing
+
+  // Save and proceed
+  saveSection2();
+  window.location.href = "https://link.avalonflow.site/section3";
+};
 });
 
 /* ---------- FINGERPRINT ---------- */
