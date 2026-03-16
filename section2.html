@@ -216,6 +216,7 @@ top:-10%;
     100% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
 }
 
+/* ================= Header Logo Card Neon ================= */
 header .logo-card {
   display: inline-flex;
   align-items: center;
@@ -242,15 +243,15 @@ header .logo-card {
   /* Smooth pulsing */
   animation: neonGlow 2.5s ease-in-out infinite alternate;
   transition: box-shadow 0.3s ease;
-  overflow: hidden; /* ensures inner glow stays inside */
+  overflow: hidden;
 }
 
 /* Inner border glow */
 header .logo-card::before {
   content: '';
   position: absolute;
-  inset: 2px; /* small gap from edges */
-  border-radius: 22px; /* slightly smaller than card */
+  inset: 2px; /* slightly smaller than card edges */
+  border-radius: 22px;
   border: 2px solid rgba(107,44,216,0.6);
   box-shadow:
     0 0 10px rgba(107,44,216,0.8),
@@ -261,7 +262,32 @@ header .logo-card::before {
   animation: innerGlow 2.5s ease-in-out infinite alternate;
 }
 
-/* Outer neon pulse (existing) */
+/* Animated halo behind logo */
+header .logo-card::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(circle, rgba(107,44,216,0.4) 0%, transparent 70%);
+  transform: translate(-50%, -50%) scale(1);
+  border-radius: 50%;
+  z-index: 0; /* behind logo image */
+  animation: haloPulse 2.5s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+/* Image inside card stays on top */
+header .logo-card img {
+  max-width: 90%;
+  max-height: 90%;
+  height: auto;
+  z-index: 2;
+  position: relative;
+}
+
+/* Outer glow pulse animation */
 @keyframes neonGlow {
   0% {
     box-shadow: 
@@ -286,7 +312,7 @@ header .logo-card::before {
   }
 }
 
-/* Inner glow animation */
+/* Inner border glow pulse animation */
 @keyframes innerGlow {
   0% {
     box-shadow:
@@ -308,13 +334,20 @@ header .logo-card::before {
   }
 }
 
-/* Image inside card stays above inner glow */
-header .logo-card img {
-  max-width: 90%;
-  max-height: 90%;
-  height: auto;
-  z-index: 2;
-  position: relative;
+/* Halo pulse animation behind logo */
+@keyframes haloPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.15);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
+  }
 }
 
         /* ---------- Notification Bar ---------- */
