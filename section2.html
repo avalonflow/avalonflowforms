@@ -54,7 +54,7 @@
     }
 
     /* ---------- Panels & Glass Cards ---------- */
-      .glass-card { background:rgba(255,255,255,0.12); backdrop-filter:blur(12px); border-radius:18px; padding:28px; margin-bottom:28px; box-shadow:0 10px 30px rgba(0,0,0,0.35); max-width:600px; margin-left:auto; margin-right:auto; }
+      .glass-card { background:rgba(255,255,255,0.12); backdrop-filter:blur(12px); border-radius:18px; padding:28px; margin-bottom:28px; box-shadow:0 10px 30px rgba(0,0,0,0.35); max-width:500px; margin-left:auto; margin-right:auto; }
 
 /* Reuse Section 3 glow + hover for cards */
 .payment-method {
@@ -294,12 +294,18 @@
   </div>
 </header>
 
-<!-- Account Setup Heading (No Glass Card) -->
-<section style="text-align:center; margin:40px 0;">
+<!-- Section 2 -->
+<section id="section2">
+
+  <!-- Account Setup Heading (plain, not in glass card) -->
+  <div style="text-align:center; margin:40px 0;">
     <h2 style="font-weight:bold; font-size:1.8rem; color:#a46cff; text-shadow:0 2px 6px rgba(0,0,0,0.4);">
-        Account Setup {Basic Information}
+      Account Setup {Basic Information}
     </h2>
-</section>
+  </div>
+
+  <!-- Parent Glass Card wrapper -->
+  <div class="parent-card" style="position:relative; padding:28px; max-width:500px; margin:0 auto; overflow:hidden;">
 
 <!-- Form Cards -->
 <section id="section2">
@@ -433,14 +439,14 @@ window.addEventListener("DOMContentLoaded", () => {
             if(!input.value.trim()){
                 hasError=true;
                 input.closest(".payment-method").classList.add("warning");
-                setTimeout(()=>input.closest(".payment-method").classList.remove("warning"),1500);
+                setTimeout(()=>input.closest(".payment-method").classList.remove("warning"),2200);
             }
         });
         if(!experience){
             hasError=true;
             const experienceCard=document.querySelector(".payment-method:nth-of-type(4)");
             experienceCard.classList.add("warning");
-            setTimeout(()=>experienceCard.classList.remove("warning"),1500);
+            setTimeout(()=>experienceCard.classList.remove("warning"),2200);
         }
         if(hasError) return;
         saveSection2();
