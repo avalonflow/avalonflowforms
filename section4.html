@@ -367,21 +367,23 @@ footer {
 <!-- Floating Background -->
 <div id="floating-bg"></div>
 
-<!-- Header -->
+
+
+
+  <!-- Header -->
 <header style="text-align:center; padding:40px 0;">
   <div class="logo-card">
     <img src="assets/pictures/imagitool-export (26).jpg" alt="AvalonFlow Logo">
   </div>
 </header>
 
-<!-- Heading -->
-  <h2 style="
+<!-- Membership Confirmation -->
+<h2 style="
   text-align: center;
   font-weight: bold;
   color: #a46cff; /* purple */
   font-size: 1.8rem;
-  margin-top: 20px; /* much smaller than before */
-  margin-bottom: 20px;
+  margin: 20px 0 10px; /* reduced vertical spacing */
 ">
   Membership Confirmation
 </h2>
@@ -444,21 +446,24 @@ document.getElementById('submitBtn').onclick = (e) => {
 // Restore confirmation state
 const checkbox = document.getElementById('confirmation');
 const card = document.getElementById('confirmationCard');
-if(localStorage.getItem('membershipConfirmed') === 'true') checkbox.checked = true;
 
-// Submit button logic
+// Restore confirmation state on load
+if(localStorage.getItem('membershipConfirmed') === 'true') {
+  checkbox.checked = true;
+}
+
 document.getElementById('submitBtn').onclick = (e) => {
   e.preventDefault();
 
   if(!checkbox.checked) {
     // Trigger red warning glow
     card.classList.add('warning');
-    setTimeout(()=> card.classList.remove('warning'),2200);
+    setTimeout(() => card.classList.remove('warning'), 2200);
     return;
   }
 
   // Save confirmation locally
-  localStorage.setItem('membershipConfirmed','true');
+  localStorage.setItem('membershipConfirmed', 'true');
 
   // Redirect after submission
   window.location.href = 'https://link.avalonflow.site/after-submission';
