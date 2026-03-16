@@ -70,10 +70,17 @@
   background: rgba(255,255,255,0.08);
   border-radius: 16px;
   padding: 18px;
-  margin-top: 16px;
+  margin-top: 18px;
   border: 1px solid rgba(255,255,255,0.18);
   transition: 0.3s ease, transform 0.2s ease;
   cursor: pointer;
+backdrop-filter: blur(8px);
+  /* NEW */
+  display: block;
+}
+
+.payment-method:not(:last-child){
+  margin-bottom: 12px;
 }
 
 .payment-method:hover{
@@ -145,20 +152,23 @@
 }
 
 .payment-logo{
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.4));
 }
 
 /* Input styling */
 .payment-method input{
   width: 100%;
-  padding: 14px;
-  margin-top: 10px;
+  padding: 14px 16px;
+  margin-top: 12px;
   border-radius: 12px;
   border: none;
   background: rgba(255,255,255,0.15);
   color: #fff;
+/* FIX */
+  box-sizing: border-box;
 }
 
   .payment-method input::placeholder{
