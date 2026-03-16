@@ -74,31 +74,55 @@
   box-shadow: 0 0 18px rgba(107,44,216,0.5); /* purple glow on hover */
 }
 
-/* Shimmer on active card */
-.payment-method.active::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -75%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(
-    120deg,
-    rgba(255,255,255,0) 0%,
-    rgba(255,255,255,0.15) 50%,
-    rgba(255,255,255,0) 100%
-  );
-  transform: skewX(-20deg);
-  animation: shimmer 1.5s infinite;
-  pointer-events: none;
-  z-index: 2;
+/* Continuous shimmer + purple glow on all cards */
+.payment-method::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -75%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+      120deg,
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0.15) 50%,
+      rgba(255,255,255,0) 100%
+    );
+    transform: skewX(-20deg);
+    animation: shimmer 1.5s infinite;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* Glow around card (pulsing purple) */
+.payment-method::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center, rgba(107,44,216,0.25), transparent 70%);
+    opacity: 0.5;
+    transform: scale(1);
+    animation: glowPulse 2.5s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
 }
 
 @keyframes shimmer {
-  0% { left: -75%; }
-  50% { left: 125%; }
-  100% { left: 125%; }
+    0% { left: -75%; }
+    50% { left: 125%; }
+    100% { left: 125%; }
 }
+
+@keyframes glowPulse {
+    0% { transform: scale(1); opacity: 0.4; }
+    50% { transform: scale(1.05); opacity: 0.6; }
+    100% { transform: scale(1); opacity: 0.4; }
+}
+
+
 
 /* Input styling */
 .payment-method input{
@@ -109,7 +133,6 @@
   border: none;
   background: rgba(255,255,255,0.15);
   color: #fff;
-display:none;
 /* FIX */
   box-sizing: border-box;
 }
@@ -176,54 +199,15 @@ display:none;
 }
 
 /* Red warning glow around container */
-.payment-container.warning {
-  z-index: 10; /* above cards */
-  box-shadow: 0 0 20px 4px rgba(255,77,77,0.9);
-  border-radius: 24px;
-  animation: warning-glow 0.8s ease-in-out 2;
+.warning {
+    animation: warning-glow 0.8s ease-in-out 2;
+    box-shadow: 0 0 20px 4px rgba(255,77,77,0.9);
+    border-radius: 18px;
 }
-
-/* Keyframes for pulsing red glow */
 @keyframes warning-glow {
-  0% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
-  50% { box-shadow: 0 0 20px 6px rgba(255,77,77,0.9); }
-  100% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
-}
-
-/* Suppress the purple card glows during warning */
-.payment-container.warning .payment-method::before {
-  opacity: 0 !important;
-}
-
-/* Parent Glass Card */
-.parent-card {
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(15px);
-  border-radius: 24px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.35);
-  transition: 0.3s ease;
-}
-
-/* Pulsing Purple Glow for Parent */
-.parent-card::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle at center, rgba(107,44,216,0.25), transparent 70%);
-  opacity: 0.5;
-  transform: scale(1);
-  animation: parentGlowPulse 2.5s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 0;
-}
-
-@keyframes parentGlowPulse {
-  0% { transform: scale(1); opacity: 0.4; }
-  50% { transform: scale(1.05); opacity: 0.6; }
-  100% { transform: scale(1); opacity: 0.4; }
+    0% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
+    50% { box-shadow: 0 0 20px 6px rgba(255,77,77,0.9); }
+    100% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
 }
 
         /* ---------- Notification Bar ---------- */
@@ -310,45 +294,43 @@ display:none;
   </div>
 </header>
 
-<!-- Section 2 Glass Card Wrapper -->
-<section id="section2">
-  <div class="glass-card parent-card" style="position: relative; padding: 36px 28px; max-width: 650px; margin: 40px auto; overflow: hidden;">
-
-    <!-- Heading Card with Purple Glow -->
-    <div class="heading-glow" style="text-align: center; margin-bottom: 28px;">
-      <h2 style="font-weight: bold; font-size: 1.8rem; color: #a46cff; text-shadow: 0 2px 6px rgba(0,0,0,0.4);">
+<!-- Account Setup Heading (No Glass Card) -->
+<section style="text-align:center; margin:40px 0;">
+    <h2 style="font-weight:bold; font-size:1.8rem; color:#a46cff; text-shadow:0 2px 6px rgba(0,0,0,0.4);">
         Account Setup {Basic Information}
-      </h2>
-    </div>
+    </h2>
+</section>
 
-    <!-- Full Name -->
-    <div class="glass-card payment-method">
-      <h3 style="font-weight:bold;">Full Name</h3>
-      <input id="fullName" placeholder="Enter your full name" style="display:none;">
-    </div>
+<!-- Form Cards -->
+<section id="section2">
+  <!-- Full Name -->
+  <div class="glass-card payment-method">
+    <h3>Full Name</h3>
+    <input id="fullName" placeholder="Enter your full name">
+  </div>
 
-    <!-- Email Address -->
-    <div class="glass-card payment-method">
-      <h3 style="font-weight:bold;">Email Address</h3>
-      <input id="email" type="email" placeholder="Enter your email address" style="display:none;">
-    </div>
+  <!-- Email -->
+  <div class="glass-card payment-method">
+    <h3>Email Address</h3>
+    <input id="email" type="email" placeholder="Enter your email address">
+  </div>
 
-    <!-- Location -->
-    <div class="glass-card payment-method">
-      <h3 style="font-weight:bold;">Where are you located?</h3>
-      <p style="font-style:italic; font-weight:bold;">This helps us personalize your experience.</p>
-      <input id="location" placeholder="Enter your location" style="display:none;">
-    </div>
+  <!-- Location -->
+  <div class="glass-card payment-method">
+    <h3>Where are you located?</h3>
+    <p style="font-style:italic; font-weight:bold;">This helps us personalize your experience.</p>
+    <input id="location" placeholder="Enter your location">
+  </div>
 
-    <!-- Digital Systems Experience -->
-    <div class="glass-card payment-method">
-      <h3 style="font-weight:bold;">Familiarity with digital systems</h3>
-      <div style="display:flex; gap:10px; justify-content:center; margin-top:14px;">
+  <!-- Experience -->
+  <div class="glass-card payment-method">
+    <h3>Familiarity with digital systems</h3>
+    <div style="display:flex; gap:10px; justify-content:center; margin-top:14px;">
         <button class="option-btn" data-value="Beginner">Beginner</button>
         <button class="option-btn" data-value="Intermediate">Intermediate</button>
         <button class="option-btn" data-value="Expert">Expert</button>
-      </div>
     </div>
+  </div>
 
   <!-- Navigation Buttons -->
 <div id="navButtons" style="max-width:600px;margin:40px auto 100px; display:flex;justify-content:space-between; position:relative; z-index:5;">
@@ -444,47 +426,25 @@ window.addEventListener("DOMContentLoaded", () => {
     window.location.href = "https://avalonflow.site/"; // Section 1
   };
 
-  document.getElementById("nextBtn").onclick = () => {
-    let hasError = false;
-
-    // Input fields (hidden)
-    const inputs = [fullName, email, location];
-    inputs.forEach(input => {
-        if (!input.value.trim()) {
-            hasError = true;
-            // Pulse red glow on parent card
-            const parentCard = input.closest(".glass-card");
-            parentCard.classList.add("warning");
-            setTimeout(() => parentCard.classList.remove("warning"), 1500);
+  document.getElementById("nextBtn").onclick=()=>{
+        let hasError=false;
+        const inputs=[fullName,email,location];
+        inputs.forEach(input=>{
+            if(!input.value.trim()){
+                hasError=true;
+                input.closest(".payment-method").classList.add("warning");
+                setTimeout(()=>input.closest(".payment-method").classList.remove("warning"),1500);
+            }
+        });
+        if(!experience){
+            hasError=true;
+            const experienceCard=document.querySelector(".payment-method:nth-of-type(4)");
+            experienceCard.classList.add("warning");
+            setTimeout(()=>experienceCard.classList.remove("warning"),1500);
         }
-    });
-
-    // Experience buttons (option buttons)
-    if (!experience) {
-        hasError = true;
-        const experienceCard = document.querySelector(".glass-card.payment-method:nth-of-type(4)");
-        experienceCard.classList.add("warning");
-        setTimeout(() => experienceCard.classList.remove("warning"), 1500);
-    }
-
-    if (hasError) return; // stop navigation if any missing
-
-    // Save all data before proceeding
-    saveSection2();
-    window.location.href = "https://link.avalonflow.site/section3";
-};
-
-/* ---------- EXPERIENCE BUTTONS ---------- */
-document.querySelectorAll(".option-btn").forEach(btn => {
-    btn.onclick = () => {
-        experience = btn.dataset.value;
-
-        // Remove active from all, set active on clicked
-        document.querySelectorAll(".option-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-
-        // Save immediately
+        if(hasError) return;
         saveSection2();
+        window.location.href="https://link.avalonflow.site/section3";
     };
 });
 
