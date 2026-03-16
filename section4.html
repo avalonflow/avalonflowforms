@@ -439,23 +439,19 @@ function getFingerprint() {
   );
 }
 
-// Submit button logic
-document.getElementById('submitBtn').onclick = (e) => {
-  e.preventDefault(); // Prevent default form reload
-
-// Restore confirmation state
 const checkbox = document.getElementById('confirmation');
 const card = document.getElementById('confirmationCard');
 
 // Restore confirmation state on load
-if(localStorage.getItem('membershipConfirmed') === 'true') {
+if (localStorage.getItem('membershipConfirmed') === 'true') {
   checkbox.checked = true;
 }
 
+// Submit button logic
 document.getElementById('submitBtn').onclick = (e) => {
   e.preventDefault();
 
-  if(!checkbox.checked) {
+  if (!checkbox.checked) {
     // Trigger red warning glow
     card.classList.add('warning');
     setTimeout(() => card.classList.remove('warning'), 2200);
@@ -471,7 +467,6 @@ document.getElementById('submitBtn').onclick = (e) => {
 
 // Previous button logic
 document.getElementById("prevBtn").onclick = () => {
-  // Go back to Section 2 to edit email/country
   window.location.href = "section3";
 };
 </script>
