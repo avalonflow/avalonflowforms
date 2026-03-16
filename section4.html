@@ -78,6 +78,16 @@ header {
   height: auto;
 }
 
+.membership-confirmation {
+  text-align: center;
+  font-weight: bold;
+  color: #a46cff; /* purple */
+  font-size: 1.8rem;
+  margin: 20px 0 10px; /* spacing */
+  position: relative;  /* lets it appear above other things */
+  z-index: 3;          /* higher than background */
+}
+
 /* ---------- Glass Cards ---------- */
 .glass-card {
   background: rgba(255,255,255,0.12);
@@ -144,7 +154,7 @@ button:hover {
     0 0 40px rgba(107,44,216,0.3),
     0 0 80px rgba(107,44,216,0.2);
   max-width: 600px;
-  margin: 30px auto;
+  margin: 10px auto 40px;
   position: relative;
   animation: neonPulse 2.5s ease-in-out infinite alternate;
   overflow: hidden;
@@ -378,13 +388,7 @@ footer {
 </header>
 
 <!-- Membership Confirmation -->
-<h2 style="
-  text-align: center;
-  font-weight: bold;
-  color: #a46cff; /* purple */
-  font-size: 1.8rem;
-  margin: 20px 0 10px; /* reduced vertical spacing */
-">
+<h2 class="membership-confirmation">
   Membership Confirmation
 </h2>
 
