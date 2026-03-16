@@ -45,26 +45,49 @@
   left: 50%;
   transform: translate(-50%, -50%);
 
-  width: 90%;
-  max-width: 400px;       /* controls horizontal size */
-  padding: 30px 40px;     /* vertical smaller, horizontal bigger for rectangle look */
-  
+  width: calc(100% - 40px);  /* leaves 20px gap left & right */
+  max-width: 350px;
+  padding: 30px 40px;
+
   background: rgba(255,255,255,0.12);
   backdrop-filter: blur(12px);
   border-radius: 18px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
   text-align: center;
   z-index: 10;
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
-}
+  transition: transform 0.3s ease;
 
-.thank-you-card:hover {
+  /* Outer glow pulse animation */
   box-shadow:
     0 0 20px rgba(107,44,216,0.8),
     0 0 40px rgba(107,44,216,0.6),
     0 0 60px rgba(107,44,216,0.4),
     0 0 120px rgba(107,44,216,0.25);
-  transform: translate(-50%, -50%) scale(1.02); /* hover slightly enlarges */
+  animation: cardGlow 2.5s ease-in-out infinite alternate;
+}
+
+/* Pulse keyframes */
+@keyframes cardGlow {
+  0% {
+    box-shadow:
+      0 0 15px rgba(107,44,216,0.4),
+      0 0 30px rgba(107,44,216,0.3),
+      0 0 45px rgba(107,44,216,0.2),
+      0 0 90px rgba(107,44,216,0.15);
+  }
+  50% {
+    box-shadow:
+      0 0 25px rgba(107,44,216,0.8),
+      0 0 50px rgba(107,44,216,0.6),
+      0 0 75px rgba(107,44,216,0.4),
+      0 0 150px rgba(107,44,216,0.25);
+  }
+  100% {
+    box-shadow:
+      0 0 15px rgba(107,44,216,0.4),
+      0 0 30px rgba(107,44,216,0.3),
+      0 0 45px rgba(107,44,216,0.2),
+      0 0 90px rgba(107,44,216,0.15);
+  }
 }
 
 .thank-you-card h2 {
