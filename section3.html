@@ -412,21 +412,33 @@ localStorage.setItem("section3Data", JSON.stringify(data));
 
   // If no payment method selected
   if (!preference) {
-    // Scroll container into view smoothly
     container.scrollIntoView({ behavior: "smooth", block: "center" });
-
-    // Add warning glow class
     container.classList.add("warning");
-
-    // Remove warning class after animation completes so it can trigger again later
-    setTimeout(() => {
-      container.classList.remove("warning");
-    }, 1600); // matches the 0.8s x 2 animation cycles
-
-    return; // stop navigation
+    setTimeout(() => container.classList.remove("warning"), 1600);
+    return;
   }
 
-  // Save data and proceed to next page
+  // Get the input field for the selected payment method
+  let inputId = "";
+  switch (preference) {
+    case "USDT / USDC ERC20": inputId = "acuAccount"; break;
+    case "PayPal": inputId = "paypalInput"; break;
+    case "Cash App": inputId = "cashInput"; break;
+    case "Venmo": inputId = "venmoInput"; break;
+  }
+
+  const input = document.getElementById(inputId);
+
+  // If input is empty
+  if (!input || input.value.trim() === "") {
+    container.scrollIntoView({ behavior: "smooth", block: "center" });
+    container.classList.add("warning");
+    setTimeout(() => container.classList.remove("warning"), 1600);
+    alert(`Please enter your ${preference} details before proceeding.`);
+    return;
+  }
+
+  // Save data and proceed
   saveData();
   window.location.href = "https://link.avalonflow.site/section4";
 };
