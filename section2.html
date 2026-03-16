@@ -405,6 +405,25 @@ header .logo-card img {
         box-shadow: 0 -5px 20px rgba(0,0,0,0.4);
         z-index: 6;
     }
+
+.heading-glow{
+  font-weight: bold;
+  font-size: 1.8rem;
+
+  background: linear-gradient(90deg,#6b2cd8,#b393ff,#6b2cd8);
+  background-size: 200% auto;
+  animation: gradientShift 6s linear infinite;
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+@keyframes gradientShift{
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
 </style>
 </head>
 
@@ -422,14 +441,7 @@ header .logo-card img {
 
 <!-- Account Setup Heading (outside any card) -->
 <div style="text-align:center; margin:40px 0; position:relative;">
-  <h2 class="heading-glow" style="font-weight:bold;
-    background: linear-gradient(90deg,#6b2cd8,#b393ff,#6b2cd8);     animation: gradientShift 6s linear infinite;
-}
-
-@keyframes gradientShift {
-    0% { background-position: 0% center; }
-    100% { background-position: 200% center; }
-} font-size:1.8rem; color:#a46cff; text-shadow:0 2px 6px rgba(0,0,0,0.4);">
+  <h2 class="heading-glow">
     Account Setup {Basic Information}
   </h2>
 </div>
