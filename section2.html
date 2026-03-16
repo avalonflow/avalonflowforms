@@ -100,7 +100,8 @@
   100% { left: 125%; }
 }
 
-.payment-method input {
+/* Input styling */
+.payment-method input{
   width: 100%;
   padding: 14px 16px;
   margin-top: 12px;
@@ -108,11 +109,12 @@
   border: none;
   background: rgba(255,255,255,0.15);
   color: #fff;
+display:none;
+/* FIX */
   box-sizing: border-box;
-  display: block; /* visible by default */
 }
 
-.payment-method input::placeholder {
+  .payment-method input::placeholder{
   color: #ccc;
   font-style: italic;
 }
@@ -171,6 +173,26 @@
   0% { transform: scale(1); opacity: 0.4; }
   50% { transform: scale(1.05); opacity: 0.6; }
   100% { transform: scale(1); opacity: 0.4; }
+}
+
+/* Red warning glow around container */
+.payment-container.warning {
+  z-index: 10; /* above cards */
+  box-shadow: 0 0 20px 4px rgba(255,77,77,0.9);
+  border-radius: 24px;
+  animation: warning-glow 0.8s ease-in-out 2;
+}
+
+/* Keyframes for pulsing red glow */
+@keyframes warning-glow {
+  0% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
+  50% { box-shadow: 0 0 20px 6px rgba(255,77,77,0.9); }
+  100% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
+}
+
+/* Suppress the purple card glows during warning */
+.payment-container.warning .payment-method::before {
+  opacity: 0 !important;
 }
 
         /* ---------- Notification Bar ---------- */
