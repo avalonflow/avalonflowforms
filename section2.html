@@ -216,6 +216,107 @@ top:-10%;
     100% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
 }
 
+header .logo-card {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 90%;
+  max-width: 300px;
+  height: 180px;
+  border-radius: 24px;
+
+  /* Purple glass */
+  background: rgba(107,44,216,0.2);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(107,44,216,0.4);
+
+  /* Outer neon glow */
+  box-shadow: 
+    0 0 10px rgba(107,44,216,0.5),
+    0 0 20px rgba(107,44,216,0.4),
+    0 0 40px rgba(107,44,216,0.3),
+    0 0 80px rgba(107,44,216,0.2);
+  position: relative;
+  margin: 0 auto;
+
+  /* Smooth pulsing */
+  animation: neonGlow 2.5s ease-in-out infinite alternate;
+  transition: box-shadow 0.3s ease;
+  overflow: hidden; /* ensures inner glow stays inside */
+}
+
+/* Inner border glow */
+header .logo-card::before {
+  content: '';
+  position: absolute;
+  inset: 2px; /* small gap from edges */
+  border-radius: 22px; /* slightly smaller than card */
+  border: 2px solid rgba(107,44,216,0.6);
+  box-shadow:
+    0 0 10px rgba(107,44,216,0.8),
+    0 0 20px rgba(107,44,216,0.6),
+    0 0 30px rgba(107,44,216,0.4);
+  pointer-events: none;
+  z-index: 1;
+  animation: innerGlow 2.5s ease-in-out infinite alternate;
+}
+
+/* Outer neon pulse (existing) */
+@keyframes neonGlow {
+  0% {
+    box-shadow: 
+      0 0 15px rgba(107,44,216,0.4),
+      0 0 30px rgba(107,44,216,0.3),
+      0 0 50px rgba(107,44,216,0.2),
+      0 0 100px rgba(107,44,216,0.15);
+  }
+  50% {
+    box-shadow: 
+      0 0 25px rgba(107,44,216,0.8),
+      0 0 50px rgba(107,44,216,0.6),
+      0 0 80px rgba(107,44,216,0.4),
+      0 0 120px rgba(107,44,216,0.25);
+  }
+  100% {
+    box-shadow: 
+      0 0 15px rgba(107,44,216,0.4),
+      0 0 30px rgba(107,44,216,0.3),
+      0 0 50px rgba(107,44,216,0.2),
+      0 0 100px rgba(107,44,216,0.15);
+  }
+}
+
+/* Inner glow animation */
+@keyframes innerGlow {
+  0% {
+    box-shadow:
+      0 0 5px rgba(107,44,216,0.5),
+      0 0 10px rgba(107,44,216,0.4),
+      0 0 15px rgba(107,44,216,0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 15px rgba(107,44,216,0.8),
+      0 0 25px rgba(107,44,216,0.6),
+      0 0 35px rgba(107,44,216,0.4);
+  }
+  100% {
+    box-shadow:
+      0 0 5px rgba(107,44,216,0.5),
+      0 0 10px rgba(107,44,216,0.4),
+      0 0 15px rgba(107,44,216,0.3);
+  }
+}
+
+/* Image inside card stays above inner glow */
+header .logo-card img {
+  max-width: 90%;
+  max-height: 90%;
+  height: auto;
+  z-index: 2;
+  position: relative;
+}
+
         /* ---------- Notification Bar ---------- */
         .notification-bar {
             position: fixed;
@@ -280,23 +381,9 @@ top:-10%;
         <!-- Notification Bar -->
         <div id="planNotification" class="notification-bar"></div>
 
-<header style="text-align: center; padding: 40px 0;">
-  <div style="
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 350px;                /* slightly bigger frame */
-      height: 180px;
-      border-radius: 24px;
-      background: rgba(255, 255, 255, 0.12);  /* a little more visible */
-      backdrop-filter: blur(15px);
-      border: 1px solid rgba(255, 255, 255, 0.3); /* stronger border */
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);  /* deeper shadow */
-      margin: 0 auto;
-    ">
-    <img src="assets/pictures/imagitool-export (26).jpg" 
-         alt="AvalonFlow Logo" 
-         style="max-width: 90%; max-height: 90%; height: auto;">
+<header style="text-align:center; padding:40px 0;">
+  <div class="logo-card">
+    <img src="assets/pictures/imagitool-export (26).jpg" alt="AvalonFlow Logo">
   </div>
 </header>
 
