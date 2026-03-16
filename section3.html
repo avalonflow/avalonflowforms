@@ -44,30 +44,23 @@
   margin-right: auto;
 }
 
-/* Trust & bottom note */
- .top-trust {
+/* Top trust line & bottom note */
+.top-trust, .bottom-note {
   text-align: center;
-  color: #d0d0d0;
-  font-size: 14px;
-  margin-bottom: 20px;
-  font-weight: 500;
-  display: block; /* ensure visible */
-  z-index: 1;
+  display: block;
+  z-index: 3; /* above all cards and pseudo-elements */
 }
 
 .bottom-note {
-  text-align: center;
+  margin-top: 28px; /* spacing below last card */
+  font-style: italic;
   color: #b5b5b5;
   font-size: 14px;
-  margin-top: 22px;
-  font-style: italic;
-  display: block; /* ensure visible */
-  z-index: 1;
 }
   
 
 /* Payment method card */
-.payment-method{
+.payment-method {
   position: relative;
   overflow: hidden;
   background: rgba(255,255,255,0.08);
@@ -77,13 +70,13 @@
   border: 1px solid rgba(255,255,255,0.18);
   transition: 0.3s ease, transform 0.2s ease;
   cursor: pointer;
-backdrop-filter: blur(8px);
-  /* NEW */
+  backdrop-filter: blur(8px);
   display: block;
+  z-index: 2; /* ensure above the glass wrapper background */
 }
 
-.payment-method:not(:last-child){
-  margin-bottom: 12px;
+.payment-method:first-of-type {
+  margin-top: 12px; /* reduce top spacing from top trust line */
 }
 
 .payment-method:hover{
@@ -227,74 +220,63 @@ opacity:0.9;
 </header>
 
 <section id="section3">
-<div class="payment-container">
+  <div class="payment-container">
 
-  <!-- Top trust line -->
-  <div class="top-trust">
-    Secure payout systems supported by global payment networks
-  </div>
+    <!-- Single glass wrapper for everything -->
+    <div class="glass-card">
 
+      <!-- Top trust line -->
+      <div class="top-trust">
+        Secure payout systems supported by global payment networks
+      </div>
 
-<!-- USDT -->
-<div class="payment-method glass-card" data-method="USDT / USDC ERC20">
+      <!-- USDT / USDC -->
+      <div class="payment-method" data-method="USDT / USDC ERC20">
+        <div class="token-logos">
+          <img class="payment-logo" src="https://assets.coingecko.com/coins/images/325/large/Tether.png">
+          <img class="payment-logo" src="https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png">
+          <span>USDT / USDC (ERC-20)</span>
+        </div>
+        <input id="acuAccount" placeholder="Enter your ERC-20 wallet address">
+        <div class="network-note">⚠ ERC-20 network only</div>
+      </div>
 
-<div class="token-logos">
-<img class="payment-logo" src="https://assets.coingecko.com/coins/images/325/large/Tether.png">
-<img class="payment-logo" src="https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png">
+      <!-- PayPal -->
+      <div class="payment-method" data-method="PayPal">
+        <div class="payment-header">
+          <img class="payment-logo" src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg">
+          <span>PayPal</span>
+        </div>
+        <input id="paypalInput" placeholder="Enter your PayPal email">
+      </div>
 
-<span>USDT / USDC (ERC-20)</span>
-</div>
+      <!-- Cash App -->
+      <div class="payment-method" data-method="Cash App">
+        <div class="payment-header">
+          <img class="payment-logo" src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Cash_App_logo.svg">
+          <span>Cash App</span>
+        </div>
+        <input id="cashInput" placeholder="Enter your $Cashtag">
+      </div>
 
-<input id="acuAccount" placeholder="Enter your ERC-20 wallet address">
+      <!-- Venmo -->
+      <div class="payment-method" data-method="Venmo">
+        <div class="payment-header">
+          <img class="payment-logo" src="https://upload.wikimedia.org/wikipedia/commons/3/39/Venmo_logo.png">
+          <span>Venmo</span>
+        </div>
+        <input id="venmoInput" placeholder="Enter your Venmo username">
+      </div>
 
-<div class="network-note">
-⚠ ERC-20 network only
-</div>
+      <!-- Bottom reassurance -->
+      <div class="bottom-note">
+        Your payout destination can be updated later inside your AvalonFlow dashboard.
+      </div>
 
-</div>
+    </div> <!-- closes single glass-card wrapper -->
 
-
-<!-- PayPal -->
-<div class="payment-method glass-card" data-method="PayPal">
-
-<div class="payment-header">
-<img class="payment-logo" src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg">
-<span>PayPal</span>
-</div>
-
-<input id="paypalInput" placeholder="Enter your PayPal email">
-
-</div>
-
-
-<!-- Cash App -->
-<div class="payment-method glass-card" data-method="Cash App">
-
-<div class="payment-header">
-<img class="payment-logo" src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Cash_App_logo.svg">
-<span>Cash App</span>
-</div>
-
-<input id="cashInput" placeholder="Enter your $Cashtag">
-
-</div>
-
-
-<!-- Venmo card -->
-<div class="payment-method glass-card" data-method="Venmo">
-  <div class="payment-header">
-    <img class="payment-logo" src="https://upload.wikimedia.org/wikipedia/commons/3/39/Venmo_logo.png" alt="Venmo">
-    <span>Venmo</span>
-  </div>
-  <input id="venmoInput" placeholder="Enter your Venmo username">
-</div> <!-- closes Venmo card -->
-
-<!-- Bottom reassurance -->
-<div class="bottom-note">
-  Your payout destination can be updated later inside your AvalonFlow dashboard.
-</div>
-
-</div> <!-- closes payment-container -->
+  </div> <!-- closes payment-container -->
+</section>
 
     <!-- Navigation Buttons -->
 <div id="navButtons" style="max-width:600px;margin:40px auto 100px; display:flex;justify-content:space-between; position:relative; z-index:5;">
