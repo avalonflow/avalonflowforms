@@ -192,6 +192,18 @@ opacity:0.9;
   font-style: italic;
 }
 
+.payment-container.warning {
+  animation: warning-glow 0.8s ease-in-out 2; /* glow twice */
+  border: 2px solid #ff4d4d; /* red border */
+  border-radius: 20px;
+}
+
+@keyframes warning-glow {
+  0% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
+  50% { box-shadow: 0 0 12px rgba(255,77,77,0.9); }
+  100% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
+}
+
   footer { position:fixed; bottom:0; left:0; width:100%; text-align:center; padding:18px 0; font-size:14px; color:#aaa; background:rgba(15,15,25,0.95); backdrop-filter:blur(12px); box-shadow:0 -5px 20px rgba(0,0,0,0.4); z-index:6; }
 </style>
 </head>
@@ -395,20 +407,29 @@ localStorage.setItem("section3Data", JSON.stringify(data));
 }
 
   // Navigation
-  document.getElementById("prevBtn").onclick = () => {
-    window.location.href = "section2"; // Back to Section 2
-  };
-
   document.getElementById("nextBtn").onclick = () => {
-    if (!preference) {
-      alert("Please select a payment method.");
-      return;
-    }
+  const container = document.querySelector(".payment-container");
 
-    saveData();
+  // If no payment method selected
+  if (!preference) {
+    // Scroll container into view smoothly
+    container.scrollIntoView({ behavior: "smooth", block: "center" });
 
-    window.location.href = "https://link.avalonflow.site/section4"; // Go to Section 4
-  };
+    // Add warning glow class
+    container.classList.add("warning");
+
+    // Remove warning class after animation completes so it can trigger again later
+    setTimeout(() => {
+      container.classList.remove("warning");
+    }, 1600); // matches the 0.8s x 2 animation cycles
+
+    return; // stop navigation
+  }
+
+  // Save data and proceed to next page
+  saveData();
+  window.location.href = "https://link.avalonflow.site/section4";
+};
 
 });
 
