@@ -45,21 +45,25 @@
 }
 
 /* Top trust line */
-.top-trust{
-text-align:center;
-color:#d0d0d0;
-font-size:14px;
-margin-bottom:20px;
-font-weight:500;
+.top-trust {
+  text-align: center;
+  color: #d0d0d0;
+  font-size: 14px;
+  margin-bottom: 20px;
+  font-weight: 500;
+  display: block; /* ensure it's visible */
+  z-index: 1;
 }
 
 /* Bottom note */
-.bottom-note{
-text-align:center;
-color:#b5b5b5;
-font-size:14px;
-margin-top:22px;
-font-style:italic;
+.bottom-note {
+  text-align: center;
+  color: #b5b5b5;
+  font-size: 14px;
+  margin-top: 22px;
+  font-style: italic;
+  display: block; /* ensure it's visible */
+  z-index: 1;
 }
 
 /* Payment method card */
@@ -226,10 +230,8 @@ opacity:0.9;
 
 <div class="payment-container">
 
-  <!-- Trust line -->
-<div class="top-trust">
-Secure payout systems supported by global payment networks
-</div>
+  <!-- Top trust line -->
+  <div class="top-trust">Secure payout systems supported by global payment networks</div>
 
 
 <!-- USDT -->
@@ -291,12 +293,8 @@ Secure payout systems supported by global payment networks
 
 
 <!-- Bottom reassurance -->
-<div class="bottom-note">
-Your payout destination can be updated later inside your AvalonFlow dashboard.
+  <div class="bottom-note">Your payout destination can be updated later inside your AvalonFlow dashboard.</div>
 </div>
-
-</div>
-
 </section>
 
     <!-- Navigation Buttons -->
