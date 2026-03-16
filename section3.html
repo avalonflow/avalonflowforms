@@ -274,6 +274,10 @@ Secure payout systems supported by global payment networks
 Your payout destination can be updated later inside your AvalonFlow dashboard.
 </div>
 
+</div>
+
+</section>
+
     <!-- Navigation Buttons -->
 <div id="navButtons" style="max-width:600px;margin:40px auto 100px; display:flex;justify-content:space-between; position:relative; z-index:5;">
     <button id="prevBtn" style="background: rgba(107,44,216,0.9); border:1px solid #fff; padding:12px 24px; border-radius:12px; font-weight:bold; color:#fff;">Previous</button>
@@ -303,25 +307,92 @@ window.addEventListener("DOMContentLoaded", () => {
   setInterval(particle,800);
 
   const methods = document.querySelectorAll(".payment-method");
+const inputs = document.querySelectorAll(".payment-method input");
 
-  let preference = "";
+let preference = "";
 
-  methods.forEach(method => {
-    const input = method.querySelector("input");
+/* --------------------------
+LOAD SAVED DATA
+-------------------------- */
 
-    method.onclick = () => {
-      // Remove active from all
-      methods.forEach(m=>{
-        m.classList.remove("active");
-        m.querySelector("input").style.display = "none";
-      });
+const saved = JSON.parse(localStorage.getItem("section3Data") || "{}");
 
-      // Activate clicked card
-      method.classList.add("active");
-      input.style.display = "block";
-      preference = method.dataset.method;
-    };
-  });
+if(saved.preference){
+
+methods.forEach(method=>{
+
+if(method.dataset.method === saved.preference){
+
+method.classList.add("active");
+
+const input = method.querySelector("input");
+if(input) input.style.display = "block";
+
+preference = saved.preference;
+
+}
+
+});
+
+}
+
+if(saved.acuAccount) document.getElementById("acuAccount").value = saved.acuAccount;
+if(saved.paypal) document.getElementById("paypalInput").value = saved.paypal;
+if(saved.cashapp) document.getElementById("cashInput").value = saved.cashapp;
+if(saved.venmo) document.getElementById("venmoInput").value = saved.venmo;
+
+
+/* --------------------------
+CARD SELECTION
+-------------------------- */
+
+methods.forEach(method => {
+
+const input = method.querySelector("input");
+
+method.onclick = () => {
+
+methods.forEach(m=>{
+m.classList.remove("active");
+m.querySelector("input").style.display = "none";
+});
+
+method.classList.add("active");
+input.style.display = "block";
+
+preference = method.dataset.method;
+
+saveData();
+
+};
+
+});
+
+
+/* --------------------------
+AUTO SAVE INPUT
+-------------------------- */
+
+inputs.forEach(input=>{
+
+input.addEventListener("input", saveData);
+
+});
+
+
+function saveData(){
+
+const data = {
+preference,
+acuAccount: document.getElementById("acuAccount")?.value.trim(),
+paypal: document.getElementById("paypalInput")?.value.trim(),
+cashapp: document.getElementById("cashInput")?.value.trim(),
+venmo: document.getElementById("venmoInput")?.value.trim()
+};
+
+localStorage.setItem("section3Data", JSON.stringify(data));
+
+}
 
   // Navigation
   document.getElementById("prevBtn").onclick = () => {
@@ -334,15 +405,7 @@ window.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const data = {
-      preference,
-      acuAccount: document.getElementById("acuAccount")?.value.trim(),
-      paypal: document.getElementById("paypalInput")?.value.trim(),
-      cashapp: document.getElementById("cashInput")?.value.trim(),
-      venmo: document.getElementById("venmoInput")?.value.trim()
-    };
-
-    localStorage.setItem("section3Data", JSON.stringify(data));
+    saveData();
 
     window.location.href = "https://link.avalonflow.site/section4"; // Go to Section 4
   };
