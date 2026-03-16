@@ -45,8 +45,26 @@
 }
 
 /* Trust & bottom note */
-  .top-trust { text-align:center; color:#d0d0d0; font-size:14px; margin-bottom:20px; font-weight:500; display:block; z-index:1; }
-  .bottom-note { text-align:center; color:#b5b5b5; font-size:14px; margin-top:22px; font-style:italic; display:block; z-index:1; }
+ .top-trust {
+  text-align: center;
+  color: #d0d0d0;
+  font-size: 14px;
+  margin-bottom: 20px;
+  font-weight: 500;
+  display: block; /* ensure visible */
+  z-index: 1;
+}
+
+.bottom-note {
+  text-align: center;
+  color: #b5b5b5;
+  font-size: 14px;
+  margin-top: 22px;
+  font-style: italic;
+  display: block; /* ensure visible */
+  z-index: 1;
+}
+  
 
 /* Payment method card */
 .payment-method{
@@ -212,7 +230,9 @@ opacity:0.9;
 <div class="payment-container">
 
   <!-- Top trust line -->
-  <div class="top-trust">Secure payout systems supported by global payment networks</div>
+  <div class="top-trust">
+    Secure payout systems supported by global payment networks
+  </div>
 
 
 <!-- USDT -->
@@ -260,21 +280,21 @@ opacity:0.9;
 </div>
 
 
-<!-- Venmo -->
+<!-- Venmo card -->
 <div class="payment-method glass-card" data-method="Venmo">
-
-<div class="payment-header">
-<img class="payment-logo" src="https://upload.wikimedia.org/wikipedia/commons/3/39/Venmo_logo.png">
-<span>Venmo</span>
-</div>
-<input id="venmoInput" placeholder="Enter your Venmo username">
-</div>
-
+  <div class="payment-header">
+    <img class="payment-logo" src="https://upload.wikimedia.org/wikipedia/commons/3/39/Venmo_logo.png" alt="Venmo">
+    <span>Venmo</span>
+  </div>
+  <input id="venmoInput" placeholder="Enter your Venmo username">
+</div> <!-- closes Venmo card -->
 
 <!-- Bottom reassurance -->
-  <div class="bottom-note">Your payout destination can be updated later inside your AvalonFlow dashboard.</div>
+<div class="bottom-note">
+  Your payout destination can be updated later inside your AvalonFlow dashboard.
 </div>
-</section>
+
+</div> <!-- closes payment-container -->
 
     <!-- Navigation Buttons -->
 <div id="navButtons" style="max-width:600px;margin:40px auto 100px; display:flex;justify-content:space-between; position:relative; z-index:5;">
