@@ -81,11 +81,24 @@ header {
 .membership-confirmation {
   text-align: center;
   font-weight: bold;
-  color: #a46cff; /* purple */
   font-size: 1.8rem;
-  margin: 20px 0 10px; /* spacing */
-  position: relative;  /* lets it appear above other things */
-  z-index: 3;          /* higher than background */
+  margin: 20px 0 10px;
+  position: relative;
+  z-index: 3;
+
+  background: linear-gradient(90deg,#6b2cd8,#b393ff,#6b2cd8);
+  background-size: 200% auto;
+  animation: gradientShift 6s linear infinite;
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  text-shadow: 0 2px 6px rgba(0,0,0,0.35);
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
 }
 
 /* ---------- Glass Cards ---------- */
