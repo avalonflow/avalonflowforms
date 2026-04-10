@@ -359,6 +359,137 @@ header .logo-card img {
   }
 }
 
+.account-setup-container {
+    max-width: 650px;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* =========================
+   PREMIUM GLASS SELECT BOX
+========================= */
+.select2-container--default .select2-selection--single {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    border-radius: 18px !important;
+
+    height: 52px !important;
+    padding: 6px 16px !important;
+
+    display: flex !important;
+    align-items: center !important;
+
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+
+    transition: all 0.25s ease;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+}
+
+/* hover glow */
+.select2-container--default .select2-selection--single:hover {
+    border-color: rgba(107, 44, 216, 0.5) !important;
+    box-shadow: 0 0 0 2px rgba(107, 44, 216, 0.15),
+                0 10px 35px rgba(0,0,0,0.25);
+}
+
+.select2-selection__rendered {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+}
+
+/* focus state */
+.select2-container--open .select2-selection--single {
+    border-color: rgba(107, 44, 216, 0.7) !important;
+}
+
+/* selected text */
+.select2-container--default .select2-selection__rendered {
+    color: #fff !important;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* arrow */
+.select2-container--default .select2-selection__arrow {
+    height: 100% !important;
+    right: 12px !important;
+}
+
+/* =========================
+   DROPDOWN PANEL (GLASS FLOAT)
+========================= */
+.select2-container--open .select2-dropdown {
+    background: rgba(15, 15, 25, 0.92) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 18px !important;
+
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+
+    overflow: hidden;
+
+    box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+
+    animation: dropdownFade 0.18s ease-out;
+}
+
+/* dropdown animation */
+@keyframes dropdownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================
+   OPTIONS (PREMIUM FEEL)
+========================= */
+.select2-results__option {
+    color: #fff !important;
+    padding: 12px 14px !important;
+    border-radius: 10px !important;
+    transition: 0.2s ease;
+}
+
+/* hover */
+.select2-results__option--highlighted {
+    background: rgba(107, 44, 216, 0.35) !important;
+}
+
+/* selected */
+.select2-results__option[aria-selected="true"] {
+    background: rgba(107, 44, 216, 0.18) !important;
+}
+
+/* =========================
+   SEARCH INPUT (DROPDOWN)
+========================= */
+.select2-search--dropdown .select2-search__field {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    color: #fff !important;
+
+    border-radius: 12px !important;
+    padding: 10px !important;
+
+    outline: none !important;
+}
+
+/* remove focus glow */
+.select2-search--dropdown .select2-search__field:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
         /* ---------- Notification Bar ---------- */
         .notification-bar {
             position: fixed;
@@ -455,10 +586,9 @@ header .logo-card img {
   </h2>
 </div>
 
+<!-- 🔥 NEW PARENT CONTAINER -->
+<section id="section2" class="account-setup-container">
 
-
-<!-- Form Cards -->
-<section id="section2">
   <!-- Full Name -->
   <div class="glass-card payment-method">
     <h3>👤 Full Name</h3>
@@ -554,6 +684,8 @@ header .logo-card img {
     </div>
   </div>
 
+</section>
+
   <!-- Navigation Buttons -->
 <div id="navButtons" style="max-width:600px;margin:40px auto 100px; display:flex;justify-content:space-between; position:relative; z-index:5;">
     <button id="prevBtn" style="background: rgba(107,44,216,0.9); border:1px solid #fff; padding:12px 24px; border-radius:12px; font-weight:bold; color:#fff;">Previous</button>
@@ -604,6 +736,8 @@ window.addEventListener("DOMContentLoaded", () => {
 const fullName = document.getElementById("fullName");
 const email = document.getElementById("email");
 const locationEl = document.getElementById("location");
+const password = document.getElementById("password");
+const confirmPassword = document.getElementById("confirmPassword");
 
 let experience = "";
 
@@ -660,7 +794,11 @@ function getContinent(country) {
 /* =========================
    FLAGS
 ========================= */
-function getFlag(country) {
+function formatCountrySelection(option) {
+    if (!option.id) return option.text;
+
+    const country = option.text;
+
     const flags = {
         "United States": "🇺🇸",
         "Canada": "🇨🇦",
@@ -688,7 +826,9 @@ function getFlag(country) {
         "UAE": "🇦🇪"
     };
 
-    return flags[country] || "🌍";
+    const flag = flags[country] || "🌍";
+
+    return `${flag} ${country}`;
 }
 
 /* =========================
@@ -722,13 +862,17 @@ function initSelect2() {
     }
 
     $('#location').select2({
-        placeholder: "Search your country",
-        allowClear: true,
-        templateResult: formatCountry,
-        templateSelection: (option) => option.text || option.id,
-        width: "100%"
-    });
-}
+    placeholder: "Search your country",
+    allowClear: true,
+
+    templateResult: function(option) {
+        if (!option.id) return option.text;
+        return option.text;
+    },
+
+    templateSelection: formatCountrySelection,
+    width: "100%"
+});
 
 
 /* =========================
@@ -778,22 +922,24 @@ setTimeout(() => {
    AUTO SAVE SYSTEM
 ========================= */
 function saveSection2() {
-        localStorage.setItem("section2Data", JSON.stringify({
-            fullName: fullName.value.trim(),
-            email: email.value.trim(),
-            location: (window.jQuery && $.fn.select2)
-                ? $('#location').val()
-                : locationEl.value,
-            experience
-        }));
-    }
+    localStorage.setItem("section2Data", JSON.stringify({
+        fullName: fullName.value.trim(),
+        email: email.value.trim(),
+        password: password.value.trim(),
+        confirmPassword: confirmPassword.value.trim(),
+        location: window.jQuery ? $('#location').val() : locationEl.value,
+        experience
+    }));
+}
 
-    fullName.addEventListener("input", saveSection2);
-    email.addEventListener("input", saveSection2);
+fullName.addEventListener("input", saveSection2);
+email.addEventListener("input", saveSection2);
+password.addEventListener("input", saveSection2);
+confirmPassword.addEventListener("input", saveSection2);
 
-    if (window.jQuery) {
-        $('#location').on("change", saveSection2);
-    }
+if (window.jQuery) {
+    $('#location').on("change", saveSection2);
+}
 
 /* =========================
    EXPERIENCE BUTTONS
@@ -824,37 +970,80 @@ const prevBtn = document.getElementById("prevBtn");
     }
 
     if (nextBtn) {
-        nextBtn.onclick = () => {
+    nextBtn.onclick = () => {
 
-            let hasError = false;
+        let hasError = false;
 
-            const inputs = [fullName, email, locationEl];
+        const locationValue = window.jQuery ? $('#location').val() : locationEl.value;
 
-            inputs.forEach(input => {
+        // ALL FIELDS CONFIG (CLEAN & SCALABLE)
+        const fields = [
+            { el: fullName, validate: v => v },
+            { el: email, validate: v => v },
+            { el: password, validate: v => v },
+            { el: confirmPassword, validate: v => v }
+        ];
 
-                const val = input.value?.trim();
+        // INPUT VALIDATION
+        fields.forEach(field => {
+            const val = field.el.value?.trim();
 
-                if (!val) {
-                    hasError = true;
+            if (!field.validate(val)) {
+                hasError = true;
 
-                    const card = input.closest(".payment-method");
-                    if (card) {
-                        card.classList.add("warning");
-                        setTimeout(() => card.classList.remove("warning"), 2200);
-                    }
+                const card = field.el.closest(".payment-method");
+                if (card) {
+                    card.classList.add("warning");
+                    setTimeout(() => card.classList.remove("warning"), 2200);
                 }
-            });
+            }
+        });
 
-            if (!experience) hasError = true;
+        // PASSWORD MATCH CHECK
+        if (password.value.trim() && confirmPassword.value.trim()) {
+            if (password.value !== confirmPassword.value) {
+                hasError = true;
 
-            if (hasError) return;
+                const card = confirmPassword.closest(".payment-method");
+                if (card) {
+                    card.classList.add("warning");
+                    setTimeout(() => card.classList.remove("warning"), 2200);
+                }
+            }
+        }
 
-            saveSection2();
-            localStorage.setItem("formSubmitted", "true");
+        // LOCATION CHECK
+        if (!locationValue) {
+            hasError = true;
 
-            window.location.href = "https://link.avalonflow.site/section3";
-        };
-    }
+            const card = locationEl.closest(".payment-method");
+            if (card) {
+                card.classList.add("warning");
+                setTimeout(() => card.classList.remove("warning"), 2200);
+            }
+        }
+
+        // EXPERIENCE CHECK
+        if (!experience) {
+            hasError = true;
+
+            const expCard = document.querySelector(".option-btn")?.closest(".payment-method");
+            if (expCard) {
+                expCard.classList.add("warning");
+                setTimeout(() => expCard.classList.remove("warning"), 2200);
+            }
+        }
+
+        // STOP IF ERRORS
+        if (hasError) return;
+
+        // SAVE + SUBMIT
+        saveSection2();
+        localStorage.setItem("formSubmitted", "true");
+
+        window.location.href = "https://link.avalonflow.site/section3";
+    };
+}
 
 /* =========================
    FINGERPRINT
