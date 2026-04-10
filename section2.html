@@ -604,15 +604,15 @@ const locationEl = document.getElementById("location");
 let experience = "";
 
 /* =========================
-   SAFE LOCALSTORAGE LOAD (PUT HERE)
-========================= */
-let savedData = {};
+       SAFE LOCALSTORAGE LOAD
+    ========================= */
+    let savedData = {};
 
-try {
-    savedData = JSON.parse(localStorage.getItem("section2Data")) || {};
-} catch (e) {
-    savedData = {};
-}
+    try {
+        savedData = JSON.parse(localStorage.getItem("section2Data")) || {};
+    } catch (e) {
+        savedData = {};
+    }
 
 /* =========================
    CONTINENT MAPPING
@@ -692,78 +692,73 @@ function getFlag(country) {
    IMPORTANT: NEVER break selection rendering
 ========================= */
 function formatCountry(option) {
-    if (!option.id) return option.text;
+        if (!option.id) return option.text;
 
-    const country = option.text;
-    const flag = getFlag(country);
-    const continent = getContinent(country);
+        const country = option.text;
+        const flag = getFlag(country);
+        const continent = getContinent(country);
 
-    const el = document.createElement("span");
-    el.innerHTML = `
-        <span style="margin-right:8px;">${flag}</span>
-        <strong>${country}</strong>
-        <span style="opacity:0.6; font-size:12px;"> — ${continent}</span>
-    `;
+        const el = document.createElement("span");
+        el.innerHTML = `
+            <span style="margin-right:8px;">${flag}</span>
+            <strong>${country}</strong>
+            <span style="opacity:0.6;font-size:12px;"> — ${continent}</span>
+        `;
 
-    return el;
-}
+        return el;
+    }
 
 /* =========================
    INIT SELECT2 (FIXED ORDER ISSUE)
 ========================= */
 function initSelect2() {
-    $('#location').select2({
-        placeholder: "Search your country",
-        allowClear: true,
-        templateResult: formatCountry,
 
-        templateSelection: function (option) {
-            return option.text || option.id;
-        },
+        if (!window.jQuery || !$.fn.select2) {
+            console.warn("Select2 not ready, retrying...");
+            setTimeout(initSelect2, 100);
+            return;
+        }
 
-        width: "100%"
-    });
-}
+        $('#location').select2({
+            placeholder: "Search your country",
+            allowClear: true,
+            templateResult: formatCountry,
+            templateSelection: (option) => option.text || option.id,
+            width: "100%"
+        });
+    }
+
+    initSelect2();
 
 /* =========================
    AUTO DETECT COUNTRY (SAFE)
 ========================= */
 async function autoDetectCountry() {
-    try {
-        const res = await fetch("https://ipapi.co/json/");
-        const data = await res.json();
+        try {
+            const res = await fetch("https://ipapi.co/json/");
+            const data = await res.json();
 
-        const country = data.country_name;
-        if (!country) return;
+            const country = data.country_name;
+            if (!country) return;
 
-        const current = $('#location').val();
+            const current = $('#location').val();
 
-        if (!current || current.length === 0) {
-            $('#location').val(country).trigger('change');
+            if (!current && window.jQuery && $.fn.select2) {
+                $('#location').val(country).trigger('change');
+            }
+
+        } catch (err) {
+            console.log("Auto-detect failed:", err);
         }
-
-        localStorage.setItem("country", country);
-        localStorage.setItem("continent", getContinent(country));
-
-    } catch (err) {
-        console.log("Auto-detect failed:", err);
     }
-}
 
 /* =========================
    RESTORE SAVED DATA (FIXED SAFE LOAD)
 ========================= */
-window.addEventListener("DOMContentLoaded", () => {
+setTimeout(() => {
 
-    initSelect2();
-
-    // wait 1 tick so Select2 fully binds
-    setTimeout(() => {
-
-        if (savedData.location) {
-            $('#location')
-                .val(savedData.location)
-                .trigger('change.select2');
+        if (savedData.location && window.jQuery && $.fn.select2) {
+            $('#location').val(savedData.location).trigger('change');
         }
 
         if (savedData.fullName) fullName.value = savedData.fullName;
@@ -776,86 +771,89 @@ window.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        autoDetectCountry();
-
-    }, 0);
-});
+    }, 50);
 
 /* =========================
    AUTO SAVE SYSTEM
 ========================= */
 function saveSection2() {
-    localStorage.setItem("section2Data", JSON.stringify({
-        fullName: fullName.value.trim(),
-        email: email.value.trim(),
-        location: $('#location').val(),
-        experience
-    }));
-}
+        localStorage.setItem("section2Data", JSON.stringify({
+            fullName: fullName.value.trim(),
+            email: email.value.trim(),
+            location: (window.jQuery && $.fn.select2)
+                ? $('#location').val()
+                : locationEl.value,
+            experience
+        }));
+    }
 
-fullName.addEventListener("input", saveSection2);
-email.addEventListener("input", saveSection2);
-$('#location').on("change", saveSection2);
+    fullName.addEventListener("input", saveSection2);
+    email.addEventListener("input", saveSection2);
+
+    if (window.jQuery) {
+        $('#location').on("change", saveSection2);
+    }
 
 /* =========================
    EXPERIENCE BUTTONS
 ========================= */
 document.querySelectorAll(".option-btn").forEach(btn => {
-    btn.onclick = () => {
-        experience = btn.dataset.value;
+        btn.onclick = () => {
+            experience = btn.dataset.value;
 
-        document.querySelectorAll(".option-btn")
-            .forEach(b => b.classList.remove("active"));
+            document.querySelectorAll(".option-btn")
+                .forEach(b => b.classList.remove("active"));
 
-        btn.classList.add("active");
-        saveSection2();
-    };
-});
+            btn.classList.add("active");
+
+            saveSection2();
+        };
+    });
 
 /* =========================
    NAVIGATION (FIXED NULL SAFETY)
 ========================= */
 const prevBtn = document.getElementById("prevBtn");
-const nextBtn = document.getElementById("nextBtn");
+    const nextBtn = document.getElementById("nextBtn");
 
-if (prevBtn) {
-    prevBtn.onclick = () => {
-        window.location.href = "https://avalonflow.site/";
-    };
-}
+    if (prevBtn) {
+        prevBtn.onclick = () => {
+            window.location.href = "https://avalonflow.site/";
+        };
+    }
 
-if (nextBtn) {
-    nextBtn.onclick = () => {
-        let hasError = false;
+    if (nextBtn) {
+        nextBtn.onclick = () => {
 
-        const inputs = [fullName, email, locationEl];
+            let hasError = false;
 
-        inputs.forEach(input => {
-            if (!input) return;
+            const inputs = [fullName, email, locationEl];
 
-            const val = input.value?.trim();
+            inputs.forEach(input => {
 
-            if (!val) {
-                hasError = true;
+                const val = input.value?.trim();
 
-                const card = input.closest(".payment-method");
-                if (card) {
-                    card.classList.add("warning");
-                    setTimeout(() => card.classList.remove("warning"), 2200);
+                if (!val) {
+                    hasError = true;
+
+                    const card = input.closest(".payment-method");
+                    if (card) {
+                        card.classList.add("warning");
+                        setTimeout(() => card.classList.remove("warning"), 2200);
+                    }
                 }
-            }
-        });
+            });
 
-        if (!experience) hasError = true;
+            if (!experience) hasError = true;
 
-        if (hasError) return;
+            if (hasError) return;
 
-        saveSection2();
-        localStorage.setItem("formSubmitted", "true");
+            saveSection2();
+            localStorage.setItem("formSubmitted", "true");
 
-        window.location.href = "https://link.avalonflow.site/section3";
-    };
-}
+            window.location.href = "https://link.avalonflow.site/section3";
+        };
+    }
 
 /* =========================
    FINGERPRINT
