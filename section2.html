@@ -571,15 +571,12 @@ header .logo-card img {
   </div>
 </header>
 
-<!-- Account Setup Heading (outside any card) -->
-<div style="text-align:center; margin:40px 0; position:relative;">
+<section id="section2" class="account-setup-container">
+
+  <div style="text-align:center; margin:40px 0; position:relative;">
   <h2 class="heading-glow">
     Account Setup {Basic Information}
   </h2>
-</div>
-
-<!-- 🔥 NEW PARENT CONTAINER -->
-<section id="section2" class="account-setup-container">
 
   <!-- Full Name -->
   <div class="glass-card payment-method">
@@ -593,86 +590,80 @@ header .logo-card img {
     <input id="email" type="email" placeholder="Enter your email address">
   </div>
 
-<!-- Password -->
-<div class="glass-card payment-method">
-  <h3>🔑 Create Password</h3>
-  <input id="password" type="password" placeholder="Create password">
-</div>
+  <!-- Password -->
+  <div class="glass-card payment-method">
+    <h3>🔑 Create Password</h3>
+    <input id="password" type="password" placeholder="Create password">
+  </div>
 
-<!-- Confirm Password -->
-<div class="glass-card payment-method">
-  <h3>🔒 Confirm Password</h3>
-  <input id="confirmPassword" type="password" placeholder="Re-enter password">
-</div>
+  <!-- Confirm Password -->
+  <div class="glass-card payment-method">
+    <h3>🔒 Confirm Password</h3>
+    <input id="confirmPassword" type="password" placeholder="Re-enter password">
+  </div>
 
-<!-- Location -->
-<div class="glass-card payment-method">
-  <h3>🌐 Select Your Country</h3>
-  <p style="font-style:italic; font-weight:bold;">
-    This helps us personalize your experience.
-  </p>
+  <!-- Location -->
+  <div class="glass-card payment-method">
+    <h3>🌐 Select Your Country</h3>
+    <p style="font-style:italic; font-weight:bold;">
+      This helps us personalize your experience.
+    </p>
 
-  <select id="location" style="width:100%">
-    <option value="">Select your country</option>
+    <select id="location" style="width:100%">
+      <option value="">Select your country</option>
 
-    <!-- North America -->
-    <optgroup label="North America">
-      <option>United States</option>
-      <option>Canada</option>
-      <option>Mexico</option>
-    </optgroup>
+      <optgroup label="North America">
+        <option>United States</option>
+        <option>Canada</option>
+        <option>Mexico</option>
+      </optgroup>
 
-    <!-- Europe -->
-    <optgroup label="Europe">
-      <option>United Kingdom</option>
-      <option>Germany</option>
-      <option>France</option>
-      <option>Italy</option>
-      <option>Spain</option>
-    </optgroup>
+      <optgroup label="Europe">
+        <option>United Kingdom</option>
+        <option>Germany</option>
+        <option>France</option>
+        <option>Italy</option>
+        <option>Spain</option>
+      </optgroup>
 
-    <!-- Oceania -->
-    <optgroup label="Oceania">
-      <option>Australia</option>
-      <option>New Zealand</option>
-    </optgroup>
+      <optgroup label="Oceania">
+        <option>Australia</option>
+        <option>New Zealand</option>
+      </optgroup>
 
-    <!-- South America -->
-    <optgroup label="South America">
-      <option>Brazil</option>
-      <option>Argentina</option>
-      <option>Colombia</option>
-    </optgroup>
+      <optgroup label="South America">
+        <option>Brazil</option>
+        <option>Argentina</option>
+        <option>Colombia</option>
+      </optgroup>
 
-    <!-- Africa -->
-    <optgroup label="Africa">
-      <option>Nigeria</option>
-      <option>South Africa</option>
-      <option>Kenya</option>
-      <option>Ghana</option>
-      <option>Egypt</option>
-    </optgroup>
+      <optgroup label="Africa">
+        <option>Nigeria</option>
+        <option>South Africa</option>
+        <option>Kenya</option>
+        <option>Ghana</option>
+        <option>Egypt</option>
+      </optgroup>
 
-    <!-- Asia -->
-    <optgroup label="Asia">
-      <option>India</option>
-      <option>China</option>
-      <option>Japan</option>
-      <option>Philippines</option>
-      <option>Indonesia</option>
-      <option>UAE</option>
-    </optgroup>
+      <optgroup label="Asia">
+        <option>India</option>
+        <option>China</option>
+        <option>Japan</option>
+        <option>Philippines</option>
+        <option>Indonesia</option>
+        <option>UAE</option>
+      </optgroup>
 
-  </select>
-</div>
+    </select>
+  </div>
 
   <!-- Experience -->
   <div class="glass-card payment-method">
     <h3>👨‍💻 Familiarity with digital systems</h3>
     <div style="display:flex; gap:10px; justify-content:center; margin-top:14px;">
-        <button class="option-btn" data-value="Beginner">Beginner</button>
-        <button class="option-btn" data-value="Intermediate">Intermediate</button>
-        <button class="option-btn" data-value="Expert">Expert</button>
+      <button class="option-btn" data-value="Beginner">Beginner</button>
+      <button class="option-btn" data-value="Intermediate">Intermediate</button>
+      <button class="option-btn" data-value="Expert">Expert</button>
     </div>
   </div>
 
@@ -865,6 +856,7 @@ function initSelect2() {
     templateSelection: formatCountrySelection,
     width: "100%"
 });
+}
 
 
 /* =========================
