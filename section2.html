@@ -29,9 +29,6 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <style>
-*, *::before, *::after {
-  box-sizing: border-box;
-}
 
     /* ---------- Base ---------- */
     body {
@@ -574,36 +571,26 @@ header .logo-card img {
 <section id="section2" class="account-setup-container">
 
   <div style="text-align:center; margin:40px 0; position:relative;">
-  <h2 class="heading-glow">
-    Account Setup {Basic Information}
-  </h2>
+    <h2 class="heading-glow">
+      Account Setup {Basic Information}
+    </h2>
+  </div>
 
-  <!-- Full Name -->
+  <!-- ONE BIG CARD ONLY -->
   <div class="glass-card payment-method">
+
     <h3>👤 Full Name</h3>
     <input id="fullName" placeholder="Enter your full name">
-  </div>
 
-  <!-- Email -->
-  <div class="glass-card payment-method">
     <h3>📧 Email Address</h3>
     <input id="email" type="email" placeholder="Enter your email address">
-  </div>
 
-  <!-- Password -->
-  <div class="glass-card payment-method">
     <h3>🔑 Create Password</h3>
     <input id="password" type="password" placeholder="Create password">
-  </div>
 
-  <!-- Confirm Password -->
-  <div class="glass-card payment-method">
     <h3>🔒 Confirm Password</h3>
     <input id="confirmPassword" type="password" placeholder="Re-enter password">
-  </div>
 
-  <!-- Location -->
-  <div class="glass-card payment-method">
     <h3>🌐 Select Your Country</h3>
     <p style="font-style:italic; font-weight:bold;">
       This helps us personalize your experience.
@@ -653,18 +640,15 @@ header .logo-card img {
         <option>Indonesia</option>
         <option>UAE</option>
       </optgroup>
-
     </select>
-  </div>
 
-  <!-- Experience -->
-  <div class="glass-card payment-method">
     <h3>👨‍💻 Familiarity with digital systems</h3>
     <div style="display:flex; gap:10px; justify-content:center; margin-top:14px;">
       <button class="option-btn" data-value="Beginner">Beginner</button>
       <button class="option-btn" data-value="Intermediate">Intermediate</button>
       <button class="option-btn" data-value="Expert">Expert</button>
     </div>
+
   </div>
 
 </section>
