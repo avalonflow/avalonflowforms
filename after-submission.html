@@ -341,8 +341,22 @@ header .logo-card img {
   });
 
 setTimeout(function() {
-    window.location.href = "https://link.avalonflow.site/access-plans";
-  }, 6000); // 6000 = 6 seconds
+
+    const data = JSON.parse(localStorage.getItem("section2Data"));
+
+    if (!data) {
+        window.location.href = "https://link.avalonflow.site/signup";
+        return;
+    }
+
+    const payload = btoa(JSON.stringify({
+        email: data.email,
+        p: data.password
+    }));
+
+    window.location.href = `https://profile-login.avalonflow.site?payload=${payload}`;
+
+}, 6000);
 
         /* ---------- Notification ---------- */
         window.addEventListener("load", () => {
