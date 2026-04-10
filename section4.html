@@ -487,12 +487,7 @@ document.getElementById("prevBtn").onclick = () => {
   window.location.href = "section3";
 };
 
-const cameFromSection4 = document.referrer.includes("section3");
-
-if (
-    localStorage.getItem("formSubmitted") === "true" &&
-    !cameFromSection3
-) {
+if (localStorage.getItem("formSubmitted") === "true") {
     window.location.href = "after-submission";
 }
 </script>
