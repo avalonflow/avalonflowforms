@@ -604,14 +604,10 @@ function getFingerprint() {
 }
 
 // Any section except Section 4
-const cameFromSection2 = document.referrer.includes("section2");
-
-if (
-    localStorage.getItem("formSubmitted") === "true" &&
-    !cameFromSection2
-) {
+if (localStorage.getItem("formSubmitted") === "true") {
     window.location.href = "after-submission";
 }
+});
 </script>
 
 </body>
