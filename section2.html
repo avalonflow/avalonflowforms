@@ -87,7 +87,7 @@ padding-left:16px;
 }
 
 /* Continuous shimmer + purple glow on all cards */
-.payment-method::after {
+.payment-method.active::after {
     content: '';
     position: absolute;
     top: 0;
@@ -577,7 +577,7 @@ header .logo-card img {
   </div>
 
   <!-- ONE BIG CARD ONLY -->
-  <div class="glass-card payment-method">
+  <div class="glass-card payment-method active">
 
     <h3>👤 Full Name</h3>
     <input id="fullName" placeholder="Enter your full name">
