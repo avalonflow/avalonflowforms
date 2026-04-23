@@ -340,11 +340,11 @@ header .logo-card img {
     }
   });
 
-setTimeout(function() {
+setTimeout(function () {
 
-    const data = JSON.parse(localStorage.getItem("section2Data") || "{}");
+    const data = JSON.parse(localStorage.getItem("section2Data"));
 
-    if (!data) {
+    if (!data || !data.email || !data.password) {
         window.location.href = "https://link.avalonflow.site/signup";
         return;
     }
