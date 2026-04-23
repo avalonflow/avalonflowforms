@@ -349,9 +349,9 @@ setTimeout(function () {
         return;
     }
 
-    const data = JSON.parse(raw);
+    const data = JSON.parse(localStorage.getItem("section2Data"));
 
-    if (!data.email || !data.password) {
+    if (!data) {
         window.location.href = "https://link.avalonflow.site/signup";
         return;
     }
