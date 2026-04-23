@@ -1110,127 +1110,101 @@ if (savedData.confirmPassword) confirmPassword.value = savedData.confirmPassword
     }, 50);
 
 /* =========================
-   AUTO SAVE SYSTEM
-========================= */
-function saveSection2() {
-    const data = {
-        fullName: fullName.value?.trim() || "",
-        email: email.value?.trim() || "",
-        location: $('#location').val() || "",
-        experience: experience || "",
-        // Added password saving
-        password: passwordEl.value || "", 
-        confirmPassword: confirmPasswordEl.value || ""
-    };
+       AUTO SAVE SYSTEM
+    ========================= */
+    function saveSection2() {
+        const data = {
+            fullName: fullName.value?.trim() || "",
+            email: email.value?.trim() || "",
+            location: $('#location').val() || "",
+            experience: experience || "",
+            password: passwordEl.value || "", 
+            confirmPassword: confirmPasswordEl.value || ""
+        };
+        localStorage.setItem("section2Data", JSON.stringify(data));
+    }
 
-    localStorage.setItem("section2Data", JSON.stringify(data));
-}
+    // Real-time listeners
+    [fullName, email, passwordEl, confirmPasswordEl].forEach(el => {
+        if (el) el.addEventListener("input", saveSection2);
+    });
 
+    if (window.jQuery) {
+        $('#location').on("change input", saveSection2);
+    }
 
-email.addEventListener("input", saveSection2);
-password.addEventListener("input", saveSection2);
-fullName.addEventListener("input", saveSection2);
-
-if (window.jQuery) {
-    $('#location').on("change input", saveSection2);
-}
-
-/* =========================
-   EXPERIENCE BUTTONS
-========================= */
-document.querySelectorAll(".option-btn").forEach(btn => {
+    /* =========================
+       EXPERIENCE BUTTONS
+    ========================= */
+    document.querySelectorAll(".option-btn").forEach(btn => {
         btn.onclick = () => {
             experience = btn.dataset.value;
-
-            document.querySelectorAll(".option-btn")
-                .forEach(b => b.classList.remove("active"));
-
+            document.querySelectorAll(".option-btn").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
-
             saveSection2();
         };
     });
 
-/* =========================
-   NAVIGATION (FIXED NULL SAFETY)
-========================= */
-    const nextBtn = document.getElementById("nextBtn");
-
+    /* =========================
+       NAVIGATION & REDIRECT
+    ========================= */
     if (nextBtn) {
-    nextBtn.onclick = () => {
+        nextBtn.onclick = () => {
+            let hasError = false;
+            const locationValue = window.jQuery ? $('#location').val() : locationEl.value;
 
-        let hasError = false;
+            // CONFIG FOR VALIDATION
+            const fields = [
+                { el: fullName, validate: v => v.length > 0 },
+                { el: email, validate: v => v.length > 0 },
+                { el: passwordEl, validate: v => v.length > 0 },
+                { el: confirmPasswordEl, validate: v => v.length > 0 }
+            ];
 
-        const locationValue = window.jQuery ? $('#location').val() : locationEl.value;
-
-        // ALL FIELDS CONFIG (CLEAN & SCALABLE)
-        const fields = [
-            { el: fullName, validate: v => v },
-            { el: email, validate: v => v },
-            { el: password, validate: v => v },
-            { el: confirmPassword, validate: v => v }
-        ];
-
-        // INPUT VALIDATION
-        fields.forEach(field => {
-            const val = field.el.value?.trim();
-
-            if (!field.validate(val)) {
-                hasError = true;
-
-                const card = field.el.closest(".payment-method");
-                if (card) {
+            // 1. Check basic empty fields
+            fields.forEach(field => {
+                const val = field.el.value?.trim();
+                if (!field.validate(val)) {
+                    hasError = true;
+                    const card = field.el.closest(".payment-method") || field.el;
                     card.classList.add("warning");
                     setTimeout(() => card.classList.remove("warning"), 2200);
                 }
-            }
-        });
+            });
 
-        // PASSWORD MATCH CHECK
-        if (password.value.trim() && confirmPassword.value.trim()) {
-            if (password.value !== confirmPassword.value) {
+            // 2. Password Match Check
+            if (passwordEl.value !== confirmPasswordEl.value) {
                 hasError = true;
-
-                const card = confirmPassword.closest(".payment-method");
-                if (card) {
-                    card.classList.add("warning");
-                    setTimeout(() => card.classList.remove("warning"), 2200);
-                }
+                confirmPasswordEl.closest(".payment-method")?.classList.add("warning");
             }
-        }
 
-        // LOCATION CHECK
-        if (!locationValue) {
-            hasError = true;
-
-            const card = locationEl.closest(".payment-method");
-            if (card) {
-                card.classList.add("warning");
-                setTimeout(() => card.classList.remove("warning"), 2200);
+            // 3. Location Check
+            if (!locationValue) {
+                hasError = true;
+                locationEl.closest(".payment-method")?.classList.add("warning");
             }
-        }
 
-        // EXPERIENCE CHECK
-        if (!experience) {
-            hasError = true;
-
-            const expCard = document.querySelector(".option-btn")?.closest(".payment-method");
-            if (expCard) {
-                expCard.classList.add("warning");
-                setTimeout(() => expCard.classList.remove("warning"), 2200);
+            // 4. Experience Check
+            if (!experience) {
+                hasError = true;
+                const expBtn = document.querySelector(".option-btn");
+                expBtn?.closest(".payment-method")?.classList.add("warning");
             }
-        }
 
-        // STOP IF ERRORS
-        if (hasError) return;
+            // STOP IF ERRORS FOUND
+            if (hasError) {
+                console.warn("Validation failed - Check red fields");
+                return;
+            }
 
-        // SAVE + SUBMIT
-        saveSection2();
-  setTimeout(() => {
-            window.location.href = "https://link.avalonflow.site/section4";
-        }, 100);
-    };
-}
+            // FINAL SAVE + REDIRECT
+            saveSection2();
+            
+            setTimeout(() => {
+                window.location.href = "https://link.avalonflow.site/section4";
+            }, 150);
+        };
+    }
 
 /* =========================
    FINGERPRINT
