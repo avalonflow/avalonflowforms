@@ -718,89 +718,72 @@ window.addEventListener("DOMContentLoaded", () => {
 
         /* ---------- Notification ---------- */
         window.addEventListener("load", () => {
+
     const notification = document.getElementById("planNotification");
     notification.textContent = "Welcome! Let’s get started.";
+
     setTimeout(() => notification.classList.add("show"), 300);
     setTimeout(() => notification.classList.remove("show"), 3300);
 
     initSelect2();
     autoDetectCountry();
 
-    setupPasswordSystem(
-        "password",
-        "confirmPassword",
-        "strength-meter",
-        "strength-label",
-        "strength-meter-confirm",
-        "strength-label-confirm"
-    );
+    setupPasswordSystem("password", "confirmPassword");
 });
 
 
-function setupPasswordSystem(passwordId, confirmId, meterId1, labelId1, meterId2, labelId2){
+function setupPasswordSystem(passwordId, confirmId){
 
     const password = document.getElementById(passwordId);
     const confirm = document.getElementById(confirmId);
 
-    const meter1 = document.getElementById(meterId1);
-    const label1 = document.getElementById(labelId1);
-
-    const meter2 = document.getElementById(meterId2);
-    const label2 = document.getElementById(labelId2);
-
     /* =========================
-       CREATE EYE TOGGLE
+       EYE TOGGLE
     ========================= */
     function addEyeToggle(input){
 
-        const wrapper = document.createElement("div");
-        wrapper.className = "input-wrapper";
+    const wrapper = document.createElement("div");
+    wrapper.className = "input-wrapper";
 
-        input.parentNode.insertBefore(wrapper, input);
-        wrapper.appendChild(input);
+    input.parentNode.insertBefore(wrapper, input);
+    wrapper.appendChild(input);
 
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "pass-toggle";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "pass-toggle";
 
-        btn.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
-                <circle cx="12" cy="12" r="3"/>
-            </svg>
-        `;
+    btn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
+            <circle cx="12" cy="12" r="3"/>
+        </svg>
+    `;
 
-        wrapper.appendChild(btn);
+    wrapper.appendChild(btn);
 
-        btn.onclick = () => {
-            input.type = input.type === "password" ? "text" : "password";
-        };
-    }
+    let timer = null;
 
-    addEyeToggle(password);
-    addEyeToggle(confirm);
+    btn.onclick = () => {
 
-    /* =========================
-       CREATE BARS
-    ========================= */
-    function createBars(meter){
-        meter.innerHTML = "";
-        for(let i = 0; i < 4; i++){
-            const bar = document.createElement("div");
-            bar.style.height = "4px";
-            bar.style.flex = "1";
-            bar.style.background = "#e0e0e0";
-            bar.style.borderRadius = "2px";
-            bar.style.transition = "0.2s";
-            meter.appendChild(bar);
+        const isHidden = input.type === "password";
+
+        input.type = isHidden ? "text" : "password";
+
+        clearTimeout(timer);
+
+        if(isHidden){
+            timer = setTimeout(() => {
+                input.type = "password";
+            }, 5000); // 5 seconds
         }
-    }
+    };
+}
 
-    createBars(meter1);
-    createBars(meter2);
+addEyeToggle(password);
+addEyeToggle(confirm);
 
     /* =========================
-       PASSWORD STRENGTH
+       SHARED STRATEGY (ONE SYSTEM)
     ========================= */
     function calculateStrength(val){
         let score = 0;
@@ -815,6 +798,7 @@ function setupPasswordSystem(passwordId, confirmId, meterId1, labelId1, meterId2
     }
 
     function renderBars(meter, score){
+
         const bars = meter.querySelectorAll("div");
 
         bars.forEach((bar, i) => {
@@ -828,72 +812,105 @@ function setupPasswordSystem(passwordId, confirmId, meterId1, labelId1, meterId2
         });
     }
 
+    function createBars(id){
+        const meter = document.getElementById(id);
+        if(!meter) return;
+
+        meter.innerHTML = "";
+
+        for(let i = 0; i < 4; i++){
+            const bar = document.createElement("div");
+            bar.style.height = "4px";
+            bar.style.flex = "1";
+            bar.style.background = "#e0e0e0";
+            bar.style.borderRadius = "2px";
+            bar.style.transition = "0.2s";
+            meter.appendChild(bar);
+        }
+    }
+
+    createBars("strength-meter");
+    createBars("strength-meter-confirm");
+
     /* =========================
        PASSWORD INPUT
     ========================= */
-    password.addEventListener("input", () => {
+    password.addEventListener("input", sync);
 
-        const val = password.value;
-        const score = calculateStrength(val);
+    confirm.addEventListener("input", sync);
 
-        if(val.length === 0){
-            label1.textContent = "";
+    function sync(){
+
+        const passVal = password.value;
+        const confVal = confirm.value;
+
+        const passScore = calculateStrength(passVal);
+        const confScore = calculateStrength(confVal);
+
+        const passMeter = document.getElementById("strength-meter");
+        const confMeter = document.getElementById("strength-meter-confirm");
+
+        const passLabel = document.getElementById("strength-label");
+        const confLabel = document.getElementById("strength-label-confirm");
+
+        /* =========================
+           PASSWORD
+        ========================= */
+        if(passLabel){
+            passLabel.textContent =
+                passVal.length === 0 ? "" :
+                passScore <= 1 ? "Weak" :
+                passScore === 2 ? "Medium" :
+                "Strong";
+
+            passLabel.style.color =
+                passScore <= 1 ? "#ff4d4d" :
+                passScore === 2 ? "#ffb84d" :
+                "#4caf50";
+        }
+
+        if(passMeter) renderBars(passMeter, passScore);
+
+        /* =========================
+           CONFIRM PASSWORD
+        ========================= */
+        if(confVal.length === 0){
+            if(confLabel) confLabel.textContent = "";
+            if(confMeter) renderBars(confMeter, 0);
             return;
         }
 
-        label1.textContent =
-            score <= 1 ? "Weak" :
-            score === 2 ? "Medium" :
-            "Strong";
-
-        label1.style.color =
-            score <= 1 ? "#ff4d4d" :
-            score === 2 ? "#ffb84d" :
-            "#4caf50";
-
-        renderBars(meter1, score);
-    });
-
-    /* =========================
-       CONFIRM PASSWORD
-    ========================= */
-    confirm.addEventListener("input", () => {
-
-        const val = confirm.value;
-        const score = calculateStrength(val);
-
-        const mismatch = val.length > 0 && val !== password.value;
-
-        if(val.length === 0){
-            label2.textContent = "";
-            renderBars(meter2, 0);
-            return;
-        }
+        const mismatch = confVal !== passVal;
 
         if(mismatch){
-            label2.textContent = "Doesn't match password";
-            label2.style.color = "#ff4d4d";
 
-            const bars = meter2.querySelectorAll("div");
-            bars.forEach(bar => {
-                bar.style.opacity = "0.25";
-            });
+            if(confLabel){
+                confLabel.textContent = "Doesn't match password";
+                confLabel.style.color = "#ff4d4d";
+            }
+
+            if(confMeter){
+                const bars = confMeter.querySelectorAll("div");
+                bars.forEach(bar => bar.style.opacity = "0.25");
+            }
 
         } else {
 
-            label2.textContent =
-                score <= 1 ? "Weak" :
-                score === 2 ? "Medium" :
-                "Strong";
+            if(confLabel){
+                confLabel.textContent =
+                    confScore <= 1 ? "Weak" :
+                    confScore === 2 ? "Medium" :
+                    "Strong";
 
-            label2.style.color =
-                score <= 1 ? "#ff4d4d" :
-                score === 2 ? "#ffb84d" :
-                "#4caf50";
+                confLabel.style.color =
+                    confScore <= 1 ? "#ff4d4d" :
+                    confScore === 2 ? "#ffb84d" :
+                    "#4caf50";
+            }
 
-            renderBars(meter2, score);
+            if(confMeter) renderBars(confMeter, confScore);
         }
-    });
+    }
 }
 
     /* =========================
