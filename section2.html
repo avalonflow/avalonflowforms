@@ -717,19 +717,22 @@ window.addEventListener("DOMContentLoaded", () => {
     setInterval(particle,800);
 
         /* ---------- Notification ---------- */
-        window.addEventListener("load", () => {
-
     const notification = document.getElementById("planNotification");
-    notification.textContent = "Welcome! Let’s get started.";
+    if (notification) {
+        notification.textContent = "Welcome! Let’s get started.";
 
-    setTimeout(() => notification.classList.add("show"), 300);
-    setTimeout(() => notification.classList.remove("show"), 3300);
+        setTimeout(() => notification.classList.add("show"), 300);
+        setTimeout(() => notification.classList.remove("show"), 3300);
+    }
 
+    /* ---------- INIT EVERYTHING HERE ---------- */
     initSelect2();
     autoDetectCountry();
-
     setupPasswordSystem("password", "confirmPassword");
+
 });
+
+    
 
 
 function setupPasswordSystem(passwordId, confirmId){
@@ -913,6 +916,8 @@ function setupPasswordSystem(passwordId, confirmId){
         }
     }
 }
+
+
 
     /* =========================
    INPUT ELEMENTS
