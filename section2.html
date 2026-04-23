@@ -742,48 +742,47 @@ function setupPasswordSystem(passwordId, confirmId){
     ========================= */
     function addEyeToggle(input){
 
-    const wrapper = document.createElement("div");
-    wrapper.className = "input-wrapper";
+        const wrapper = document.createElement("div");
+        wrapper.className = "input-wrapper";
 
-    input.parentNode.insertBefore(wrapper, input);
-    wrapper.appendChild(input);
+        input.parentNode.insertBefore(wrapper, input);
+        wrapper.appendChild(input);
 
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "pass-toggle";
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "pass-toggle";
 
-    btn.innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
-            <circle cx="12" cy="12" r="3"/>
-        </svg>
-    `;
+        btn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+        `;
 
-    wrapper.appendChild(btn);
+        wrapper.appendChild(btn);
 
-    let timer = null;
+        let timer = null;
 
-    btn.onclick = () => {
+        btn.onclick = () => {
 
-        const isHidden = input.type === "password";
+            const isHidden = input.type === "password";
+            input.type = isHidden ? "text" : "password";
 
-        input.type = isHidden ? "text" : "password";
+            clearTimeout(timer);
 
-        clearTimeout(timer);
+            if(isHidden){
+                timer = setTimeout(() => {
+                    input.type = "password";
+                }, 5000);
+            }
+        };
+    }
 
-        if(isHidden){
-            timer = setTimeout(() => {
-                input.type = "password";
-            }, 5000); // 5 seconds
-        }
-    };
-}
-
-addEyeToggle(password);
-addEyeToggle(confirm);
+    addEyeToggle(password);
+    addEyeToggle(confirm);
 
     /* =========================
-       SHARED STRATEGY (ONE SYSTEM)
+       LOGIC
     ========================= */
     function calculateStrength(val){
         let score = 0;
@@ -813,6 +812,7 @@ addEyeToggle(confirm);
     }
 
     function createBars(id){
+
         const meter = document.getElementById(id);
         if(!meter) return;
 
@@ -829,14 +829,14 @@ addEyeToggle(confirm);
         }
     }
 
-    createBars("strength-meter");
+    /* ✅ FIXED IDS (OPTION A) */
+    createBars("strength-meter-password");
     createBars("strength-meter-confirm");
 
     /* =========================
-       PASSWORD INPUT
+       SYNC
     ========================= */
     password.addEventListener("input", sync);
-
     confirm.addEventListener("input", sync);
 
     function sync(){
@@ -847,10 +847,10 @@ addEyeToggle(confirm);
         const passScore = calculateStrength(passVal);
         const confScore = calculateStrength(confVal);
 
-        const passMeter = document.getElementById("strength-meter");
-        const confMeter = document.getElementById("strength-meter-confirm");
+        const passMeter = document.getElementById("strength-meter-password");
+        const passLabel = document.getElementById("strength-label-password");
 
-        const passLabel = document.getElementById("strength-label");
+        const confMeter = document.getElementById("strength-meter-confirm");
         const confLabel = document.getElementById("strength-label-confirm");
 
         /* =========================
@@ -872,7 +872,7 @@ addEyeToggle(confirm);
         if(passMeter) renderBars(passMeter, passScore);
 
         /* =========================
-           CONFIRM PASSWORD
+           CONFIRM
         ========================= */
         if(confVal.length === 0){
             if(confLabel) confLabel.textContent = "";
@@ -890,8 +890,9 @@ addEyeToggle(confirm);
             }
 
             if(confMeter){
-                const bars = confMeter.querySelectorAll("div");
-                bars.forEach(bar => bar.style.opacity = "0.25");
+                confMeter.querySelectorAll("div").forEach(bar => {
+                    bar.style.opacity = "0.25";
+                });
             }
 
         } else {
