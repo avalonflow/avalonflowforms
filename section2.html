@@ -1191,11 +1191,22 @@ if (savedData.email) {
 email.value = savedData.email;
 }
 
+if (savedData.password) {
+password.value = savedData.password;
+}
+
+if (savedData.confirmPassword) {
+confirmPassword.value = savedData.confirmPassword;
+}
+
 if (savedData.experience) {
 experience = savedData.experience;
 }
 
-}, 50);
+password.dispatchEvent(new Event("input"));
+confirmPassword.dispatchEvent(new Event("input"));
+
+}, 500);
 
 /* =========================
 AUTO SAVE SYSTEM
