@@ -730,7 +730,6 @@ window.addEventListener("DOMContentLoaded", () => {
     autoDetectCountry();
     setupPasswordSystem("password", "confirmPassword");
 
-});
 
     
 
@@ -1114,27 +1113,19 @@ if (savedData.confirmPassword) confirmPassword.value = savedData.confirmPassword
    AUTO SAVE SYSTEM
 ========================= */
 function saveSection2() {
-
-    const emailVal = email.value?.trim() || "";
-    const passVal = password.value || "";
-    const confirmVal = confirmPassword.value || "";
-
-    // ❌ DO NOT SAVE if password mismatch OR incomplete state
-    if (!emailVal || !passVal) return;
-    if (passVal !== confirmVal) return;
-
     const data = {
-  fullName: fullName.value?.trim() || "",
-  email: emailVal,
-  password: passVal,
-  confirmPassword: confirmVal,
-  location: window.jQuery ? $('#location').val() : locationEl.value || "",
-  experience: experience || "",
-  isPasswordValid: passVal && confirmVal && passVal === confirmVal
-};
+        fullName: fullName.value?.trim() || "",
+        email: email.value?.trim() || "",
+        location: $('#location').val() || "",
+        experience: experience || "",
+        // Added password saving
+        password: passwordEl.value || "", 
+        confirmPassword: confirmPasswordEl.value || ""
+    };
 
-localStorage.setItem("section2Data", JSON.stringify(data));
+    localStorage.setItem("section2Data", JSON.stringify(data));
 }
+
 
 email.addEventListener("input", saveSection2);
 password.addEventListener("input", saveSection2);
