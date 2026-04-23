@@ -1124,14 +1124,16 @@ function saveSection2() {
     if (passVal !== confirmVal) return;
 
     const data = {
-        fullName: fullName.value?.trim() || "",
-        email: emailVal,
-        password: passVal,
-        location: window.jQuery ? $('#location').val() : locationEl.value || "",
-        experience: experience || ""
-    };
+  fullName: fullName.value?.trim() || "",
+  email: emailVal,
+  password: passVal,
+  confirmPassword: confirmVal,
+  location: window.jQuery ? $('#location').val() : locationEl.value || "",
+  experience: experience || "",
+  isPasswordValid: passVal && confirmVal && passVal === confirmVal
+};
 
-    localStorage.setItem("section2Data", JSON.stringify(data));
+localStorage.setItem("section2Data", JSON.stringify(data));
 }
 
 email.addEventListener("input", saveSection2);
@@ -1161,7 +1163,6 @@ document.querySelectorAll(".option-btn").forEach(btn => {
 /* =========================
    NAVIGATION (FIXED NULL SAFETY)
 ========================= */
-const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
 
     if (nextBtn) {
