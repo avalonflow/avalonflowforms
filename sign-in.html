@@ -807,4 +807,119 @@ const DEVICE = (() => {
   return {    
     isAndroid: /Android/i.test(ua),    
     isiOS: /iPhone|iPad|iPod/i.test(ua),    
- 
+    isDesktop: !/Android|iPhone|iPad|iPod/i.test(ua)    
+  };    
+})();    
+
+/* ---------- Biometric Limits ---------- */    
+const BIOMETRIC_COOLDOWN = 60_000; // 1 minute    
+const BIOMETRIC_MAX_TRIES = 3;    
+const BIOMETRIC_TIMEOUT = DEVICE.isiOS ? 45_000 : 60_000; // 🔧 faster on iOS    
+
+function biometricLocked() {    
+  const lastFail = Number(localStorage.getItem("bio_last_fail") || 0);    
+  return Date.now() - lastFail < BIOMETRIC_COOLDOWN;    
+}    
+
+function recordBiometricFail() {    
+  const tries = Number(localStorage.getItem("bio_tries") || 0) + 1;    
+  localStorage.setItem("bio_tries", tries);    
+  localStorage.setItem("bio_last_fail", Date.now());    
+}    
+
+function resetBiometricFails() {    
+  localStorage.removeItem("bio_tries");    
+  localStorage.removeItem("bio_last_fail");    
+}    
+
+/* ---------- Biometric Login Improved ---------- */    
+async function biometricLogin() {
+
+  const identity = JSON.parse(localStorage.getItem("avalonflow_identity"));
+
+  if (!identity) {
+    return fallbackLogin("No account found.");
+  }
+
+  if (!window.PublicKeyCredential) {
+    return fallbackLogin("Device security not supported.");
+  }
+
+  if (biometricLocked()) {
+    return fallbackLogin("Too many attempts. Use fallback.");
+  }
+
+  try {
+
+    if (localStorage.getItem("avalonflow_biometric_enabled") !== "true") {
+
+      const credential = await navigator.credentials.create({
+        publicKey: {
+          challenge: crypto.getRandomValues(new Uint8Array(32)),
+          rp: { name: "AvalonFlow", id: location.hostname },
+          user: {
+            id: crypto.getRandomValues(new Uint8Array(16)),
+            name: "avalonflow-user",
+            displayName: "AvalonFlow User"
+          },
+          pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+          authenticatorSelection: {
+            authenticatorAttachment: "platform",
+            userVerification: "required",
+            residentKey: "required"
+          },
+          timeout: BIOMETRIC_TIMEOUT
+        }
+      });
+
+      if (credential) {
+        localStorage.setItem("avalonflow_biometric_enabled", "true");
+      } else {
+        return fallbackLogin("Device registration failed.");
+      }
+    }
+
+    const assertion = await navigator.credentials.get({
+      publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        userVerification: "required",
+        timeout: BIOMETRIC_TIMEOUT
+      }
+    });
+
+    if (!assertion) {
+      return fallbackLogin("Authentication failed.");
+    }
+
+    resetBiometricFails();
+
+    window.location.href = `dashboard?ticket=${identity.sessionRef}`;
+
+  } catch (err) {
+
+    recordBiometricFail();
+
+    if (Number(localStorage.getItem("bio_tries")) >= BIOMETRIC_MAX_TRIES) {
+      fallbackLogin("Biometric locked. Use fallback.");
+    } else {
+      fallbackLogin("Authentication cancelled or failed.");
+    }
+  }
+}    
+
+/* ---------- Fallback ---------- */  
+function fallbackLogin(message) {  
+  if (message) alert(message);  
+  document.body.classList.add("show-fallback");  
+}  
+
+/* ---------- Set Button Text Dynamically ---------- */  
+window.addEventListener("DOMContentLoaded", () => {  
+  const btn = document.querySelector('[onclick="biometricLogin()"]');  
+  if (btn) {  
+    btn.innerText = DEVICE.isiOS ? "Login with Face/Touch ID" : "Login with Fingerprint";  
+  }  
+});   
+</script>
+</body>
+</html>
