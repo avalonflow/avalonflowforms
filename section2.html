@@ -1119,15 +1119,9 @@ function saveSection2() {
     }));
 }
 
-fullName.addEventListener("input", saveSection2);
-email.addEventListener("input", saveSection2);
-
-password.addEventListener("input", saveSection2);
-password.addEventListener("change", saveSection2);
+fullName.addEventListener("blur", saveSection2);
+email.addEventListener("blur", saveSection2);
 password.addEventListener("blur", saveSection2);
-
-confirmPassword.addEventListener("input", saveSection2);
-confirmPassword.addEventListener("change", saveSection2);
 confirmPassword.addEventListener("blur", saveSection2);
 
 if (window.jQuery) {
