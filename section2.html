@@ -134,7 +134,17 @@ padding-left:16px;
     100% { transform: scale(1); opacity: 0.4; }
 }
 
+#strength-meter div{
+    height:4px;
+    flex:1;
+    background:#e0e0e0;
+    border-radius:2px;
+    transition:0.2s;
+}
 
+#strength-label{
+    transition:0.2s;
+}
 
 /* Input styling */
 .payment-method input{
@@ -588,6 +598,9 @@ header .logo-card img {
     <h3>🔑 Create Password</h3>
     <input id="password" type="password" placeholder="Create password">
 
+<div id="strength-meter" style="margin-top:6px; display:flex; gap:4px; max-width:200px;"></div>
+<div id="strength-label" style="margin-top:6px; font-size:13px; font-weight:500;"></div>
+
     <h3>🔒 Confirm Password</h3>
     <input id="confirmPassword" type="password" placeholder="Re-enter password">
 
@@ -690,6 +703,55 @@ window.addEventListener("DOMContentLoaded", () => {
             notification.textContent = "Welcome! Let’s get started.";
             setTimeout(() => notification.classList.add("show"), 300);
             setTimeout(() => notification.classList.remove("show"), 3300);
+
+const passwordInput = document.getElementById("password");
+const meter = document.getElementById("strength-meter");
+const label = document.getElementById("strength-label");
+
+// create 4 bars
+for(let i = 0; i < 4; i++){
+    const bar = document.createElement("div");
+    meter.appendChild(bar);
+}
+
+passwordInput.addEventListener("input", () => {
+    const val = passwordInput.value;
+    let score = 0;
+
+    if(val.length > 5) score++;
+    if(val.length > 8) score++;
+    if(/[A-Z]/.test(val)) score++;
+    if(/[0-9]/.test(val)) score++;
+    if(/[^A-Za-z0-9]/.test(val)) score++;
+
+    const fill = Math.min(score, 4);
+    const bars = meter.querySelectorAll("div");
+
+    bars.forEach((bar, i) => {
+        if(i < fill){
+            if(fill <= 1) bar.style.background = "#ff4d4d";
+            else if(fill === 2) bar.style.background = "#ffb84d";
+            else bar.style.background = "#4caf50";
+        } else {
+            bar.style.background = "#e0e0e0";
+        }
+    });
+
+    // LABEL
+    if(val.length === 0){
+        label.textContent = "";
+    } else if(fill <= 1){
+        label.textContent = "Weak";
+        label.style.color = "#ff4d4d";
+    } else if(fill === 2){
+        label.textContent = "Medium";
+        label.style.color = "#ffb84d";
+    } else {
+        label.textContent = "Strong";
+        label.style.color = "#4caf50";
+    }
+});
+
           /* ---------- INIT CORE ---------- */
     initSelect2();
     autoDetectCountry();
