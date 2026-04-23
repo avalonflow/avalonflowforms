@@ -726,33 +726,83 @@ window.addEventListener("DOMContentLoaded", () => {
     initSelect2();
     autoDetectCountry();
 
-    setupStrength("password", "strength-meter", "strength-label", false);
-    setupStrength("confirmPassword", "strength-meter-confirm", "strength-label-confirm", true);
+    setupPasswordSystem(
+        "password",
+        "confirmPassword",
+        "strength-meter",
+        "strength-label",
+        "strength-meter-confirm",
+        "strength-label-confirm"
+    );
 });
 
 
-function setupStrength(inputId, meterId, labelId){
+function setupPasswordSystem(passwordId, confirmId, meterId1, labelId1, meterId2, labelId2){
 
-    const input = document.getElementById(inputId);
-    const meter = document.getElementById(meterId);
-    const label = document.getElementById(labelId);
+    const password = document.getElementById(passwordId);
+    const confirm = document.getElementById(confirmId);
 
-    // prevent duplicate bars if function runs twice
-    meter.innerHTML = "";
+    const meter1 = document.getElementById(meterId1);
+    const label1 = document.getElementById(labelId1);
 
-    // create bars
-    for(let i = 0; i < 4; i++){
-        const bar = document.createElement("div");
-        bar.style.height = "4px";
-        bar.style.flex = "1";
-        bar.style.background = "#e0e0e0";
-        bar.style.borderRadius = "2px";
-        bar.style.transition = "0.2s";
-        meter.appendChild(bar);
+    const meter2 = document.getElementById(meterId2);
+    const label2 = document.getElementById(labelId2);
+
+    /* =========================
+       CREATE EYE TOGGLE
+    ========================= */
+    function addEyeToggle(input){
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "input-wrapper";
+
+        input.parentNode.insertBefore(wrapper, input);
+        wrapper.appendChild(input);
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "pass-toggle";
+
+        btn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+        `;
+
+        wrapper.appendChild(btn);
+
+        btn.onclick = () => {
+            input.type = input.type === "password" ? "text" : "password";
+        };
     }
 
-    input.addEventListener("input", () => {
-        const val = input.value;
+    addEyeToggle(password);
+    addEyeToggle(confirm);
+
+    /* =========================
+       CREATE BARS
+    ========================= */
+    function createBars(meter){
+        meter.innerHTML = "";
+        for(let i = 0; i < 4; i++){
+            const bar = document.createElement("div");
+            bar.style.height = "4px";
+            bar.style.flex = "1";
+            bar.style.background = "#e0e0e0";
+            bar.style.borderRadius = "2px";
+            bar.style.transition = "0.2s";
+            meter.appendChild(bar);
+        }
+    }
+
+    createBars(meter1);
+    createBars(meter2);
+
+    /* =========================
+       PASSWORD STRENGTH
+    ========================= */
+    function calculateStrength(val){
         let score = 0;
 
         if(val.length > 5) score++;
@@ -761,100 +811,90 @@ function setupStrength(inputId, meterId, labelId){
         if(/[0-9]/.test(val)) score++;
         if(/[^A-Za-z0-9]/.test(val)) score++;
 
-        const fill = Math.min(score, 4);
+        return Math.min(score, 4);
+    }
+
+    function renderBars(meter, score){
         const bars = meter.querySelectorAll("div");
 
         bars.forEach((bar, i) => {
-            if(i < fill){
-                if(fill <= 1) bar.style.background = "#ff4d4d";
-                else if(fill === 2) bar.style.background = "#ffb84d";
-                else bar.style.background = "#4caf50";
-            } else {
-                bar.style.background = "#e0e0e0";
-            }
-        });
-
-        // base label (strength)
-        if(val.length === 0){
-            label.textContent = "";
-            return;
-        } 
-        else if(fill <= 1){
-            label.textContent = "Weak";
-            label.style.color = "#ff4d4d";
-        } 
-        else if(fill === 2){
-            label.textContent = "Medium";
-            label.style.color = "#ffb84d";
-        } 
-        else {
-            label.textContent = "Strong";
-            label.style.color = "#4caf50";
-        }
-
-        // 🔥 CONFIRM PASSWORD OVERRIDE (MATCH CHECK)
-        if(inputId === "confirmPassword"){
-    const password = document.getElementById("password");
-
-    const mismatch = val.length > 0 && val !== password.value;
-
-    const bars = meter.querySelectorAll("div");
-
-    if(mismatch){
-        label.textContent = "Doesn't match password";
-        label.style.color = "#ff4d4d";
-
-        // FADE BARS
-        bars.forEach(bar => {
-            bar.style.opacity = "0.25";
-        });
-
-    } else {
-
-        // restore normal visibility
-        bars.forEach(bar => {
             bar.style.opacity = "1";
+            bar.style.background =
+                i < score
+                    ? (score <= 1 ? "#ff4d4d" :
+                       score === 2 ? "#ffb84d" :
+                       "#4caf50")
+                    : "#e0e0e0";
         });
     }
-}
 
-          function addEyeToggle(id){
+    /* =========================
+       PASSWORD INPUT
+    ========================= */
+    password.addEventListener("input", () => {
 
-    const input = document.getElementById(id);
+        const val = password.value;
+        const score = calculateStrength(val);
 
-    // wrap input automatically (no HTML change)
-    const wrapper = document.createElement("div");
-    wrapper.className = "input-wrapper";
-
-    input.parentNode.insertBefore(wrapper, input);
-    wrapper.appendChild(input);
-
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "pass-toggle";
-
-    btn.innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
-            <circle cx="12" cy="12" r="3"/>
-        </svg>
-    `;
-
-    wrapper.appendChild(btn);
-
-    btn.onclick = function(){
-
-        if(input.type === "password"){
-            input.type = "text";
-        } else {
-            input.type = "password";
+        if(val.length === 0){
+            label1.textContent = "";
+            return;
         }
 
-    };
-}
+        label1.textContent =
+            score <= 1 ? "Weak" :
+            score === 2 ? "Medium" :
+            "Strong";
 
-addEyeToggle("password");
-addEyeToggle("confirmPassword");
+        label1.style.color =
+            score <= 1 ? "#ff4d4d" :
+            score === 2 ? "#ffb84d" :
+            "#4caf50";
+
+        renderBars(meter1, score);
+    });
+
+    /* =========================
+       CONFIRM PASSWORD
+    ========================= */
+    confirm.addEventListener("input", () => {
+
+        const val = confirm.value;
+        const score = calculateStrength(val);
+
+        const mismatch = val.length > 0 && val !== password.value;
+
+        if(val.length === 0){
+            label2.textContent = "";
+            renderBars(meter2, 0);
+            return;
+        }
+
+        if(mismatch){
+            label2.textContent = "Doesn't match password";
+            label2.style.color = "#ff4d4d";
+
+            const bars = meter2.querySelectorAll("div");
+            bars.forEach(bar => {
+                bar.style.opacity = "0.25";
+            });
+
+        } else {
+
+            label2.textContent =
+                score <= 1 ? "Weak" :
+                score === 2 ? "Medium" :
+                "Strong";
+
+            label2.style.color =
+                score <= 1 ? "#ff4d4d" :
+                score === 2 ? "#ffb84d" :
+                "#4caf50";
+
+            renderBars(meter2, score);
+        }
+    });
+}
 
     /* =========================
    INPUT ELEMENTS
