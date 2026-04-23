@@ -723,52 +723,13 @@ window.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => notification.classList.add("show"), 300);
             setTimeout(() => notification.classList.remove("show"), 3300);
 
-function setupStrength(inputId, meterId, labelId){
-
-function addEyeToggle(id){
-
-    const input = document.getElementById(id);
-
-    // wrap input automatically (no HTML change)
-    const wrapper = document.createElement("div");
-    wrapper.className = "input-wrapper";
-
-    input.parentNode.insertBefore(wrapper, input);
-    wrapper.appendChild(input);
-
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "pass-toggle";
-
-    btn.innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
-            <circle cx="12" cy="12" r="3"/>
-        </svg>
-    `;
-
-    wrapper.appendChild(btn);
-
-    btn.onclick = function(){
-
-        if(input.type === "password"){
-            input.type = "text";
-        } else {
-            input.type = "password";
-        }
-
-    };
-}
-
-addEyeToggle("password");
-addEyeToggle("confirmPassword");
-
+function setupStrength(inputId, meterId, labelId, isConfirm = false){
 
     const input = document.getElementById(inputId);
     const meter = document.getElementById(meterId);
     const label = document.getElementById(labelId);
 
-    // create bars
+    // create bars once
     for(let i = 0; i < 4; i++){
         const bar = document.createElement("div");
         bar.style.height = "4px";
@@ -792,34 +753,55 @@ addEyeToggle("confirmPassword");
         const fill = Math.min(score, 4);
         const bars = meter.querySelectorAll("div");
 
+        // update bars
         bars.forEach((bar, i) => {
             if(i < fill){
-                if(fill <= 1) bar.style.background = "#ff4d4d";
-                else if(fill === 2) bar.style.background = "#ffb84d";
-                else bar.style.background = "#4caf50";
+                bar.style.background =
+                    fill <= 1 ? "#ff4d4d" :
+                    fill === 2 ? "#ffb84d" :
+                    "#4caf50";
             } else {
                 bar.style.background = "#e0e0e0";
             }
         });
 
-        // label
+        // label logic
         if(val.length === 0){
             label.textContent = "";
-        } else if(fill <= 1){
-            label.textContent = "Weak";
-            label.style.color = "#ff4d4d";
-        } else if(fill === 2){
-            label.textContent = "Medium";
-            label.style.color = "#ffb84d";
-        } else {
-            label.textContent = "Strong";
-            label.style.color = "#4caf50";
+            return;
         }
+
+        let text =
+            fill <= 1 ? "Weak" :
+            fill === 2 ? "Medium" :
+            "Strong";
+
+        let color =
+            fill <= 1 ? "#ff4d4d" :
+            fill === 2 ? "#ffb84d" :
+            "#4caf50";
+
+        // confirm password override (match check)
+        if(isConfirm){
+            const password = document.getElementById("password");
+
+            if(val !== password.value){
+                text = "Doesn't match password";
+                color = "#ff4d4d";
+            }
+        }
+
+        label.textContent = text;
+        label.style.color = color;
     });
 }
 
-setupStrength("password", "strength-meter-password", "strength-label-password");
-setupStrength("confirmPassword", "strength-meter-confirm", "strength-label-confirm");
+/* =========================
+   INIT
+========================= */
+setupStrength("password", "strength-meter", "strength-label", false);
+
+setupStrength("confirmPassword", "strength-meter-confirm", "strength-label-confirm", true);
 
           /* ---------- INIT CORE ---------- */
     initSelect2();
