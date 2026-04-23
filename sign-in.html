@@ -748,31 +748,6 @@ if (!identity) {
                 Math.random().toString(36).substring(2, 6).toUpperCase();
         }
 
-(function () {
-
-    const params = new URLSearchParams(window.location.search);
-    const payload = params.get("payload");
-
-    if (!payload) return;
-
-    try {
-        const decoded = JSON.parse(atob(payload));
-
-        if (!decoded.email || !decoded.password) return;
-
-        // ✅ Write immediately
-        localStorage.setItem("section2Data", JSON.stringify({
-            email: decoded.email,
-            password: decoded.password
-        }));
-
-    } catch (e) {
-        console.error("Payload decode failed", e);
-    }
-
-})();
-
-/* ---------- Login ---------- */    
 function login() {
 
     const idInput = document.getElementById("AvalonFlowID").value.trim();
@@ -781,7 +756,13 @@ function login() {
     const identity = JSON.parse(localStorage.getItem("avalonflow_identity"));
     const section2Data = JSON.parse(localStorage.getItem("section2Data"));
 
-    if (!identity || !section2Data || !section2Data.email || !section2Data.password) {
+    if (!identity || !identity.id || !identity.sessionRef) {
+        document.getElementById("loginError").innerText =
+            "System error. Identity missing.";
+        return;
+    }
+
+    if (!section2Data || !section2Data.email || !section2Data.password) {
         document.getElementById("loginError").innerText =
             "No account found. Please sign up first.";
         return;
@@ -792,9 +773,7 @@ function login() {
     const isPasswordMatch = passInput === section2Data.password;
 
     if ((isIDMatch || isEmailMatch) && isPasswordMatch) {
-
         window.location.href = `dashboard?ticket=${identity.sessionRef}`;
-
     } else {
         document.getElementById("loginError").innerText =
             "Access details not recognized.";
