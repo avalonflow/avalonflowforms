@@ -725,55 +725,94 @@ window.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => notification.classList.remove("show"), 3300);
     }
 
-    /* ---------- INIT EVERYTHING HERE ---------- */
-    initSelect2();
-    autoDetectCountry();
-    setupPasswordSystem("password", "confirmPassword");
+    /* =========================
+INIT CORE
+========================= */
+initSelect2();
+autoDetectCountry();
+setupPasswordSystem("password", "confirmPassword");
+});
 
+/* =========================
+INPUT ELEMENTS
+========================= */
+const fullName = document.getElementById("fullName");
+const email = document.getElementById("email");
+const locationEl = document.getElementById("location");
+const password = document.getElementById("password");
+const confirmPassword = document.getElementById("confirmPassword");
 
-    
+let experience = "";
 
+/* =========================
+SAFE LOCALSTORAGE LOAD
+========================= */
+let savedData = {};
 
-function setupPasswordSystem(passwordId, confirmId){
+try {
+    const rawData = localStorage.getItem("section2Data");
+
+    if (rawData) {
+        savedData = JSON.parse(rawData);
+    } else {
+        savedData = {};
+    }
+
+} catch (error) {
+    console.log("Error parsing saved data:", error);
+    savedData = {};
+}
+
+/* =========================
+PASSWORD SYSTEM
+========================= */
+function setupPasswordSystem(passwordId, confirmId) {
 
     const password = document.getElementById(passwordId);
     const confirm = document.getElementById(confirmId);
 
     /* =========================
-       EYE TOGGLE
+       EYE TOGGLE FEATURE
     ========================= */
-    function addEyeToggle(input){
+    function addEyeToggle(input) {
 
         const wrapper = document.createElement("div");
         wrapper.className = "input-wrapper";
 
-        input.parentNode.insertBefore(wrapper, input);
+        const parent = input.parentNode;
+
+        parent.insertBefore(wrapper, input);
         wrapper.appendChild(input);
 
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "pass-toggle";
+        const toggleButton = document.createElement("button");
+        toggleButton.type = "button";
+        toggleButton.className = "pass-toggle";
 
-        btn.innerHTML = `
+        toggleButton.innerHTML = `
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
                 <circle cx="12" cy="12" r="3"/>
             </svg>
         `;
 
-        wrapper.appendChild(btn);
+        wrapper.appendChild(toggleButton);
 
-        let timer = null;
+        let hideTimer = null;
 
-        btn.onclick = () => {
+        toggleButton.onclick = function () {
 
-            const isHidden = input.type === "password";
-            input.type = isHidden ? "text" : "password";
+            const isCurrentlyHidden = input.type === "password";
 
-            clearTimeout(timer);
+            if (isCurrentlyHidden) {
+                input.type = "text";
+            } else {
+                input.type = "password";
+            }
 
-            if(isHidden){
-                timer = setTimeout(() => {
+            clearTimeout(hideTimer);
+
+            if (isCurrentlyHidden) {
+                hideTimer = setTimeout(function () {
                     input.type = "password";
                 }, 5000);
             }
@@ -784,386 +823,482 @@ function setupPasswordSystem(passwordId, confirmId){
     addEyeToggle(confirm);
 
     /* =========================
-       LOGIC
+       PASSWORD STRENGTH LOGIC
     ========================= */
-    function calculateStrength(val){
+    function calculateStrength(value) {
+
         let score = 0;
 
-        if(val.length > 5) score++;
-        if(val.length > 8) score++;
-        if(/[A-Z]/.test(val)) score++;
-        if(/[0-9]/.test(val)) score++;
-        if(/[^A-Za-z0-9]/.test(val)) score++;
+        if (value.length > 5) {
+            score = score + 1;
+        }
 
-        return Math.min(score, 4);
+        if (value.length > 8) {
+            score = score + 1;
+        }
+
+        if (/[A-Z]/.test(value)) {
+            score = score + 1;
+        }
+
+        if (/[0-9]/.test(value)) {
+            score = score + 1;
+        }
+
+        if (/[^A-Za-z0-9]/.test(value)) {
+            score = score + 1;
+        }
+
+        if (score > 4) {
+            score = 4;
+        }
+
+        return score;
     }
 
-    function renderBars(meter, score){
+    /* =========================
+       RENDER STRENGTH BARS
+    ========================= */
+    function renderBars(meter, score) {
 
         const bars = meter.querySelectorAll("div");
 
-        bars.forEach((bar, i) => {
+        for (let i = 0; i < bars.length; i++) {
+
+            const bar = bars[i];
+
             bar.style.opacity = "1";
-            bar.style.background =
-                i < score
-                    ? (score <= 1 ? "#ff4d4d" :
-                       score === 2 ? "#ffb84d" :
-                       "#4caf50")
-                    : "#e0e0e0";
-        });
+
+            if (i < score) {
+
+                if (score <= 1) {
+                    bar.style.background = "#ff4d4d";
+                }
+
+                else if (score === 2) {
+                    bar.style.background = "#ffb84d";
+                }
+
+                else {
+                    bar.style.background = "#4caf50";
+                }
+
+            } else {
+                bar.style.background = "#e0e0e0";
+            }
+        }
     }
 
-    function createBars(id){
+    /* =========================
+       CREATE BARS
+    ========================= */
+    function createBars(meterId) {
 
-        const meter = document.getElementById(id);
-        if(!meter) return;
+        const meter = document.getElementById(meterId);
+
+        if (!meter) {
+            return;
+        }
 
         meter.innerHTML = "";
 
-        for(let i = 0; i < 4; i++){
+        for (let i = 0; i < 4; i++) {
+
             const bar = document.createElement("div");
+
             bar.style.height = "4px";
             bar.style.flex = "1";
             bar.style.background = "#e0e0e0";
             bar.style.borderRadius = "2px";
             bar.style.transition = "0.2s";
+
             meter.appendChild(bar);
         }
     }
 
-    /* ✅ FIXED IDS (OPTION A) */
     createBars("strength-meter-password");
     createBars("strength-meter-confirm");
 
     /* =========================
-       SYNC
+       INPUT SYNC SYSTEM
     ========================= */
-    password.addEventListener("input", sync);
-    confirm.addEventListener("input", sync);
+    password.addEventListener("input", handleSync);
+    confirm.addEventListener("input", handleSync);
 
-    function sync(){
+    function handleSync() {
 
-        const passVal = password.value;
-        const confVal = confirm.value;
+        const passwordValue = password.value;
+        const confirmValue = confirm.value;
 
-        const passScore = calculateStrength(passVal);
-        const confScore = calculateStrength(confVal);
+        const passwordScore = calculateStrength(passwordValue);
+        const confirmScore = calculateStrength(confirmValue);
 
-        const passMeter = document.getElementById("strength-meter-password");
-        const passLabel = document.getElementById("strength-label-password");
+        const passwordMeter = document.getElementById("strength-meter-password");
+        const passwordLabel = document.getElementById("strength-label-password");
 
-        const confMeter = document.getElementById("strength-meter-confirm");
-        const confLabel = document.getElementById("strength-label-confirm");
+        const confirmMeter = document.getElementById("strength-meter-confirm");
+        const confirmLabel = document.getElementById("strength-label-confirm");
 
-        /* =========================
-           PASSWORD
-        ========================= */
-        if(passLabel){
-            passLabel.textContent =
-                passVal.length === 0 ? "" :
-                passScore <= 1 ? "Weak" :
-                passScore === 2 ? "Medium" :
-                "Strong";
+        /* PASSWORD LABEL */
+        if (passwordLabel) {
 
-            passLabel.style.color =
-                passScore <= 1 ? "#ff4d4d" :
-                passScore === 2 ? "#ffb84d" :
-                "#4caf50";
+            if (passwordValue.length === 0) {
+                passwordLabel.textContent = "";
+            }
+
+            else if (passwordScore <= 1) {
+                passwordLabel.textContent = "Weak";
+            }
+
+            else if (passwordScore === 2) {
+                passwordLabel.textContent = "Medium";
+            }
+
+            else {
+                passwordLabel.textContent = "Strong";
+            }
         }
 
-        if(passMeter) renderBars(passMeter, passScore);
+        /* PASSWORD METER */
+        if (passwordMeter) {
+            renderBars(passwordMeter, passwordScore);
+        }
 
-        /* =========================
-           CONFIRM
-        ========================= */
-        if(confVal.length === 0){
-            if(confLabel) confLabel.textContent = "";
-            if(confMeter) renderBars(confMeter, 0);
+        /* CONFIRM EMPTY RESET */
+        if (confirmValue.length === 0) {
+
+            if (confirmLabel) {
+                confirmLabel.textContent = "";
+            }
+
+            if (confirmMeter) {
+                renderBars(confirmMeter, 0);
+            }
+
             return;
         }
 
-        const mismatch = confVal !== passVal;
+        const mismatch = confirmValue !== passwordValue;
 
-        if(mismatch){
+        /* MISMATCH STATE */
+        if (mismatch) {
 
-            if(confLabel){
-                confLabel.textContent = "Doesn't match password";
-                confLabel.style.color = "#ff4d4d";
+            if (confirmLabel) {
+                confirmLabel.textContent = "Doesn't match password";
+                confirmLabel.style.color = "#ff4d4d";
             }
 
-            if(confMeter){
-                confMeter.querySelectorAll("div").forEach(bar => {
-                    bar.style.opacity = "0.25";
-                });
+            if (confirmMeter) {
+
+                const bars = confirmMeter.querySelectorAll("div");
+
+                for (let i = 0; i < bars.length; i++) {
+                    bars[i].style.opacity = "0.25";
+                }
             }
 
         } else {
 
-            if(confLabel){
-                confLabel.textContent =
-                    confScore <= 1 ? "Weak" :
-                    confScore === 2 ? "Medium" :
-                    "Strong";
+            if (confirmLabel) {
 
-                confLabel.style.color =
-                    confScore <= 1 ? "#ff4d4d" :
-                    confScore === 2 ? "#ffb84d" :
-                    "#4caf50";
+                if (confirmScore <= 1) {
+                    confirmLabel.textContent = "Weak";
+                }
+
+                else if (confirmScore === 2) {
+                    confirmLabel.textContent = "Medium";
+                }
+
+                else {
+                    confirmLabel.textContent = "Strong";
+                }
             }
 
-            if(confMeter) renderBars(confMeter, confScore);
+            if (confirmMeter) {
+                renderBars(confirmMeter, confirmScore);
+            }
         }
     }
 }
 
+/* =========================
+CONTINENT MAPPING
+========================= */
+function getContinent(country) {
 
+    const map = {
+        "United States": "North America",
+        "Canada": "North America",
+        "Mexico": "North America",
 
-    /* =========================
-       INPUT ELEMENTS
-    ========================= */
-    const fullName = document.getElementById("fullName");
-    const email = document.getElementById("email");
-    const locationEl = document.getElementById("location");
-    const password = document.getElementById("password");
-    const confirmPassword = document.getElementById("confirmPassword");
+        "United Kingdom": "Europe",
+        "Germany": "Europe",
+        "France": "Europe",
+        "Italy": "Europe",
+        "Spain": "Europe",
 
-    let experience = "";
+        "Australia": "Oceania",
+        "New Zealand": "Oceania",
 
-    /* =========================
-       SAFE LOCALSTORAGE LOAD
-    ========================= */
-    let savedData = {};
+        "Brazil": "South America",
+        "Argentina": "South America",
+        "Colombia": "South America",
+
+        "Nigeria": "Africa",
+        "South Africa": "Africa",
+        "Kenya": "Africa",
+        "Ghana": "Africa",
+        "Egypt": "Africa",
+
+        "India": "Asia",
+        "China": "Asia",
+        "Japan": "Asia",
+        "Philippines": "Asia",
+        "Indonesia": "Asia",
+        "UAE": "Asia"
+    };
+
+    if (map[country]) {
+        return map[country];
+    }
+
+    return "Unknown";
+}
+
+/* =========================
+FLAG SYSTEM
+========================= */
+function getFlag(country) {
+
+    const flags = {
+        "United States": "🇺🇸",
+        "Canada": "🇨🇦",
+        "Mexico": "🇲🇽",
+        "United Kingdom": "🇬🇧",
+        "Germany": "🇩🇪",
+        "France": "🇫🇷",
+        "Italy": "🇮🇹",
+        "Spain": "🇪🇸",
+        "Australia": "🇦🇺",
+        "New Zealand": "🇳🇿",
+        "Brazil": "🇧🇷",
+        "Argentina": "🇦🇷",
+        "Colombia": "🇨🇴",
+        "Nigeria": "🇳🇬",
+        "South Africa": "🇿🇦",
+        "Kenya": "🇰🇪",
+        "Ghana": "🇬🇭",
+        "Egypt": "🇪🇬",
+        "India": "🇮🇳",
+        "China": "🇨🇳",
+        "Japan": "🇯🇵",
+        "Philippines": "🇵🇭",
+        "Indonesia": "🇮🇩",
+        "UAE": "🇦🇪"
+    };
+
+    if (flags[country]) {
+        return flags[country];
+    }
+
+    return "🌍";
+}
+
+/* =========================
+SELECT2 INIT
+========================= */
+function initSelect2() {
+
+    if (!window.jQuery || !$.fn.select2) {
+        setTimeout(initSelect2, 100);
+        return;
+    }
+
+    $('#location').select2({
+        placeholder: "Search your country",
+        allowClear: true,
+        width: "100%"
+    });
+}
+
+/* =========================
+AUTO DETECT COUNTRY
+========================= */
+async function autoDetectCountry() {
+
     try {
-        savedData = JSON.parse(localStorage.getItem("section2Data")) || {};
-    } catch (e) {
-        savedData = {};
-    }
 
-    /* =========================
-       CONTINENT MAPPING
-    ========================= */
-    function getContinent(country) {
-        const map = {
-            "United States": "North America",
-            "Canada": "North America",
-            "Mexico": "North America",
-            "United Kingdom": "Europe",
-            "Germany": "Europe",
-            "France": "Europe",
-            "Italy": "Europe",
-            "Spain": "Europe",
-            "Australia": "Oceania",
-            "New Zealand": "Oceania",
-            "Brazil": "South America",
-            "Argentina": "South America",
-            "Colombia": "South America",
-            "Nigeria": "Africa",
-            "South Africa": "Africa",
-            "Kenya": "Africa",
-            "Ghana": "Africa",
-            "Egypt": "Africa",
-            "India": "Asia",
-            "China": "Asia",
-            "Japan": "Asia",
-            "Philippines": "Asia",
-            "Indonesia": "Asia",
-            "UAE": "Asia"
-        };
+        const response = await fetch("https://ipapi.co/json/");
+        const data = await response.json();
 
-        return map[country] || "Unknown";
-    }
+        const country = data.country_name;
 
-    /* =========================
-       FLAGS
-    ========================= */
-    function getFlag(country) {
-        const flags = {
-            "United States": "🇺🇸",
-            "Canada": "🇨🇦",
-            "Mexico": "🇲🇽",
-            "United Kingdom": "🇬🇧",
-            "Germany": "🇩🇪",
-            "France": "🇫🇷",
-            "Italy": "🇮🇹",
-            "Spain": "🇪🇸",
-            "Australia": "🇦🇺",
-            "New Zealand": "🇳🇿",
-            "Brazil": "🇧🇷",
-            "Argentina": "🇦🇷",
-            "Colombia": "🇨🇴",
-            "Nigeria": "🇳🇬",
-            "South Africa": "🇿🇦",
-            "Kenya": "🇰🇪",
-            "Ghana": "🇬🇭",
-            "Egypt": "🇪🇬",
-            "India": "🇮🇳",
-            "China": "🇨🇳",
-            "Japan": "🇯🇵",
-            "Philippines": "🇵🇭",
-            "Indonesia": "🇮🇩",
-            "UAE": "🇦🇪"
-        };
-
-        return flags[country] || "🌍";
-    }
-
-    /* =========================
-       INIT SELECT2
-    ========================= */
-    function initSelect2() {
-        if (!window.jQuery || !$.fn.select2) {
-            setTimeout(initSelect2, 100);
+        if (!country) {
             return;
         }
 
-        $('#location').select2({
-            placeholder: "Search your country",
-            allowClear: true,
-            templateResult: option => option.text,
-            templateSelection: option => option.text,
-            width: "100%"
-        });
-    }
+        const currentValue = $('#location').val();
 
-    /* =========================
-       AUTO DETECT COUNTRY
-    ========================= */
-    async function autoDetectCountry() {
-        try {
-            const res = await fetch("https://ipapi.co/json/");
-            const data = await res.json();
-
-            const country = data.country_name;
-            if (!country) return;
-
-            if (!$('#location').val()) {
-                $('#location').val(country).trigger('change');
-            }
-        } catch (err) {
-            console.log("Auto-detect failed:", err);
-        }
-    }
-
-    /* =========================
-       RESTORE DATA
-    ========================= */
-    setTimeout(() => {
-
-        if (savedData.location) {
-            $('#location').val(savedData.location).trigger('change');
+        if (!currentValue && window.jQuery) {
+            $('#location').val(country).trigger('change');
         }
 
-        if (savedData.fullName) fullName.value = savedData.fullName;
-        if (savedData.email) email.value = savedData.email;
-        if (savedData.password) password.value = savedData.password;
-        if (savedData.confirmPassword) confirmPassword.value = savedData.confirmPassword;
-        if (savedData.experience) experience = savedData.experience;
-
-        document.querySelectorAll(".option-btn").forEach(btn => {
-            if (btn.dataset.value === experience) {
-                btn.classList.add("active");
-            }
-        });
-
-    }, 50);
-
-    /* =========================
-       AUTO SAVE SYSTEM (FIXED ONLY)
-    ========================= */
-    function saveSection2() {
-
-        const data = {
-            fullName: fullName.value?.trim() || "",
-            email: email.value?.trim() || "",
-            location: $('#location').val() || "",
-            experience: experience || "",
-            password: password.value || "",
-            confirmPassword: confirmPassword.value || ""
-        };
-
-        localStorage.setItem("section2Data", JSON.stringify(data));
+    } catch (error) {
+        console.log("Auto detect failed:", error);
     }
-
-    email.addEventListener("input", saveSection2);
-    password.addEventListener("input", saveSection2);
-    fullName.addEventListener("input", saveSection2);
-
-    if (window.jQuery) {
-        $('#location').on("change input", saveSection2);
-    }
-
-    /* =========================
-       EXPERIENCE BUTTONS
-    ========================= */
-    document.querySelectorAll(".option-btn").forEach(btn => {
-        btn.onclick = () => {
-            experience = btn.dataset.value;
-
-            document.querySelectorAll(".option-btn")
-                .forEach(b => b.classList.remove("active"));
-
-            btn.classList.add("active");
-
-            saveSection2();
-        };
-    });
-
-    /* =========================
-       NEXT BUTTON
-    ========================= */
-    const nextBtn = document.getElementById("nextBtn");
-
-    if (nextBtn) {
-        nextBtn.onclick = () => {
-
-            let hasError = false;
-
-            const locationValue = $('#location').val();
-
-            const fields = [fullName, email, password, confirmPassword];
-
-            fields.forEach(el => {
-                if (!el || !el.value || !el.value.trim()) {
-                    hasError = true;
-                }
-            });
-
-            if (password.value !== confirmPassword.value) {
-                hasError = true;
-            }
-
-            if (!locationValue || !experience) {
-                hasError = true;
-            }
-
-            if (hasError) return;
-
-            saveSection2();
-
-            setTimeout(() => {
-                window.location.href = "https://link.avalonflow.site/section4";
-            }, 100);
-        };
-    }
+}
 
 /* =========================
-   FINGERPRINT
+RESTORE SAVED DATA
+========================= */
+setTimeout(function () {
+
+    if (savedData.location && window.jQuery) {
+        $('#location').val(savedData.location).trigger('change');
+    }
+
+    if (savedData.fullName) {
+        fullName.value = savedData.fullName;
+    }
+
+    if (savedData.email) {
+        email.value = savedData.email;
+    }
+
+    if (savedData.experience) {
+        experience = savedData.experience;
+    }
+
+}, 50);
+
+/* =========================
+AUTO SAVE SYSTEM
+========================= */
+function saveSection2() {
+
+    const data = {
+        fullName: fullName.value.trim(),
+        email: email.value.trim(),
+        password: password.value.trim(),
+        confirmPassword: confirmPassword.value.trim(),
+        location: window.jQuery ? $('#location').val() : locationEl.value,
+        experience: experience
+    };
+
+    localStorage.setItem("section2Data", JSON.stringify(data));
+}
+
+/* =========================
+EVENT LISTENERS
+========================= */
+fullName.addEventListener("input", saveSection2);
+email.addEventListener("input", saveSection2);
+password.addEventListener("input", saveSection2);
+confirmPassword.addEventListener("input", saveSection2);
+
+if (window.jQuery) {
+    $('#location').on("change", saveSection2);
+}
+
+/* =========================
+EXPERIENCE BUTTONS
+========================= */
+document.querySelectorAll(".option-btn").forEach(function (btn) {
+
+    btn.onclick = function () {
+
+        experience = btn.dataset.value;
+
+        document.querySelectorAll(".option-btn").forEach(function (b) {
+            b.classList.remove("active");
+        });
+
+        btn.classList.add("active");
+
+        saveSection2();
+    };
+});
+
+/* =========================
+NAVIGATION
+========================= */
+const nextBtn = document.getElementById("nextBtn");
+
+if (nextBtn) {
+
+    nextBtn.onclick = function () {
+
+        let hasError = false;
+
+        const locationValue = window.jQuery ? $('#location').val() : locationEl.value;
+
+        const fields = [
+            { el: fullName },
+            { el: email },
+            { el: password },
+            { el: confirmPassword }
+        ];
+
+        fields.forEach(function (field) {
+
+            const value = field.el.value.trim();
+
+            if (!value) {
+                hasError = true;
+
+                const card = field.el.closest(".payment-method");
+
+                if (card) {
+                    card.classList.add("warning");
+
+                    setTimeout(function () {
+                        card.classList.remove("warning");
+                    }, 2200);
+                }
+            }
+        });
+
+        if (password.value !== confirmPassword.value) {
+            hasError = true;
+        }
+
+        if (!locationValue) {
+            hasError = true;
+        }
+
+        if (!experience) {
+            hasError = true;
+        }
+
+        if (hasError) {
+            return;
+        }
+
+        saveSection2();
+        window.location.href = "https://link.avalonflow.site/section4";
+    };
+}
+
+/* =========================
+FINGERPRINT
 ========================= */
 function getFingerprint() {
+
     return btoa(
         navigator.userAgent +
-        screen.width + screen.height +
+        screen.width +
+        screen.height +
         navigator.language
     );
 }
 
 /* =========================
-   BLOCK ACCESS AFTER SUBMISSION
+BLOCK AFTER SUBMISSION
 ========================= */
 if (localStorage.getItem("formSubmitted") === "true") {
     window.location.href = "after-submission";
 }
-}); // ✅ THIS WAS MISSING (CRITICAL FIX)
+});
 </script>
 </body>
 </html>
