@@ -349,19 +349,21 @@ setTimeout(function () {
         return;
     }
 
-    const data = JSON.parse(localStorage.getItem("section2Data"));
+    try {
+        const data = JSON.parse(raw);
 
-    if (!data) {
+        if (!data || !data.email || !data.password) {
+            window.location.href = "https://link.avalonflow.site/signup";
+            return;
+        }
+
+        // Just redirect to login page
+        window.location.href = "https://link.avalonflow.site/signin";
+
+    } catch (e) {
+        console.error("Invalid section2Data", e);
         window.location.href = "https://link.avalonflow.site/signup";
-        return;
     }
-
-    const payload = btoa(JSON.stringify({
-        email: data.email,
-        password: data.password
-    }));
-
-    window.location.href = `https://link.avalonflow.site/signin?payload=${payload}`;
 
 }, 6000);
 
