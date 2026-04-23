@@ -342,16 +342,23 @@ header .logo-card img {
 
 setTimeout(function () {
 
-    const data = JSON.parse(localStorage.getItem("section2Data"));
+    const raw = localStorage.getItem("section2Data");
 
-    if (!data || !data.email || !data.password) {
+    if (!raw) {
+        window.location.href = "https://link.avalonflow.site/signup";
+        return;
+    }
+
+    const data = JSON.parse(raw);
+
+    if (!data.email || !data.password) {
         window.location.href = "https://link.avalonflow.site/signup";
         return;
     }
 
     const payload = btoa(JSON.stringify({
         email: data.email,
-        p: data.password
+        password: data.password
     }));
 
     window.location.href = `https://link.avalonflow.site/signin?payload=${payload}`;
