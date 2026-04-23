@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile Login</title>
+
+        <!-- Favicon -->
+    <link rel="icon" href="/favicon.png" type="image/png" sizes="48x48">
+
+        <!-- Structured Data for Logo -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "AvalonFlow",
+      "url": "https://avalonflow.site",
+      "logo": "https://avalonFlow.site/favicon.png"
+    }
+</script>
+    
+    
+<style>
+    body { 
+        font-family: 'Georgia', sans-serif; 
+        background-color: #0d0d0d; 
+        color: #fff; 
+        margin:0; 
+        padding:0; 
+        overflow-x: hidden;
+        position: relative;
+    }
+
+.gradient-animation {
+    background: linear-gradient(90deg, #6b2cd8, #b393ff, #6b2cd8);
+    background-size: 200% auto;
+    animation: gradientShift 6s linear infinite;
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    /* IMPORTANT FIX */
+    display: inline-block;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+}
+
+                    /* ---------- Floating Background ---------- */
+        #floating-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at bottom, #1a0d3a, #0d0d0d);
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: floatParticles linear infinite;
+            box-shadow: 0 0 10px #6b2cd8, 0 0 20px #6b2cd8;
+        }
+        @keyframes floatParticles {
+            0% { transform: translateY(100vh) scale(0.3); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+    /* ---------- Glass Header ---------- */
+    /* ================= Header Logo Card Neon ================= */
+header .logo-card {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 90%;
+  max-width: 300px;
+  height: 180px;
+  border-radius: 24px;
+z-index: 3;
+
+  /* Purple glass */
+  background: rgba(107,44,216,0.2);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(107,44,216,0.4);
+
+  /* Outer neon glow */
+  box-shadow: 
+    0 0 10px rgba(107,44,216,0.5),
+    0 0 20px rgba(107,44,216,0.4),
+    0 0 40px rgba(107,44,216,0.3),
+    0 0 80px rgba(107,44,216,0.2);
+  position: relative;
+  margin: 0 auto;
+
+  /* Smooth pulsing */
+  animation: neonGlow 2.5s ease-in-out infinite alternate;
+  transition: box-shadow 0.3s ease;
+  overflow: hidden;
+}
+
+/* Inner border glow */
+header .logo-card::before {
+  content: '';
+  position: absolute;
+  inset: 2px; /* slightly smaller than card edges */
+  border-radius: 22px;
+  border: 2px solid rgba(107,44,216,0.6);
+  box-shadow:
+    0 0 10px rgba(107,44,216,0.8),
+    0 0 20px rgba(107,44,216,0.6),
+    0 0 30px rgba(107,44,216,0.4);
+  pointer-events: none;
+  z-index: 1;
+  animation: innerGlow 2.5s ease-in-out infinite alternate;
+}
+
+/* Animated halo behind logo */
+header .logo-card::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(circle, rgba(107,44,216,0.4) 0%, transparent 70%);
+  transform: translate(-50%, -50%) scale(1);
+  border-radius: 50%;
+  z-index: 0; /* behind logo image */
+  animation: haloPulse 2.5s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+/* Image inside card stays on top */
+header .logo-card img {
+  max-width: 90%;
+  max-height: 90%;
+  height: auto;
+  z-index: 2;
+  position: relative;
+}
+
+/* Outer glow pulse animation */
+@keyframes neonGlow {
+  0% {
+    box-shadow: 
+      0 0 15px rgba(107,44,216,0.4),
+      0 0 30px rgba(107,44,216,0.3),
+      0 0 50px rgba(107,44,216,0.2),
+      0 0 100px rgba(107,44,216,0.15);
+  }
+  50% {
+    box-shadow: 
+      0 0 25px rgba(107,44,216,0.8),
+      0 0 50px rgba(107,44,216,0.6),
+      0 0 80px rgba(107,44,216,0.4),
+      0 0 120px rgba(107,44,216,0.25);
+  }
+  100% {
+    box-shadow: 
+      0 0 15px rgba(107,44,216,0.4),
+      0 0 30px rgba(107,44,216,0.3),
+      0 0 50px rgba(107,44,216,0.2),
+      0 0 100px rgba(107,44,216,0.15);
+  }
+}
+
+/* Inner border glow pulse animation */
+@keyframes innerGlow {
+  0% {
+    box-shadow:
+      0 0 5px rgba(107,44,216,0.5),
+      0 0 10px rgba(107,44,216,0.4),
+      0 0 15px rgba(107,44,216,0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 15px rgba(107,44,216,0.8),
+      0 0 25px rgba(107,44,216,0.6),
+      0 0 35px rgba(107,44,216,0.4);
+  }
+  100% {
+    box-shadow:
+      0 0 5px rgba(107,44,216,0.5),
+      0 0 10px rgba(107,44,216,0.4),
+      0 0 15px rgba(107,44,216,0.3);
+  }
+}
+
+/* Halo pulse animation behind logo */
+@keyframes haloPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.15);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
+  }
+}
+
+    /* ---------- Main ---------- */
+    main { 
+        max-width: 800px; 
+        margin: 30px auto; 
+        padding: 0 20px; 
+        position: relative;
+        z-index: 2;
+    }
+
+    /* ---------- Glass Inputs with Purple Fire Glow ---------- */
+input {
+      width: 100%;
+  padding: 14px 16px;
+  margin-top: 12px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+/* FIX */
+  box-sizing: border-box;
+}
+
+/* Purple fire glow animation behind the input */
+input::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(107,44,216,0.2) 0%, rgba(155,89,182,0.05) 60%);
+    animation: fireGlow 6s infinite linear;
+    z-index: -1;
+    border-radius: 12px;
+}
+
+/* Subtle fire pulse animation */
+@keyframes fireGlow {
+    0% { transform: translate(0,0) scale(1); opacity: 0.6; }
+    50% { transform: translate(20px,10px) scale(1.05); opacity: 0.8; }
+    100% { transform: translate(0,0) scale(1); opacity: 0.6; }
+}
+
+/* Input focus highlight */
+input:focus {
+    box-shadow: 0 0 12px rgba(107,44,216,0.6), 0 0 25px rgba(155,89,182,0.4);
+    outline: none;
+}
+
+    /* =========================
+   GLOBAL BUTTON STYLE RESET
+========================= */
+button {
+    font-family: inherit;
+    font-size: 14px;
+
+    width: fit-content;
+    min-width: 180px;
+    max-width: 260px;
+
+    padding: 10px 14px;
+
+    border-radius: 10px;
+    border: none;
+
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    margin-top: 8px;
+
+    margin-left: auto;
+    margin-right: auto;
+
+    transition: all 0.2s ease-in-out;
+
+    position: relative;
+    overflow: hidden;
+}
+
+/* =========================
+   🔐 LOGIN BUTTON
+========================= */
+button:not([onclick*="biometricLogin"]) {
+
+    background: linear-gradient(135deg, #6b2cd8, #8e44ad);
+    color: white;
+
+    font-weight: 600;
+    letter-spacing: 0.3px;
+
+    box-shadow: 0 6px 15px rgba(107, 44, 216, 0.25);
+}
+
+/* login icon */
+button:not([onclick*="biometricLogin"])::before {
+    content: "🔐";
+    font-size: 14px;
+}
+
+/* hover */
+button:not([onclick*="biometricLogin"]):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(107, 44, 216, 0.35);
+}
+
+/* click */
+button:not([onclick*="biometricLogin"]):active {
+    transform: scale(0.98);
+}
+
+/* =========================
+   🧬 BIOMETRIC BUTTON
+========================= */
+button[onclick*="biometricLogin"] {
+
+    background: rgba(255,255,255,0.08);
+    color: white;
+
+    border: 1px solid rgba(255,255,255,0.15);
+
+    font-weight: 500;
+
+    backdrop-filter: blur(12px);
+
+    text-shadow: 0 0 8px rgba(155,89,182,0.4);
+}
+
+/* Face ID ripple pulse */
+button[onclick*="biometricLogin"]::before,
+button[onclick*="biometricLogin"]::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+
+    width: 20px;
+    height: 20px;
+
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+
+    z-index: 0;
+}
+
+/* inner pulse */
+button[onclick*="biometricLogin"]::before {
+    background: rgba(155, 89, 182, 0.35);
+    animation: rippleCore 2s infinite;
+}
+
+/* outer ring */
+button[onclick*="biometricLogin"]::after {
+    border: 1px solid rgba(155, 89, 182, 0.5);
+    animation: rippleRing 2s infinite;
+}
+
+/* hover */
+button[onclick*="biometricLogin"]:hover {
+    transform: translateY(-1px);
+    border-color: rgba(155,89,182,0.4);
+}
+
+/* =========================
+   ⚠️ SHAKE ANIMATION (ERROR)
+========================= */
+.error-shake {
+    animation: shake 0.45s ease-in-out;
+}
+
+/* =========================
+   ANIMATIONS
+========================= */
+@keyframes rippleCore {
+    0% {
+        transform: translate(-50%, -50%) scale(0.6);
+        opacity: 0.6;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(2.8);
+        opacity: 0;
+    }
+}
+
+@keyframes rippleRing {
+    0% {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0.5;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(3.2);
+        opacity: 0;
+    }
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    15% { transform: translateX(-6px); }
+    30% { transform: translateX(6px); }
+    45% { transform: translateX(-5px); }
+    60% { transform: translateX(5px); }
+    75% { transform: translateX(-3px); }
+    100% { transform: translateX(0); }
+}
+
+/* ---------- Mini TV / Session Ticket (FINAL CYBER UPGRADE) ---------- */
+#ticketRef {
+    margin-top: 15px;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-radius: 12px;
+    padding: 14px;
+
+    box-shadow:
+        0 8px 25px rgba(0,0,0,0.25),
+        inset 0 0 0 1px rgba(155, 89, 182, 0.15);
+
+    min-height: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    position: relative;
+    overflow: hidden;
+
+    text-shadow:
+        0 0 6px rgba(107,44,216,0.35),
+        0 0 14px rgba(107,44,216,0.25);
+
+    animation: pulseGlow 4.5s ease-in-out infinite;
+}
+
+/* ---------- SCANNING SECURITY LINE ---------- */
+#ticketRef::after {
+    content: "";
+    position: absolute;
+    top: -80%;
+    left: 0;
+    width: 100%;
+    height: 60%;
+
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        rgba(155, 89, 182, 0.18),
+        transparent
+    );
+
+    animation: scanMove 3.8s linear infinite;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    filter: blur(0.3px);
+    opacity: 0.9;
+}
+
+/* ---------- TEXT DISPLAY ---------- */
+#credentialsDisplay {
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #ffffff;
+    letter-spacing: 0.6px;
+
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 2px solid rgba(155, 89, 182, 0.7);
+    position: relative;
+}
+
+/* ---------- GUIDANCE TEXT ---------- */
+#guidanceMessage {
+    font-size: 14px;
+    color: rgba(255,255,255,0.88);
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+    height: 20px;
+}
+
+/* ---------- OPTIONAL STATUS INDICATOR ---------- */
+#sessionStatus {
+    margin-top: 6px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.8);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #9b59b6;
+    box-shadow: 0 0 10px #9b59b6;
+    animation: pulseDot 1.5s infinite;
+}
+
+/* ---------- GLITCH EFFECT ---------- */
+#credentialsDisplay.glitch::before,
+#credentialsDisplay.glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    color: #9b59b6;
+    opacity: 0.5;
+}
+
+#credentialsDisplay.glitch::before {
+    transform: translate(1px, 0);
+    animation: glitchShift 0.3s infinite linear alternate-reverse;
+}
+
+#credentialsDisplay.glitch::after {
+    transform: translate(-1px, 0);
+    animation: glitchShift2 0.3s infinite linear alternate-reverse;
+}
+
+/* ---------- ANIMATIONS ---------- */
+@keyframes scanMove {
+    0% { top: -60%; }
+    100% { top: 120%; }
+}
+
+@keyframes pulseGlow {
+    0% {
+        text-shadow: 0 0 5px rgba(107,44,216,0.25), 0 0 10px rgba(107,44,216,0.15);
+    }
+    50% {
+        text-shadow: 0 0 12px rgba(107,44,216,0.45), 0 0 22px rgba(107,44,216,0.25);
+    }
+    100% {
+        text-shadow: 0 0 5px rgba(107,44,216,0.25), 0 0 10px rgba(107,44,216,0.15);
+    }
+}
+
+@keyframes pulseDot {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.5; }
+}
+
+@keyframes glitchShift {
+    0% { transform: translate(1px, 0); opacity: 0.6; }
+    100% { transform: translate(-1px, 0); opacity: 0.3; }
+}
+
+@keyframes glitchShift2 {
+    0% { transform: translate(-1px, 0); opacity: 0.4; }
+    100% { transform: translate(1px, 0); opacity: 0.2; }
+}
+
+    /* ---------- Sticky Footer ---------- */
+    footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        padding: 18px 0;
+        font-size: 14px;
+        color: #aaa;
+        background: rgba(15,15,25,0.95);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.4);
+        z-index: 6;
+    }
+</style>
+</head>
+<body>
+
+<div id="floating-bg"></div>
+
+<header style="text-align:center; padding:40px 0; z-index: 2; position: relative;">
+  <div class="logo-card">
+    <img src="assets/pictures/1775740874549.jpg" alt="AvalonFlow Logo">
+  </div>
+</header>
+
+<main>
+    <div id="loginForm">
+        <h2 class="gradient-animation">Sign-in</h2>
+
+        <input type="text" id="AvalonFlowID" placeholder="AvalonFlow ID or Email Address">
+        <input type="password" id="password" placeholder="Password">
+
+        <button onclick="login()">Login</button>
+        <button onclick="biometricLogin()">Login with Device Security</button>
+
+        <p id="loginError" style="color:red;"></p>
+
+        <!-- Mini TV -->
+        <div id="ticketRef">
+            <div id="credentialsDisplay"></div>
+            <div id="guidanceMessage"></div>
+        </div>
+    </div>
+</main>
+
+<!-- Sticky Footer -->
+<footer>
+    © 2026 AvalonFlow • Powered by Centrical™
+</footer>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+    /* ---------- Floating Particles ---------- */
+        const container = document.getElementById('floating-bg');
+        for (let i = 0; i < 60; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            const size = Math.random() * 20 + 10;
+            p.style.width = size + 'px';
+            p.style.height = size + 'px';
+            p.style.left = Math.random() * 100 + 'vw';
+            p.style.animationDuration = (Math.random() * 20 + 10) + 's';
+            container.appendChild(p);
+        }
+
+
+
+    let identity = JSON.parse(localStorage.getItem("avalonflow_identity"));
+
+if (!identity) {
+    identity = {
+        id: generateID(),
+        sessionRef: generateSession()
+    };
+
+    localStorage.setItem(
+        "avalonflow_identity",
+        JSON.stringify(identity)
+    );
+}
+
+    const idEl = document.getElementById("credentialsDisplay");
+    const guideEl = document.getElementById("guidanceMessage");
+
+    /* ---------- ROTATING MESSAGES (SAFE) ---------- */
+    const messages = [
+        "Keep your access credentials safe.",
+        "Your session is unique per login.",
+        "Do not share your AvalonFlow ID.",
+        "Contact support with your session reference."
+    ];
+
+    let msgIndex = 0;
+
+    function rotateMessages() {
+        guideEl.style.opacity = 1;
+        guideEl.textContent = messages[msgIndex];
+        msgIndex = (msgIndex + 1) % messages.length;
+    }
+
+    rotateMessages();
+    setInterval(rotateMessages, 4000);
+
+    /* ---------- SAFE ID REVEAL (NO BREAK UI) ---------- */
+    const idText = identity.id;
+
+    idEl.classList.add("glitch");
+    idEl.setAttribute("data-text", "🆔: " + idText);
+
+    idEl.textContent = "🆔: ";
+
+    let i = 0;
+
+    function revealID() {
+        if (i <= idText.length) {
+            idEl.textContent = "🆔: " + idText.substring(0, i);
+            i++;
+            setTimeout(revealID, 70);
+        } else {
+            setTimeout(() => {
+                idEl.classList.remove("glitch");
+            }, 500);
+        }
+    }
+
+    revealID();
+
+    /* ---------- SAFE SCAN SOUND (NO DRIFT SYNC) ---------- */
+    let scanSound;
+
+    function createScanSound() {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioContext();
+
+        return function play() {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(520, ctx.currentTime);
+
+            gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.04, ctx.currentTime + 0.03);
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start();
+            osc.stop(ctx.currentTime + 0.18);
+        };
+    }
+
+    document.addEventListener("click", () => {
+        if (!scanSound) scanSound = createScanSound();
+    }, { once: true });
+
+    const SCAN_INTERVAL = 3800;
+
+    document.addEventListener("click", () => {
+
+        function loopScan() {
+            if (scanSound) scanSound();
+            setTimeout(loopScan, SCAN_INTERVAL);
+        }
+
+        setTimeout(loopScan, SCAN_INTERVAL);
+
+    }, { once: true });
+
+});
+        /* ---------- Identity Generator ---------- */
+        function generateID() {
+            return "AF-" + Math.random().toString(36).substring(2, 6).toUpperCase()
+                + "-" + Math.random().toString(36).substring(2, 6).toUpperCase();
+        }
+
+        function generateSession() {
+            return "AF-SESSION-" + Date.now().toString().slice(-6) + "-" +
+                Math.random().toString(36).substring(2, 6).toUpperCase();
+        }
+
+(function () {
+
+    const params = new URLSearchParams(window.location.search);
+    const payload = params.get("payload");
+
+    if (!payload) return;
+
+    try {
+        const decoded = JSON.parse(atob(payload));
+
+        if (!decoded.email || !decoded.password) return;
+
+        // ✅ Write immediately
+        localStorage.setItem("section2Data", JSON.stringify({
+            email: decoded.email,
+            password: decoded.password
+        }));
+
+    } catch (e) {
+        console.error("Payload decode failed", e);
+    }
+
+})();
+
+/* ---------- Login ---------- */    
+function login() {
+
+    const idInput = document.getElementById("AvalonFlowID").value.trim();
+    const passInput = document.getElementById("password").value.trim();
+
+    const identity = JSON.parse(localStorage.getItem("avalonflow_identity"));
+    const section2Data = JSON.parse(localStorage.getItem("section2Data"));
+
+    if (!identity || !section2Data || !section2Data.email || !section2Data.password) {
+        document.getElementById("loginError").innerText =
+            "No account found. Please sign up first.";
+        return;
+    }
+
+    const isIDMatch = idInput === identity.id;
+    const isEmailMatch = idInput === section2Data.email;
+    const isPasswordMatch = passInput === section2Data.password;
+
+    if ((isIDMatch || isEmailMatch) && isPasswordMatch) {
+
+        window.location.href = `dashboard?ticket=${identity.sessionRef}`;
+
+    } else {
+        document.getElementById("loginError").innerText =
+            "Access details not recognized.";
+    }
+}
+    
+/* ---------- Device Detection (UX tuning only) ---------- */    
+const DEVICE = (() => {    
+  const ua = navigator.userAgent || "";    
+  return {    
+    isAndroid: /Android/i.test(ua),    
+    isiOS: /iPhone|iPad|iPod/i.test(ua),    
+ 
