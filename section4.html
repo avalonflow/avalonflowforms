@@ -31,26 +31,45 @@ body {
 button { cursor: pointer; }
 a { color: inherit; text-decoration: none; }
 
-/* ---------- Floating Background ---------- */
+        /* ---------- Floating Background ---------- */
 #floating-bg {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: radial-gradient(circle at bottom, #1a0d3a, #0d0d0d);
-  overflow: hidden;
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+
+    /* Soft white/blue futuristic background */
+    background: radial-gradient(circle at bottom, #cfe8ff, #ffffff);
+
+    overflow: hidden;
 }
+
 .particle {
-  position: absolute;
-  border-radius: 50%;
-  opacity: 0.6;
-  animation: floatParticles linear infinite;
-  box-shadow: 0 0 10px #6b2cd8, 0 0 20px #6b2cd8;
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.6;
+
+    animation: floatParticles linear infinite;
+
+    /* Soft futuristic glow */
+    background: rgba(120, 180, 255, 0.7);
+    box-shadow: 0 0 10px #8ec5ff, 0 0 20px #b7dcff;
 }
+
 @keyframes floatParticles {
-  0% { transform: translateY(100vh) scale(0.3); opacity: 0; }
-  50% { opacity: 1; }
-  100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+    0% {
+        transform: translateY(100vh) scale(0.3);
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-10vh) scale(1);
+        opacity: 0;
+    }
 }
 
 /* ---------- Header ---------- */
@@ -367,20 +386,19 @@ header .logo-card img {
   }
 }
 
-/* ---------- Footer ---------- */
-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  text-align: center;
-  padding: 18px 0;
-  font-size: 14px;
-  color: #aaa;
-  background: rgba(15,15,25,0.95);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 -5px 20px rgba(0,0,0,0.4);
-  z-index: 6;
+    footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    padding: 18px 0;
+    font-size: 14px;
+    color: #555;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.08);
+    z-index: 6;
 }
 </style>
 </head>
