@@ -557,7 +557,7 @@ function transitionToSarah() {
 
     setTimeout(() => {
         removeTyping();
-        const handoffMessage = "Sorry for the delay. Connecting you with Sarah in a bit...";
+        const handoffMessage = "Understood. One moment while I connect you with Sarah from our support team...";
         addMessage(handoffMessage, "bot");
 
         conversationMemory.push({ role: "bot", content: handoffMessage, type: "text", time: Date.now() });
