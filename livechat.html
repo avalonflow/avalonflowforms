@@ -560,7 +560,7 @@ function generateFollowUp(msg){
 }
 
 
-// ---------- SMART RESPONSE ----------
+// ---------- SMART RESPONSE (FIXED) ----------
 function generateSmartReply(msg){
     const text = msg.toLowerCase();
     
@@ -568,8 +568,10 @@ function generateSmartReply(msg){
     const isYes = /^(yes|yeah|sure|ok|please)\b/.test(text);
     const isNo = /^(no|not really|nah)\b/.test(text);
 
-    // 1️⃣ STATE MANAGEMENT HIGHEST PRIORITY: Support follow-up handling
-    if(personality.lastIntent === "support"){
+    // 1️⃣ CATEGORICAL SUPPORT CHECK: Force the routing question if they mention support/help keywords
+    if (/support|live chat|representative|human|agent|help|issue|problem|not working/.test(text) || personality.lastIntent === "support") {
+        
+        // Handle their actual choice if they've already been asked
         if(/email|send email/.test(text)){
             personality.lastIntent = null;
             return "Send your request to avalonflowsystem.helpdesk@gmail.com with your issue details.";
@@ -581,6 +583,8 @@ function generateSmartReply(msg){
             return "Connecting you with Sarah now...";
         }
 
+        // Default fallback if they just said "support" or "help": FORCE the choice
+        personality.lastIntent = "support";
         return "Do you prefer email support or live chat with Sarah?";
     }
 
@@ -620,7 +624,7 @@ function generateSmartReply(msg){
         return "Are you referring to a payout delay or a transaction verification delay?";
     }
 
-    // 4️⃣ GENERAL FAQ PARSING (Safely deferred until after interactive state assessment)
+    // 4️⃣ GENERAL FAQ PARSING (Safely deferred until after routing and interactive states)
     const faq = findFAQByIntent(msg);
     if(faq){
         personality.lastIntent = "faq";
@@ -687,6 +691,7 @@ function generateSmartReply(msg){
 
     return followUps[Math.floor(Math.random()*followUps.length)];
 }
+
 
 const personality = {
     tone: "neutral", // friendly | calm | professional
