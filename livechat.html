@@ -190,207 +190,37 @@
 </div>
 
 <script>
+// ---------- Configuration Constants ----------
+const BOT_TOKEN = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
+const CHAT_ID = '-1003913850436';
+
 // ---------- Kairos Bot / FAQ ----------
 const botMessagesContainer = document.getElementById('botMessagesContainer');
 const botInput = document.getElementById('botInput');
 const botSendBtn = document.getElementById('botSendBtn');
+const statusText = document.getElementById('status-text'); // Status element tracking sync state
 
 let conversationMemory = [];
+let lastUpdateId = parseInt(localStorage.getItem('tg_last_update_id')) || 0;
+let chatHistory = JSON.parse(localStorage.getItem('tg_chat_history_v3')) || [];
+let isSarahActive = false; // Flag governing live agent takeover state
 
-const quotes=[ "Believe in yourself and all that you are.", "Small steps each day lead to big results.", "Life is about moments, not things.", "Consistency is the key to success.", "Every day is a fresh start.", "Faith is the compass that guides you through life’s storms.", "Pray not just for what you want, but   for the strength to receive it.", "Trust God’s timing; He never runs late.", "Your faith can move mountains, but your actions must build the path.", "God doesn’t call the equipped; He equips the called.", "Gratitude turns what we have into enough.", "Serve with love, and blessings will follow silently.", "When you focus on God, life focuses for you.", "Don’t chase money; build systems that make money chase you.", "Financial freedom begins when you learn to control your money, not your lifestyle.", "Save like a pessimist, invest like an optimist.", "Wealth grows when patience waters it daily.", "Your income is limited only by your imagination and action.", "Make your money work harder than you do.", "Life rewards those who act, not those who wait.", "Every setback is a setup for a stronger comeback.", "Your comfort zone is a beautiful place, but nothing ever grows there.", "Consistency beats talent when talent doesn’t show up.", "The storms of life shape the strongest sailors.", "Dream big, start small, move consistently." ];
+let baseDelay = 3000;
+let currentDelay = baseDelay;
+let maxDelay = 30000;
+let pollingTimer = null;
+let quoteRotationTimer = null;
 
-// ---------- SMART RESPONSE ----------
-function generateSmartReply(msg){
+const currentTabId = Math.random().toString();
+sessionStorage.setItem('active_chat_tab', currentTabId);
 
-const text = msg.toLowerCase();
-
-// clean YES/NO checks (FIX #2)
-const isYes = /^(yes|yeah|sure|ok|please)\b/.test(text);
-const isNo = /^(no|not really|nah)\b/.test(text);
-
-// Support follow-up handling
-if(personality.lastIntent === "support"){
-
-    if(/email|send email/.test(text)){
-        personality.lastIntent = null;
-        return "Send your request to avalonflowsystem.helpdesk@gmail.com with your issue details.";
-    }
-
-    if(/live|chat|representative|human|agent/.test(text)){
-        personality.lastIntent = null;
-        setTimeout(transitionToSarah, 600);
-        return "Connecting you with Sarah now...";
-    }
-
-    return "Do you prefer email support or live chat with Sarah?";
-}
-
-
-// FAQ FIRST (priority)
-const faq = findFAQByIntent(msg);
-if(faq){
-    personality.lastIntent = "faq";
-    const variations = [
-        faq.a,
-        `${faq.a} Let me know if you want me to walk you through it.`,
-        `Here’s what you need: ${faq.a}`,
-        `${faq.a} — want help doing it now?`
-    ];
-
-    return variations[Math.floor(Math.random()*variations.length)];
-}
-
-// Memory context
-const last = conversationMemory
-    .slice(-2)
-    .map(m => m.content)
-    .join(" ")
-    .toLowerCase();
-
-const lastBot = conversationMemory
-    .filter(m => m.role === "bot")
-    .at(-1)?.content.toLowerCase() || "";
-
-// Sarah handoff confirmation
-if (
-  personality.awaitingSarahConfirm &&
-  isYes
-) {
-  personality.awaitingSarahConfirm = false;
-  setTimeout(transitionToSarah, 600);
-  return "Understood. Connecting you with Sarah now...";
-}
-
-// Context: password issue
-if(last.includes("password") && text.includes("not working")){
-    return "Got it—you’re having trouble resetting your password. Are you seeing an error or just not receiving the reset link?";
-}
-
-// ticket context
-if(personality.lastIntent === "ticket" && /not working|failed|error/.test(text)){
-    return "Is the ticket not generating or are you not seeing it in your dashboard?";
-}
-
-// payment delay
-if(last.includes("payment") && text.includes("delay")){
-    return "Are you referring to a payout delay or a transaction verification delay?";
-}
-
-// YES / NO logic (clean version)
-if(isYes){
-    if(lastBot.includes("ticket")){
-        generateTicket();
-        return "Done. Your support ticket has been created.";
-    }
-}
-
-if(isNo){
-    return "Alright. What would you like help with instead?";
-}
-
-// reward logic
-if(/reward balance|progress|earnings balance|cashback/.test(text)){
-    let unlocked = JSON.parse(localStorage.getItem('unlockedPlans')) || {};
-    let unlockTimes = JSON.parse(localStorage.getItem('unlockTimes')) || {};
-    let res = "Bond progress:\n";
-
-    ['premium','basic','lite','custom'].forEach(plan=>{
-        if(unlocked[plan]){
-            const now = Date.now();
-            const elapsed = now - unlockTimes[plan];
-            const total = plan==='premium'?14*86400000:plan==='basic'?28*86400000:42*86400000;
-            const percent = Math.min(100, Math.round((elapsed/total)*100));
-            res += `${plan}: ${percent}%\n`;
-        } else {
-            res += `${plan}: Locked\n`;
-        }
-    });
-
-    return res;
-}
-
-// fallback responses
-const followUps = [
-    generateFollowUp(msg),
-    "Can you clarify that a bit for me?",
-    "I want to make sure I understand—what exactly are you trying to do?",
-    "Are you trying to fix something or just exploring?"
-];
-
-// FAQ short reply handling
-const shortReply = msg.trim().split(" ").length <= 2;
-
-if(personality.lastIntent === "faq" && shortReply){
-    personality.lastIntent = null;
-    return "Want me to break that down step-by-step?";
-}
-
-// Sarah decline
-if(
-  personality.awaitingSarahConfirm &&
-  isNo
-){
-    personality.awaitingSarahConfirm = false;
-    return "Alright, let me know what you need help with instead.";
-}
-
-// ticket follow-up
-if(personality.lastIntent === "ticket" && isYes){
-    personality.lastIntent = null;
-    return "Do you want to track it or describe the issue further?";
-}
-
-return followUps[Math.floor(Math.random()*followUps.length)];
-}
-
-const personality = {
-    tone: "neutral", // friendly | calm | professional
-    lastIntent: null,
-    userMood: "unknown"
+const sarahProfile = {
+    name: "Sarah (Account Representative)",
+    avatarColor: "linear-gradient(135deg, #ff416c, #ff4b2b)",
+    statusText: "Connected with Sarah"
 };
 
-function adaptTone(msg){
-    const text = msg.toLowerCase();
-
-    if(/frustrated|angry|not working|annoying/.test(text)){
-        personality.tone = "calm";
-        personality.userMood = "frustrated";
-    }
-    else if(/thanks|nice|good/.test(text)){
-        personality.tone = "friendly";
-        personality.userMood = "positive";
-    }
-    else{
-        personality.tone = "neutral";
-    }
-}
-
-function humanize(text){
-
-    const fillers = [
-    "",
-    "",
-    "Alright… ",
-    "Okay, so ",
-    "Got it. ",
-    "Hmm, ",
-    "Let me see… ",
-    "Right, ",
-    "Makes sense. "
-];
-
-    let prefix = fillers[Math.floor(Math.random()*fillers.length)];
-
-    if(personality.tone === "calm"){
-        prefix = "I get how that can be frustrating. ";
-    }
-
-    if(personality.tone === "friendly"){
-        return prefix + text + " 👍";
-    }
-
-    return prefix + text;
-}
+const quotes=[ "Believe in yourself and all that you are.", "Small steps each day lead to big results.", "Life is about moments, not things.", "Consistency is the key to success.", "Every day is a fresh start.", "Faith is the compass that guides you through life’s storms.", "Pray not just for what you want, but   for the strength to receive it.", "Trust God’s timing; He never runs late.", "Your faith can move mountains, but your actions must build the path.", "God doesn’t call the equipped; He equips the called.", "Gratitude turns what we have into enough.", "Serve with love, and blessings will follow silently.", "When you focus on God, life focuses for you.", "Don’t chase money; build systems that make money chase you.", "Financial freedom begins when you learn to control your money, not your lifestyle.", "Save like a pessimist, invest like an optimist.", "Wealth grows when patience waters it daily.", "Your income is limited only by your imagination and action.", "Make your money work harder than you do.", "Life rewards those who act, not those who wait.", "Every setback is a setup for a stronger comeback.", "Your comfort zone is a beautiful place, but nothing ever grows there.", "Consistency beats talent when talent doesn’t show up.", "The storms of life shape the strongest sailors.", "Dream big, start small, move consistently." ];
 
 const faqs = [
 
@@ -522,7 +352,7 @@ function findFAQByIntent(input){
         }
     }
 
-    return bestScore > 1 ? best : findBestFAQ(input);
+    return bestScore > 1 ? best : (typeof findBestFAQ === "function" ? findBestFAQ(input) : null);
 }
 
 
@@ -567,6 +397,7 @@ function addMessage(text, sender="bot", status="delivered"){
 }
 
 function markAsSeen(wrap){
+    if (!wrap) return;
     const tick=wrap.querySelector(".tick");
     if(tick){
         tick.classList.remove("delivered");
@@ -577,12 +408,66 @@ function markAsSeen(wrap){
 
 // ---------- Typing ----------
 function showTyping(){
+    if (document.getElementById("typingIndicator")) return;
     const t=document.createElement("div");
     t.className="typing";
     t.id="typingIndicator";
     t.innerHTML="<span></span><span></span><span></span>";
     botMessagesContainer.appendChild(t);
     botMessagesContainer.scrollTop=botMessagesContainer.scrollHeight;
+}
+
+// ---------- Live Representative Transition Pipeline ----------
+function transitionToSarah() {
+    if(isSarahActive) return;
+    isSarahActive = true; 
+
+    clearInterval(quoteRotationTimer);
+    
+    // Step 1: Kairos shows typing action before declaring handoff
+    showTyping();
+
+    setTimeout(() => {
+        removeTyping();
+
+        const handoffMessage = "One moment while I connect you with Sarah from our support team...";
+        addMessage(handoffMessage, "bot");
+
+        conversationMemory.push({
+            role: "bot",
+            content: handoffMessage,
+            time: Date.now()
+        });
+
+        // Step 2: Show immediate ambient typing window for incoming Sarah interaction
+        showTyping();
+
+        setTimeout(() => {
+            removeTyping();
+
+            const botHeader = document.getElementById('botHeader');
+            if (botHeader) {
+                botHeader.style.background = sarahProfile.avatarColor;
+                botHeader.textContent = sarahProfile.name;
+            }
+
+            if (statusText) {
+                statusText.textContent = sarahProfile.statusText;
+            }
+
+            const sarahEntryMessage = "Hi, this is Sarah. I've personally stepped into this chat session to assist you. Please tell me exactly what issue you're experiencing so I can help resolve it.";
+            addMessage(sarahEntryMessage, "bot");
+
+            conversationMemory.push({ role: "sarah", content: sarahEntryMessage, time: Date.now() });
+            chatHistory.push({ sender: 'bot', text: sarahEntryMessage });
+            localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+
+            if(conversationMemory.length > 10){
+                conversationMemory.shift();
+            }
+        }, 2500);
+
+    }, 1800);
 }
 
 function removeTyping(){
@@ -621,77 +506,6 @@ botInput.addEventListener("input", ()=>{
     typingTimeout=setTimeout(removeUserTyping,1200);
 });
 
-// ---------- SARAH LIVE AGENT ----------
-let isSarahActive = false;
-
-const sarahProfile = {
-    name: "Sarah (Account Representative)",
-    avatarColor: "linear-gradient(135deg,#ff416c,#ff4b2b)",
-    statusText: "Connected with Sarah"
-};
-
-function transitionToSarah(){
-
-    if(isSarahActive) return;
-
-    isSarahActive = true;
-
-    // Kairos typing first
-    showTyping();
-
-    setTimeout(()=>{
-
-        removeTyping();
-
-        const handoffMessage =
-        "One moment while I connect you with Sarah from our support team...";
-
-        addMessage(handoffMessage,"bot");
-
-        conversationMemory.push({
-            role:"bot",
-            content:handoffMessage,
-            time:Date.now()
-        });
-
-        // Sarah appears to be typing
-        showTyping();
-
-        setTimeout(()=>{
-
-            removeTyping();
-
-            const botHeader = document.getElementById('botHeader');
-            const statusText = document.getElementById('status-text');
-
-            if(botHeader){
-                botHeader.style.background = sarahProfile.avatarColor;
-                botHeader.textContent = sarahProfile.name;
-            }
-
-            if(statusText){
-                statusText.textContent = sarahProfile.statusText;
-            }
-
-            const msg =
-            "Hi, this is Sarah. I've personally stepped into this chat session to assist you. Please tell me exactly what issue you're experiencing so I can help resolve it.";
-
-            addMessage(msg,"bot");
-
-            conversationMemory.push({
-                role:"sarah",
-                content:msg,
-                time:Date.now()
-            });
-
-            if(conversationMemory.length > 10){
-                conversationMemory.shift();
-            }
-
-        },2500);
-
-    },1800);
-}
 
 // ---------- INTENT ENGINE ----------
 function detectIntent(msg){
@@ -746,35 +560,216 @@ function generateFollowUp(msg){
 }
 
 
+// ---------- SMART RESPONSE ----------
+function generateSmartReply(msg){
+    const text = msg.toLowerCase();
+    
+    // clean YES/NO checks
+    const isYes = /^(yes|yeah|sure|ok|please)\b/.test(text);
+    const isNo = /^(no|not really|nah)\b/.test(text);
+
+    // Support follow-up handling
+    if(personality.lastIntent === "support"){
+        if(/email|send email/.test(text)){
+            personality.lastIntent = null;
+            return "Send your request to avalonflowsystem.helpdesk@gmail.com with your issue details.";
+        }
+
+        if(/live|chat|representative|human|agent/.test(text)){
+            personality.lastIntent = null;
+            setTimeout(transitionToSarah, 600);
+            return "Connecting you with Sarah now...";
+        }
+
+        return "Do you prefer email support or live chat with Sarah?";
+    }
+
+    // FAQ FIRST (priority)
+    const faq = findFAQByIntent(msg);
+    if(faq){
+        personality.lastIntent = "faq";
+        const variations = [
+            faq.a,
+            `${faq.a} Let me know if you want me to walk you through it.`,
+            `Here’s what you need: ${faq.a}`,
+            `${faq.a} — want help doing it now?`
+        ];
+
+        return variations[Math.floor(Math.random()*variations.length)];
+    }
+
+    // Memory context
+    const last = conversationMemory
+        .slice(-2)
+        .map(m => m.content)
+        .join(" ")
+        .toLowerCase();
+
+    const lastBot = conversationMemory
+        .filter(m => m.role === "bot")
+        .at(-1)?.content.toLowerCase() || "";
+
+    // Sarah handoff confirmation check
+    if (personality.awaitingSarahConfirm && isYes) {
+        personality.awaitingSarahConfirm = false;
+        setTimeout(transitionToSarah, 600);
+        return "Understood. Connecting you with Sarah now...";
+    }
+
+    // Context: password issue
+    if(last.includes("password") && text.includes("not working")){
+        return "Got it—you’re having trouble resetting your password. Are you seeing an error or just not receiving the reset link?";
+    }
+
+    // ticket context
+    if(personality.lastIntent === "ticket" && /not working|failed|error/.test(text)){
+        return "Is the ticket not generating or are you not seeing it in your dashboard?";
+    }
+
+    // payment delay
+    if(last.includes("payment") && text.includes("delay")){
+        return "Are you referring to a payout delay or a transaction verification delay?";
+    }
+
+    // YES / NO logic
+    if(isYes){
+        if(lastBot.includes("ticket")){
+            if (typeof generateTicket === "function") generateTicket();
+            return "Done. Your support ticket has been created.";
+        }
+    }
+
+    if(isNo){
+        if (personality.awaitingSarahConfirm) {
+            personality.awaitingSarahConfirm = false;
+            return "Alright, let me know what you need help with instead.";
+        }
+        return "Alright. What would you like help with instead?";
+    }
+
+    // Reward logic
+    if(/reward balance|progress|earnings balance|cashback/.test(text)){
+        let unlocked=JSON.parse(localStorage.getItem('unlockedPlans'))||{};
+        let unlockTimes=JSON.parse(localStorage.getItem('unlockTimes'))||{};
+        let res="Bond progress:\n";
+
+        ['premium','basic','lite','custom'].forEach(plan=>{
+            if(unlocked[plan]){
+                const now=Date.now();
+                const elapsed=now-unlockTimes[plan];
+                const total=plan==='premium'?14*86400000:plan==='basic'?28*86400000:42*86400000;
+                const percent=Math.min(100,Math.round((elapsed/total)*100));
+                res+=`${plan}: ${percent}%\n`;
+            } else res+=`${plan}: Locked\n`;
+        });
+
+        return res;
+    }
+
+    // fallback responses
+    const followUps = [
+        generateFollowUp(msg),
+        "Can you clarify that a bit for me?",
+        "I want to make sure I understand—what exactly are you trying to do?",
+        "Are you trying to fix something or just exploring?"
+    ];
+
+    // FAQ short reply handling
+    const shortReply = msg.trim().split(" ").length <= 2;
+
+    if(personality.lastIntent === "faq" && shortReply){
+        personality.lastIntent = null;
+        return "Want me to break that down step-by-step?";
+    }
+
+    // ticket follow-up
+    if(personality.lastIntent === "ticket" && isYes){
+        personality.lastIntent = null;
+        return "Do you want to track it or describe the issue further?";
+    }
+
+    return followUps[Math.floor(Math.random()*followUps.length)];
+}
+
+const personality = {
+    tone: "neutral", // friendly | calm | professional
+    lastIntent: null,
+    userMood: "unknown",
+    awaitingSarahConfirm: false
+};
+
+function adaptTone(msg){
+    const text = msg.toLowerCase();
+
+    if(/frustrated|angry|not working|annoying/.test(text)){
+        personality.tone = "calm";
+        personality.userMood = "frustrated";
+    }
+    else if(/thanks|nice|good/.test(text)){
+        personality.tone = "friendly";
+        personality.userMood = "positive";
+    }
+    else{
+        personality.tone = "neutral";
+    }
+}
+
+function humanize(text){
+
+    const fillers = [
+    "",
+    "",
+    "Alright… ",
+    "Okay, so ",
+    "Got it. ",
+    "Hmm, ",
+    "Let me see… ",
+    "Right, ",
+    "Makes sense. "
+];
+
+    let prefix = fillers[Math.floor(Math.random()*fillers.length)];
+
+    if(personality.tone === "calm"){
+        prefix = "I get how that can be frustrating. ";
+    }
+
+    if(personality.tone === "friendly"){
+        return prefix + text + " 👍";
+    }
+
+    return prefix + text;
+}
 
 // ---------- BOT EXECUTION ----------
 
 function handleMessage(msg){
+    if (isSarahActive) return;
 
     const lower = msg.toLowerCase();
 
     // Greeting (prevents fallback spam)
     if(/^(hi|hello|hey|yo)\b/.test(lower)){
-    const greetings = [
-        "Hey 👋 I’m Kairos. What do you need help with?",
-        "Hi there. I can help with support, tickets, rewards, or settings.",
-        "Hey—what’s going on? Need help with something?",
-        "Hello. Tell me what you're trying to do, I’ll guide you."
-    ];
+        const greetings = [
+            "Hey 👋 I’m Kairos. What do you need help with?",
+            "Hi there. I can help with support, tickets, rewards, or settings.",
+            "Hey—what’s going on? Need help with something?",
+            "Hello. Tell me what you're trying to do, I’ll guide you."
+        ];
 
-    botReply(greetings[Math.floor(Math.random()*greetings.length)]);
-    return;
-}
+        botReply(greetings[Math.floor(Math.random()*greetings.length)]);
+        return;
+    }
 
     // Direct theme commands
     if(lower.includes('light mode')){
-        setTheme('light');
+        if(typeof setTheme === "function") setTheme('light');
         botReply("Switched to light mode.");
         return;
     }
 
     if(lower.includes('dark mode')){
-        setTheme('dark');
+        if(typeof setTheme === "function") setTheme('dark');
         botReply("Switched to dark mode.");
         return;
     }
@@ -782,21 +777,21 @@ function handleMessage(msg){
     const intent = detectIntent(msg);
 
     if(intent.type==='theme'){
-        setTheme(intent.value);
+        if(typeof setTheme === "function") setTheme(intent.value);
         botReply(`Switched to ${intent.value} mode.`);
         return;
     }
 
     if(intent.type==='ticket'){
-    personality.lastIntent = "ticket"; // ✅ ADD HERE
-    generateTicket();
-    botReply("Your ticket has been generated.");
-    return;
-}
+        personality.lastIntent = "ticket"; 
+        if(typeof generateTicket === "function") generateTicket();
+        botReply("Your ticket has been generated.");
+        return;
+    }
 
     if(intent.type==='logout'){
         botReply("Logging you out...");
-        setTimeout(()=>logout(),1000);
+        if(typeof logout === "function") setTimeout(()=>logout(),1000);
         return;
     }
 
@@ -805,21 +800,17 @@ function handleMessage(msg){
         return;
     }
 
-    if(intent.type === 'support'){
-    personality.lastIntent = "support";
-    personality.awaitingSarahConfirm = true; // ✅ ADD THIS
-
-    botReply(
-        "I can help with that. Would you like to email support or chat with a live representative?"
-    );
-    return;
-}
+    if(intent.type==='support'){
+        personality.lastIntent = "support";
+        botReply("I can help with that. Do you prefer email support or live chat with Sarah?");
+        return;
+    }
 
     // Default → smart brain
     adaptTone(msg);
 
-const reply = generateSmartReply(msg);
-botReply(reply);
+    const reply = generateSmartReply(msg);
+    botReply(reply);
 }
 
 
@@ -836,13 +827,10 @@ function botReply(text){
     setTimeout(()=>{
         removeTyping();
         addMessage(finalText,"bot");
-saveMessage("bot",finalText);
 
-        conversationMemory.push({
-            role: "bot",
-            content: finalText,
-            time: Date.now()
-        });
+        conversationMemory.push({ role: "bot", content: finalText, time: Date.now() });
+        chatHistory.push({ sender: 'bot', text: finalText });
+        localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
         if(conversationMemory.length > 10){
             conversationMemory.shift();
@@ -853,7 +841,7 @@ saveMessage("bot",finalText);
 
 
 // ---------- SEND ----------
-function sendMessage(){
+async function sendMessage(){
     const text = botInput.value.trim();
     if(!text) return;
 
@@ -864,22 +852,27 @@ function sendMessage(){
 
     setTimeout(()=>markAsSeen(userMsg),800);
 
-    conversationMemory.push({
-    role: "user",
-    content: text,
-    time: Date.now()
-});
+    conversationMemory.push({ role: "user", content: text, time: Date.now() });
+    chatHistory.push({ sender: 'user', text: text });
+    localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
-// keep memory small (important)
-if(conversationMemory.length > 10){
-    conversationMemory.shift();
-}
+    // keep memory small
+    if(conversationMemory.length > 10){
+        conversationMemory.shift();
+    }
 
     handleMessage(text);
-saveMessage("user",text);
-sendToTelegram(text);
-
     recordChatMessage();
+
+    try {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: CHAT_ID, text: text })
+        });
+    } catch (e) {
+        console.error('Outbound transmission drop or routing error.');
+    }
 }
 
 botSendBtn.addEventListener('click', sendMessage);
@@ -894,7 +887,7 @@ function recordChatMessage(){
     let chats=parseInt(localStorage.getItem("messagesSent")||0);
     chats++;
     localStorage.setItem("messagesSent",chats);
-    updateEngagementUI();
+    if(typeof updateEngagementUI === "function") updateEngagementUI();
 }
 
 
@@ -908,199 +901,143 @@ const autoSuggest=[
 botInput.addEventListener('input', e=>{
     const msg=e.target.value.toLowerCase();
     const found=autoSuggest.find(s=>s.keywords.some(k=>msg.includes(k)));
-    if(found) notify(`💡 ${found.suggestion}`);
+    if(found && typeof notify === "function") notify(`💡 ${found.suggestion}`);
 });
 
-// ---------- INITIAL GREETING ----------
-document.addEventListener('DOMContentLoaded',()=>{
-
-    if(localStorage.getItem("kairosGreetingShown")) return;
-
-    localStorage.setItem("kairosGreetingShown","1");
-
-    setTimeout(()=>{
-
-        addMessage(
-        "Hey 👋 I'm Kairos. Welcome back! Do you want me to connect you with Sarah regarding any issue you're experiencing?",
-        "bot"
-        );
-
-    },1200);
-
-});
-
-// ---------- TELEGRAM + PERSISTENCE ----------
-
-const BOT_TOKEN = "YOUR_BOT_TOKEN";
-const CHAT_ID = "YOUR_CHAT_ID";
-
-let lastUpdateId =
-parseInt(localStorage.getItem("tg_last_update_id")) || 0;
-
-let chatHistory =
-JSON.parse(localStorage.getItem("tg_chat_history_v3")) || [];
-
-const currentTabId = Math.random().toString();
-
-sessionStorage.setItem(
-    "active_chat_tab",
-    currentTabId
-);
-
-// ---------- SAVE CHAT ----------
-
-function saveMessage(sender,text){
-
-    chatHistory.push({
-        sender,
-        text
-    });
-
-    localStorage.setItem(
-        "tg_chat_history_v3",
-        JSON.stringify(chatHistory)
-    );
-}
-
-// ---------- RESTORE CHAT ----------
-
-function loadChatHistory(){
-
-    if(!chatHistory.length) return;
-
-    botMessagesContainer.innerHTML = "";
-
-    chatHistory.forEach(item=>{
-
-        const wrap=document.createElement("div");
-        wrap.className="msgWrap";
-
-        const msg=document.createElement("div");
-
-        msg.className=
-        `${item.sender} message`;
-
-        msg.textContent=item.text;
-
-        wrap.appendChild(msg);
-
-        if(item.sender==="user"){
-
-            const meta=document.createElement("div");
-
-            meta.className="meta";
-
-            meta.innerHTML=
-            `<span class="timestamp">${getTime()}</span>
-             <span class="tick seen"></span>`;
-
-            wrap.appendChild(meta);
-        }
-
-        botMessagesContainer.appendChild(wrap);
-    });
-
-    botMessagesContainer.scrollTop =
-    botMessagesContainer.scrollHeight;
-}
-
-// ---------- TELEGRAM SEND ----------
-
-async function sendToTelegram(text){
-
-    try{
-
-        await fetch(
-        `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
-        {
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
-            },
-            body:JSON.stringify({
-                chat_id:CHAT_ID,
-                text:text
-            })
-        });
-
-    }catch(e){
-        console.error("Telegram send failed");
-    }
-}
-
-// ---------- TELEGRAM RECEIVE ----------
-
-async function listenForTelegramMessages(){
-
-    if(
-      sessionStorage.getItem(
-      "active_chat_tab"
-      ) !== currentTabId
-    ){
-        setTimeout(
-        listenForTelegramMessages,
-        3000
-        );
+// ---------- Inbound Channel Telegram Processing Loop ----------
+async function listenForTelegramMessages() {
+    if (sessionStorage.getItem('active_chat_tab') !== currentTabId) {
+        if (statusText) statusText.textContent = "Paused (Active in another tab)";
+        scheduleNextCheck();
         return;
     }
 
-    try{
+    const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastUpdateId + 1}&timeout=20`;
 
-        const res =
-        await fetch(
-        `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastUpdateId+1}`
-        );
+    try {
+        const response = await fetch(url);
 
-        const data =
-        await res.json();
-
-        if(data.ok){
-
-            data.result.forEach(update=>{
-
-                if(
-                  update.message &&
-                  update.message.text
-                ){
-
-                    const incoming =
-                    update.message.text;
-
-                    addMessage(
-                    incoming,
-                    "bot"
-                    );
-
-                    saveMessage(
-                    "bot",
-                    incoming
-                    );
-
-                    lastUpdateId =
-                    update.update_id;
-
-                    localStorage.setItem(
-                    "tg_last_update_id",
-                    lastUpdateId
-                    );
-                }
-            });
+        if (response.status === 429) {
+            if (statusText) statusText.textContent = "Throttled. Adjusting polling frequency...";
+            currentDelay = Math.min(currentDelay * 2, maxDelay); 
+            scheduleNextCheck();
+            return;
         }
 
-    }catch(e){}
+        if (!response.ok) throw new Error('Dropped feed sync');
 
-    setTimeout(
-    listenForTelegramMessages,
-    3000
-    );
+        const data = await response.json();
+
+        if (data.ok) {
+            currentDelay = baseDelay;
+            if (statusText && !isSarahActive) statusText.textContent = "Synchronization active";
+
+            if (data.result.length > 0) {
+                showTyping();
+
+                setTimeout(() => {
+                    removeTyping();
+
+                    data.result.forEach(update => {
+                        if (update.message && update.message.text) {
+                            const incomingText = update.message.text;
+
+                            addMessage(incomingText, 'bot');
+
+                            conversationMemory.push({ role: "bot", content: incomingText, time: Date.now() });
+                            chatHistory.push({ sender: 'bot', text: incomingText });
+                            localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+
+                            lastUpdateId = update.update_id;
+                            localStorage.setItem('tg_last_update_id', lastUpdateId);
+                        }
+                    });
+                }, 1200); 
+            }
+        }
+    } catch (error) {
+        if (statusText && !isSarahActive) statusText.textContent = "Reconnecting operational feed...";
+        currentDelay = Math.min(currentDelay * 1.5, maxDelay); 
+    }
+
+    scheduleNextCheck();
 }
 
-document.addEventListener('DOMContentLoaded',()=>{
+function scheduleNextCheck() {
+    clearTimeout(pollingTimer);
+    pollingTimer = setTimeout(listenForTelegramMessages, currentDelay);
+}
 
+// ---------- System-wide Quote Autorotation Loop ----------
+function startQuoteAutorotation() {
+    clearInterval(quoteRotationTimer);
+    quoteRotationTimer = setInterval(() => {
+        if (sessionStorage.getItem('active_chat_tab') === currentTabId && !isSarahActive) {
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            botReply(randomQuote);
+        }
+    }, 60000); 
+}
+
+// ---------- Initialization Operational Rules ----------
+function initiateKairosConversation() {
+    if (chatHistory.length === 0) {
+        showTyping();
+        setTimeout(() => {
+            removeTyping();
+            personality.awaitingSarahConfirm = true;
+            const initialGreeting = "Hey 👋 I’m Kairos. Welcome back! Do you want me to connect you with Sarah regarding any issues you might have?";
+
+            addMessage(initialGreeting, "bot");
+
+            conversationMemory.push({ role: "bot", content: initialGreeting, time: Date.now() });
+            chatHistory.push({ sender: 'bot', text: initialGreeting });
+            localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+
+            startQuoteAutorotation();
+        }, 1500);
+    } else {
+        const clearSarahActive = chatHistory.some(m => m.text && m.text.includes("this is Sarah"));
+        if (clearSarahActive) {
+            isSarahActive = true; 
+            const botHeader = document.getElementById('botHeader');
+            if (botHeader) {
+                botHeader.style.background = sarahProfile.avatarColor;
+                botHeader.textContent = sarahProfile.name;
+            }
+            if (statusText) statusText.textContent = sarahProfile.statusText;
+        } else {
+            startQuoteAutorotation();
+        }
+    }
+}
+
+function loadChatHistory() {
+    if (chatHistory.length > 0) {
+        chatHistory.forEach(item => {
+            const wrap = document.createElement("div");
+            wrap.className = "msgWrap";
+            const msg = document.createElement("div");
+            msg.className = `${item.sender} message`;
+            msg.textContent = item.text;
+            wrap.appendChild(msg);
+
+            if (item.sender === 'user') {
+                const meta = document.createElement("div");
+                meta.className = "meta";
+                meta.innerHTML = `<span class="timestamp">${getTime()}</span><span class="tick seen"></span>`;
+                wrap.appendChild(meta);
+            }
+            botMessagesContainer.appendChild(wrap);
+        });
+        botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
     loadChatHistory();
-
+    initiateKairosConversation();
     listenForTelegramMessages();
-
 });
 </script>
 
