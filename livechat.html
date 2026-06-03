@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Bot Chat</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #chat-container {
+            width: 100%;
+            max-width: 400px;
+            height: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #chat-header {
+            background: #0088cc;
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+        #messages-box {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .msg {
+            max-width: 75%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        .bot-msg {
+            background-color: #e1f3ff;
+            color: #0b2638;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .system-status {
+            font-size: 11px;
+            color: #8a9aa7;
+            text-align: center;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div id="chat-container">
+    <div id="chat-header">Telegram Live Feed</div>
+    <div id="messages-box">
+        <div id="status-text" class="system-status">Connecting to live synchronization...</div>
+    </div>
+</div>
+
+<script>
+// 1. Configuration
+const BOT_TOKEN = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
+
+// 2. Tracking Variables
+let lastUpdateId = parseInt(localStorage.getItem('tg_last_update_id')) || 0;
+// Load previously stored messages or start with an empty array if none exist
+let savedMessages = JSON.parse(localStorage.getItem('tg_chat_history')) || [];
+
+let baseDelay = 3000;      
+let currentDelay = baseDelay; 
+let maxDelay = 30000;     
+let pollingTimer = null;
+
+const statusText = document.getElementById('status-text');
+const messagesBox = document.getElementById('messages-box');
+
+// 3. Multi-Tab Protection
+const currentTabId = Math.random().toString();
+sessionStorage.setItem('active_chat_tab', currentTabId);
+
+// Helper function to draw a message inside the chat box UI
+function appendMessageToUI(text) {
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'msg bot-msg';
+  msgDiv.textContent = text;
+  messagesBox.appendChild(msgDiv);
+  messagesBox.scrollTop = messagesBox.scrollHeight;
+}
+
+// 4. Load Saved History instantly on Page Load
+function loadChatHistory() {
+  savedMessages.forEach(msgText => {
+    appendMessageToUI(msgText);
+  });
+}
+
+async function listenForTelegramMessages() {
+  if (sessionStorage.getItem('active_chat_tab') !== currentTabId) {
+    statusText.textContent = "Sync paused (Active in another tab)";
+    scheduleNextCheck();
+    return;
+  }
+
+  const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastUpdateId + 1}&timeout=20`;
+
+  try {
+    const response = await fetch(url);
+    
+    if (response.status === 429) {
+      statusText.textContent = "Rate limit hit. Easing off requests...";
+      currentDelay = Math.min(currentDelay * 2, maxDelay); 
+      scheduleNextCheck();
+      return;
+    }
+
+    if (!response.ok) throw new Error('Network synchronization dropped');
+    
+    const data = await response.json();
+    
+    if (data.ok) {
+      currentDelay = baseDelay;
+      statusText.textContent = "Live sync active";
+
+      if (data.result.length > 0) {
+        data.result.forEach(update => {
+          if (update.message && update.message.text) {
+            const incomingText = update.message.text;
+
+            // 1. Add it to our UI
+            appendMessageToUI(incomingText);
+            
+            // 2. Add it to our history array and save to localStorage
+            savedMessages.push(incomingText);
+            localStorage.setItem('tg_chat_history', JSON.stringify(savedMessages));
+            
+            // 3. Update ID tracker
+            lastUpdateId = update.update_id;
+            localStorage.setItem('tg_last_update_id', lastUpdateId);
+          }
+        });
+      }
+    }
+  } catch (error) {
+    statusText.textContent = "Reconnecting feed...";
+    currentDelay = Math.min(currentDelay * 1.5, maxDelay); 
+  }
+
+  scheduleNextCheck();
+}
+
+function scheduleNextCheck() {
+  clearTimeout(pollingTimer);
+  pollingTimer = setTimeout(listenForTelegramMessages, currentDelay);
+}
+
+// --- INITIALIZATION ---
+document.addEventListener('DOMContentLoaded', () => {
+  // Load local memory messages onto the page first
+  loadChatHistory();
+  
+  // Start pulling new items from the network
+  listenForTelegramMessages();
+});
+</script>
+
+</body>
+</html>
