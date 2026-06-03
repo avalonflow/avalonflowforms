@@ -32,6 +32,25 @@
   border: 1px solid rgba(255,255,255,0.08);
 }
 
+/* Stripping button boundaries to leave pristine icons */
+.icon-btn {
+    background: none;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #444746;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.icon-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+
 #botHeader {
   background: linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9));
   color: #fff;
@@ -182,12 +201,26 @@
     <div id="botMessagesContainer">
         <div id="status-text" class="ambient">Connecting synchronization...</div>
     </div>
-    
+
+    <!-- Modern Nested Input Pill Area -->
     <div class="input-area">
-        <input type="text" id="botInput" placeholder="Type your message..." autocomplete="off">
-        <button id="botSendBtn">Send</button>
+        <!-- Hidden file input to satisfy JavaScript DOM requirements -->
+        <input type="file" id="botFileInput" style="display: none;"> 
+        
+        <!-- Plus/Attachment Action Trigger -->
+        <button type="button" id="botAttachBtn" class="icon-btn" onclick="document.getElementById('botFileInput').click()">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+
+        <input type="text" id="botInput" placeholder="Ask Kairos..." autocomplete="off">
+        
+        <!-- Send Arrow Action Trigger -->
+        <button type="button" id="botSendBtn" class="icon-btn send-btn">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
     </div>
 </div>
+
 
 <script>
 // ---------- Configuration Constants ----------
