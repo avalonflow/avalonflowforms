@@ -478,7 +478,7 @@ function transitionToSarah() {
             if (userHistoryText.includes("custom") || userHistoryText.includes("verification") || userHistoryText.includes("hold")) {
                 sarahEntryMessage = "Hi, this is Sarah. I've personally stepped in because our system flagged a high-value Custom tier transaction verification. I'm overseeing the compliance release manually to ensure everything updates perfectly. Let's get this sorted out for you.";
             } 
-            // 3. Fallback to a random conversational human greetin
+            // 3. Fallback to a random conversational human greeting
             else {
                 const randomIndex = Math.floor(Math.random() * sarahProfile.greetings.length);
                 sarahEntryMessage = sarahProfile.greetings[randomIndex];
