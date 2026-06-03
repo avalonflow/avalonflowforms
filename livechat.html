@@ -430,7 +430,7 @@ function transitionToSarah() {
     setTimeout(() => {
         removeTyping();
 
-        const handoffMessage = "Connecting you with Sarah now...";
+        const handoffMessage = "One moment while I connect you with Sarah from our support team...";
         addMessage(handoffMessage, "bot");
 
         conversationMemory.push({
@@ -465,9 +465,9 @@ function transitionToSarah() {
             if(conversationMemory.length > 10){
                 conversationMemory.shift();
             }
-        }, 59000);
+        }, 50000);
 
-    }, 10000);
+    }, 1800);
 }
 
 function removeTyping(){
@@ -568,7 +568,7 @@ function generateSmartReply(msg){
     const isYes = /^(yes|yeah|sure|ok|please)\b/.test(text);
     const isNo = /^(no|not really|nah)\b/.test(text);
 
-    // Support follow-up handling
+    // 1️⃣ STATE MANAGEMENT HIGHEST PRIORITY: Support follow-up handling
     if(personality.lastIntent === "support"){
         if(/email|send email/.test(text)){
             personality.lastIntent = null;
@@ -584,7 +584,43 @@ function generateSmartReply(msg){
         return "Do you prefer email support or live chat with Sarah?";
     }
 
-    // FAQ FIRST (priority)
+    // 2️⃣ STATE MANAGEMENT PRIORITY: Sarah handoff initial greeting confirmation check
+    if (personality.awaitingSarahConfirm && isYes) {
+        personality.awaitingSarahConfirm = false;
+        setTimeout(transitionToSarah, 600);
+        return "Understood. Connecting you with Sarah now...";
+    }
+
+    if (personality.awaitingSarahConfirm && isNo) {
+        personality.awaitingSarahConfirm = false;
+        return "Alright, let me know what you need help with instead.";
+    }
+
+    // Memory context setup
+    const last = conversationMemory
+        .slice(-2)
+        .map(m => m.content)
+        .join(" ")
+        .toLowerCase();
+
+    const lastBot = conversationMemory
+        .filter(m => m.role === "bot")
+        .at(-1)?.content.toLowerCase() || "";
+
+    // 3️⃣ STATE MANAGEMENT PRIORITY: Deep conversation patterns (Passwords, Tickets, Delays)
+    if(last.includes("password") && text.includes("not working")){
+        return "Got it—you’re having trouble resetting your password. Are you seeing an error or just not receiving the reset link?";
+    }
+
+    if(personality.lastIntent === "ticket" && /not working|failed|error/.test(text)){
+        return "Is the ticket not generating or are you not seeing it in your dashboard?";
+    }
+
+    if(last.includes("payment") && text.includes("delay")){
+        return "Are you referring to a payout delay or a transaction verification delay?";
+    }
+
+    // 4️⃣ GENERAL FAQ PARSING (Safely deferred until after interactive state assessment)
     const faq = findFAQByIntent(msg);
     if(faq){
         personality.lastIntent = "faq";
@@ -598,40 +634,7 @@ function generateSmartReply(msg){
         return variations[Math.floor(Math.random()*variations.length)];
     }
 
-    // Memory context
-    const last = conversationMemory
-        .slice(-2)
-        .map(m => m.content)
-        .join(" ")
-        .toLowerCase();
-
-    const lastBot = conversationMemory
-        .filter(m => m.role === "bot")
-        .at(-1)?.content.toLowerCase() || "";
-
-    // Sarah handoff confirmation check
-    if (personality.awaitingSarahConfirm && isYes) {
-        personality.awaitingSarahConfirm = false;
-        setTimeout(transitionToSarah, 600);
-        return "Understood. One moment while I connect you with Sarah from our support team...";
-    }
-
-    // Context: password issue
-    if(last.includes("password") && text.includes("not working")){
-        return "Got it—you’re having trouble resetting your password. Are you seeing an error or just not receiving the reset link?";
-    }
-
-    // ticket context
-    if(personality.lastIntent === "ticket" && /not working|failed|error/.test(text)){
-        return "Is the ticket not generating or are you not seeing it in your dashboard?";
-    }
-
-    // payment delay
-    if(last.includes("payment") && text.includes("delay")){
-        return "Are you referring to a payout delay or a transaction verification delay?";
-    }
-
-    // YES / NO logic
+    // YES / NO contextual fallback logic
     if(isYes){
         if(lastBot.includes("ticket")){
             if (typeof generateTicket === "function") generateTicket();
@@ -640,10 +643,6 @@ function generateSmartReply(msg){
     }
 
     if(isNo){
-        if (personality.awaitingSarahConfirm) {
-            personality.awaitingSarahConfirm = false;
-            return "Alright, let me know what you need help with instead.";
-        }
         return "Alright. What would you like help with instead?";
     }
 
@@ -666,7 +665,7 @@ function generateSmartReply(msg){
         return res;
     }
 
-    // fallback responses
+    // Vague follow-up responses fallbacks
     const followUps = [
         generateFollowUp(msg),
         "Can you clarify that a bit for me?",
@@ -674,7 +673,6 @@ function generateSmartReply(msg){
         "Are you trying to fix something or just exploring?"
     ];
 
-    // FAQ short reply handling
     const shortReply = msg.trim().split(" ").length <= 2;
 
     if(personality.lastIntent === "faq" && shortReply){
@@ -682,7 +680,6 @@ function generateSmartReply(msg){
         return "Want me to break that down step-by-step?";
     }
 
-    // ticket follow-up
     if(personality.lastIntent === "ticket" && isYes){
         personality.lastIntent = null;
         return "Do you want to track it or describe the issue further?";
