@@ -691,15 +691,21 @@ if (sender === "user") {
     const savedUserPhoto = localStorage.getItem('profilePhoto');
     avatarImg.src = savedUserPhoto ? savedUserPhoto : DEFAULT_AVATAR;
 } else {
-    // FIX: If Sarah is active, force her avatar for ALL agent/bot responses
-    if (isSarahActive) {
+    // Check if the bot message is actually Kairos handing over the chat
+    const isTransferringText = content.includes("connect you with Sarah") || 
+                               content.includes("Connecting you with Sarah");
+
+    // FIX: Force Kairos avatar if it's a handover message, even if Sarah is flagged active
+    if (isTransferringText) {
+        avatarImg.src = KAIROS_AVATAR;
+    } else if (isSarahActive) {
         avatarImg.src = SARAH_AVATAR;
     } else {
-        // Fallback check for text matching just in case of initial transition synchronization
         const isSarahText = sarahProfile.greetings.includes(content) || content.includes("high-value Custom tier");
         avatarImg.src = isSarahText ? SARAH_AVATAR : KAIROS_AVATAR;
     }
 }
+
 
 
 
