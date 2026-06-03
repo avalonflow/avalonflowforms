@@ -202,18 +202,21 @@
   color: #6c8cff;
 }
 
-/* Ambient Background Quotes Style - Matches Video 1 */
+/* Ambient Status Styling - Matches Video 1 Look precisely */
 .ambient {
   text-align: center;
-  color: rgba(255, 255, 255, 0.5); /* Muted gray text overlay */
-  font-size: 14px;
-  line-height: 1.5;
-  padding: 20px 15px;
-  margin: auto;
-  max-width: 90%;
-  font-style: italic;
-  animation: fadeSlideIn 0.5s ease forwards;
+  color: rgba(255, 255, 255, 0.4); /* Clean, soft gray text */
+  font-size: 13px;
+  font-style: bold;
+  padding: 15px;
+  line-height: 1.4;
+  width: 100%;
+  box-sizing: border-box;
+  display: block;
+  margin: 10px auto;
+  animation: fadeSlideIn 0.3s ease forwards;
 }
+
 
 
     </style>
@@ -278,8 +281,16 @@ sessionStorage.setItem('active_chat_tab', currentTabId);
 const sarahProfile = {
     name: "Sarah (Account Representative)",
     avatarColor: "linear-gradient(135deg, #ff416c, #ff4b2b)",
-    statusText: "Connected with Sarah"
+    statusText: "Connected with Sarah",
+    // Clean, reassuring variations for a live human touch
+    greetings: [
+        "Hi, this is Sarah. I've personally stepped into this chat session to assist you. Please tell me exactly what issue you're experiencing so I can help resolve it.",
+        "Hello, Sarah here. I just noticed your session flagged an issue, so I'm stepping in to handle this manually. What seems to be the problem?",
+        "Hi there! This is Sarah from the support team. I'm taking over from Kairos to make sure we get your account sorted out right away. What's going on?",
+        "Hello. I'm Sarah, your account representative. I've joined the session to take a look at your issue directly. Let's get this taken care of—what are you running into?"
+    ]
 };
+
 
 const quotes = [ 
     "Believe in yourself and all that you are.", "Small steps each day lead to big results.", 
@@ -430,17 +441,20 @@ botInput.addEventListener("input", ()=>{
     }, 1200);
 });
 
-// ---------- Human Agent Support Pipeline ----------
+// ---------- HUMANIZE AGENT SUPPORT PIPELINE ----------
 function transitionToSarah() {
     if(isSarahActive) return;
     isSarahActive = true; 
 
+    // Kill the quote timer permanently right here
     clearInterval(quoteRotationTimer);
+    quoteRotationTimer = null; 
+
     showTyping();
 
     setTimeout(() => {
         removeTyping();
-        const handoffMessage = "Sorry for the delay. Connecting you with Sarah now...";
+        const handoffMessage = "One moment while I connect you with Sarah from our support team...";
         addMessage(handoffMessage, "bot");
 
         conversationMemory.push({ role: "bot", content: handoffMessage, type: "text", time: Date.now() });
@@ -453,9 +467,24 @@ function transitionToSarah() {
                 botHeader.style.background = sarahProfile.avatarColor;
                 botHeader.textContent = sarahProfile.name;
             }
+            
             if (statusText) statusText.textContent = sarahProfile.statusText;
 
-            const sarahEntryMessage = "Hi, this is Sarah. I've personally stepped into this chat session to assist you. Please tell me exactly what issue you're experiencing so I can help resolve it.";
+            // 1. Check what the user was talking about right before Sarah joined
+            const userHistoryText = chatHistory.filter(m => m.sender === 'user').map(m => m.text.toLowerCase()).join(" ");
+            let sarahEntryMessage = "";
+
+            // 2. High-value Custom Escrow/Verification contextual override
+            if (userHistoryText.includes("custom") || userHistoryText.includes("verification") || userHistoryText.includes("hold")) {
+                sarahEntryMessage = "Hi, this is Sarah. I've personally stepped in because our system flagged a high-value Custom tier transaction verification. I'm overseeing the compliance release manually to ensure everything updates perfectly. Let's get this sorted out for you.";
+            } 
+            // 3. Fallback to a random conversational human greeting
+            else {
+                const randomIndex = Math.floor(Math.random() * sarahProfile.greetings.length);
+                sarahEntryMessage = sarahProfile.greetings[randomIndex];
+            }
+
+            // 4. Render the chosen message cleanly to the chat timeline
             addMessage(sarahEntryMessage, "bot");
 
             conversationMemory.push({ role: "sarah", content: sarahEntryMessage, type: "text", time: Date.now() });
@@ -817,6 +846,8 @@ function initiateKairosConversation() {
             conversationMemory.push({ role: "bot", content: initialGreeting, type: "text", time: Date.now() });
             chatHistory.push({ sender: 'bot', text: initialGreeting, type: 'text' });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+            
+            // Starts changing the background text instead of sending bubbles
             startQuoteAutorotation();
         }, 1000);
     } else {
@@ -830,10 +861,12 @@ function initiateKairosConversation() {
             }
             if (statusText) statusText.textContent = sarahProfile.statusText;
         } else {
+            // Safe fallback to run background text rotation on page reload
             startQuoteAutorotation();
         }
     }
 }
+
 
 // Fixed History UI Rendering Parser to safely handle both strings and uploaded attachments on reload
 function loadChatHistory() {
