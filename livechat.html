@@ -216,7 +216,7 @@ const currentTabId = Math.random().toString();
 sessionStorage.setItem('active_chat_tab', currentTabId);
 
 const personality = {
-    tone: "neutral", 
+    tone: "neutral", // friendly | calm | professional
     lastIntent: null,
     userMood: "unknown"
 };
@@ -289,7 +289,8 @@ function findFAQByIntent(input){
             best = f;
         }
     }
-    return bestScore > 1 ? best : null; // Optimized to rely strictly on targeted tag processing values
+    // Safety fallback logic optimized to gracefully verify context targets
+    return bestScore > 1 ? best : (typeof findBestFAQ === "function" ? findBestFAQ(input) : null);
 }
 
 // ---------- Time ----------
@@ -435,7 +436,7 @@ function generateFollowUp(msg){
 // ---------- Core Living Transition Pipeline Block ----------
 function transitionToSarah() {
     isSarahActive = true; // Permanently lock out Kairos functions
-    
+
     const botHeader = document.getElementById('botHeader');
     if (botHeader) {
         botHeader.style.background = sarahProfile.avatarColor;
@@ -444,18 +445,18 @@ function transitionToSarah() {
 
     clearInterval(quoteRotationTimer);
     showTyping();
-    
+
     setTimeout(() => {
         removeTyping();
-        
+
         const sarahEntryMessage = "Hello, this is Sarah. I've personally stepped into this chat session to clear up any hold or verification details on your account. Let's get this resolved for you right away. What specific issue are we running into?";
-        
+
         addMessage(sarahEntryMessage, "bot");
 
         conversationMemory.push({ role: "sarah", content: sarahEntryMessage, time: Date.now() });
         chatHistory.push({ sender: 'bot', text: sarahEntryMessage });
         localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
-        
+
         if (statusText) {
             statusText.textContent = sarahProfile.statusText;
         }
@@ -493,7 +494,7 @@ function generateSmartReply(msg){
         .join(" ")
         .toLowerCase();
 
-    // Contextual updates
+    // Contextual understanding variables
     if(last.includes("password") && text.includes("not working")){
         return "Got it—you’re having trouble resetting your password. Are you seeing an error or just not receiving the reset link?";
     }
@@ -710,7 +711,7 @@ async function listenForTelegramMessages() {
 
     try {
         const response = await fetch(url);
-        
+
         if (response.status === 429) {
             if (statusText) statusText.textContent = "Throttled. Adjusting frequency...";
             currentDelay = Math.min(currentDelay * 2, maxDelay); 
@@ -719,9 +720,9 @@ async function listenForTelegramMessages() {
         }
 
         if (!response.ok) throw new Error('Dropped sync');
-        
+
         const data = await response.json();
-        
+
         if (data.ok) {
             currentDelay = baseDelay;
             if (statusText && !isSarahActive) statusText.textContent = "Synchronization active";
@@ -737,11 +738,11 @@ async function listenForTelegramMessages() {
                             const incomingText = update.message.text;
 
                             addMessage(incomingText, 'bot');
-                            
+
                             conversationMemory.push({ role: "bot", content: incomingText, time: Date.now() });
                             chatHistory.push({ sender: 'bot', text: incomingText });
                             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
-                            
+
                             lastUpdateId = update.update_id;
                             localStorage.setItem('tg_last_update_id', lastUpdateId);
                         }
@@ -780,13 +781,13 @@ function initiateKairosConversation() {
         setTimeout(() => {
             removeTyping();
             const initialGreeting = "Hey 👋 I’m Kairos. Welcome back! Do you want me to connect you with Sarah regarding any issues you might have?";
-            
+
             addMessage(initialGreeting, "bot");
 
             conversationMemory.push({ role: "bot", content: initialGreeting, time: Date.now() });
             chatHistory.push({ sender: 'bot', text: initialGreeting });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
-            
+
             startQuoteAutorotation();
         }, 1500);
     } else {
