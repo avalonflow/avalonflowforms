@@ -418,11 +418,7 @@ photoInput.addEventListener('change', (e) => {
     reader.readAsDataURL(file);
 });
 
-// Load saved photo initialization on startup
-window.addEventListener('DOMContentLoaded', () => {
-    const saved = localStorage.getItem('profilePhoto');
-    profilePhoto.src = saved ? saved : DEFAULT_AVATAR;
-});
+
 
 // ---------- Integrated Profile-Aware Message Renderer ----------
 function addMessage(content, sender="bot", status="delivered", type="text"){
@@ -438,9 +434,11 @@ function addMessage(content, sender="bot", status="delivered", type="text"){
         const savedUserPhoto = localStorage.getItem('profilePhoto');
         avatarImg.src = savedUserPhoto ? savedUserPhoto : DEFAULT_AVATAR;
     } else {
-        // If Sarah has stepped into the active session session, load hers, otherwise default to Kairos
-        avatarImg.src = isSarahActive ? SARAH_AVATAR : KAIROS_AVATAR;
-    }
+    // Check if the specific text being rendered belongs to Sarah's greeting pool or custom alert
+    const isSarahText = sarahProfile.greetings.includes(content) || content.includes("high-value Custom tier");
+    avatarImg.src = isSarahText ? SARAH_AVATAR : KAIROS_AVATAR;
+}
+
 
     const msg = document.createElement("div");
     msg.className = `${sender} message`;
@@ -979,11 +977,17 @@ function loadChatHistory() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Initialize user profile picture instantly on load
+    const saved = localStorage.getItem('profilePhoto');
+    if (profilePhoto) profilePhoto.src = saved ? saved : DEFAULT_AVATAR;
+
+    // 2. Load the rest of your systems
     loadChatHistory();
     initiateKairosConversation();
     scheduleNextCheck(); 
-    startQuoteAutorotation(); // Starts background quotes immediately on script load
+    startQuoteAutorotation();
 });
+
 
 
 </script>
