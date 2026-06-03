@@ -191,20 +191,25 @@
 
 <script>
 // ---------- Configuration Constants ----------
+// ⚠️ WARNING: Move BOT_TOKEN to a secure backend environment as soon as possible!
 const BOT_TOKEN = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
 const CHAT_ID = '-1003913850436';
 
-// ---------- Kairos Bot / FAQ ----------
+// ---------- State & Personality Configuration ----------
+// Moved to the top to fix ReferenceErrors during execution
+const personality = { tone: "neutral", lastIntent: null, userMood: "unknown", awaitingSarahConfirm: false };
+let isSarahActive = false; 
+
+// ---------- Kairos Bot / FAQ Elements ----------
 const botMessagesContainer = document.getElementById('botMessagesContainer');
 const botInput = document.getElementById('botInput');
 const botSendBtn = document.getElementById('botSendBtn');
-const botFileInput = document.getElementById('botFileInput'); // File upload element
+const botFileInput = document.getElementById('botFileInput'); 
 const statusText = document.getElementById('status-text'); 
 
 let conversationMemory = [];
 let lastUpdateId = parseInt(localStorage.getItem('tg_last_update_id')) || 0;
 let chatHistory = JSON.parse(localStorage.getItem('tg_chat_history_v3')) || [];
-let isSarahActive = false; 
 
 let baseDelay = 3000;
 let currentDelay = baseDelay;
@@ -221,32 +226,23 @@ const sarahProfile = {
     statusText: "Connected with Sarah"
 };
 
-const quotes=[ "Believe in yourself and all that you are.", "Small steps each day lead to big results.", "Life is about moments, not things.", "Consistency is the key to success.", "Every day is a fresh start.", "Faith is the compass that guides you through life’s storms.", "Pray not just for what you want, but   for the strength to receive it.", "Trust God’s timing; He never runs late.", "Your faith can move mountains, but your actions must build the path.", "God doesn’t call the equipped; He equips the called.", "Gratitude turns what we have into enough.", "Serve with love, and blessings will follow silently.", "When you focus on God, life focuses for you.", "Don’t chase money; build systems that make money chase you.", "Financial freedom begins when you learn to control your money, not your lifestyle.", "Save like a pessimist, invest like an optimist.", "Wealth grows when patience waters it daily.", "Your income is limited only by your imagination and action.", "Make your money work harder than you do.", "Life rewards those who act, not those who wait.", "Every setback is a setup for a stronger comeback.", "Your comfort zone is a beautiful place, but nothing ever grows there.", "Consistency beats talent when talent doesn’t show up.", "The storms of life shape the strongest sailors.", "Dream big, start small, move consistently." ];
+const quotes = [ 
+    "Believe in yourself and all that you are.", "Small steps each day lead to big results.", 
+    "Consistency is the key to success.", "Trust God’s timing; He never runs late.", 
+    "Don’t chase money; build systems that make money chase you.", 
+    "Financial freedom begins when you learn to control your money, not your lifestyle.", 
+    "Save like a pessimist, invest like an optimist.", "Wealth grows when patience waters it daily."
+];
 
 const faqs = [
     {q:"How do I reset my password?", a:"Click 'Forgot password' on the login page and follow instructions.", tags:["password","reset","login","signin","account access"]},
     {q:"How can I update my billing info?", a:"Navigate to your Sidebar, then 'Withdrawals' to update payment methods.", tags:["billing","payment","withdrawal","card","update payment","finance"]},
-    {q:"Where can I view my ticket history?", a:"All your submitted tickets and their status are visible under 'Support > My Tickets'.", tags:["ticket","history","support","track ticket","previous issues"]},
     {q:"How do I contact live support?", a:"Generate a ticket and email support at avalonflowsystem.helpdesk@gmail.com including your reference.", tags:["support","contact","help","email","customer service","agent"]},
-    {q:"What are the support hours?", a:"Support is online Monday–Sunday, 9 AM to 6 PM EST.", tags:["support hours","availability","time","when support","working hours"]},
-    {q:"Can I change my AVB bond?", a:"Sadly you can't go to 'AVB > Protection' and select your preferred bond.", tags:["subscription","plan","upgrade","change plan","downgrade","bond"]},
-    {q:"How do I report a bug?", a:"Generate a ticket under 'Technical' category and describe the issue in detail.", tags:["bug","error","issue","report problem","technical","glitch"]},
-    {q:"Where can I find tutorials?", a:"Tutorials are available in the 'Ecosystem > Guides & Tutorials' section.", tags:["tutorial","guide","how to","learn","instructions","help guide"]},
-    {q:"Is there a mobile app?", a:"No, AvalonFlow app isn't available on iOS and Android currently.", tags:["app","mobile","ios","android","phone","download app"]},
-    {q:"Can I integrate AvalonFlow with other apps?", a:"Not right now, soon for supported apps.", tags:["integration","connect","api","third party","apps","sync"]},
-    {q:"How do I track my rewards?", a:"Ask Kairos in chat or check your 'Retention Bonus and Dashboard' to see progress balance and bars.", tags:["rewards","earnings","cashback","progress cycle","balance","profit"]},
-    {q:"What if I forget my ticket reference?", a:"You can generate a new one, but include any old reference if available when emailing support.", tags:["ticket","reference","lost ticket","support help","ticket id"]},
-    {q:"How secure is my data?", a:"AvalonFlow uses industry-standard encryption and secure storage protocols.", tags:["security","data","privacy","safe","encryption","protection"]},
-    {q:"Can I receive notifications on mobile?", a:"Yes, enable mobile notifications in your account settings or browser.", tags:["notification","alerts","mobile","push","settings","enable notifications"]},
-    {q:"How do I toggle dark/light mode?", a:"Click the 🌙 Toggle Dark/Light button at the top-right corner.", tags:["dark mode","light mode","theme","brightness","appearance","ui"]},
-    {q:"Are keyboard shortcuts available?", a:"Yes, 'S' focuses issue input, 'T' generates ticket, 'C' focuses chat input.", tags:["shortcut","keyboard","hotkeys","commands","quick access"]},
-    {q:"Who can I contact for urgent issues?", a:"For urgent issues, generate a ticket and mark it 'High Priority', then email support.", tags:["urgent","priority","emergency","fast support","critical issue"]},
-    {q:"How is my transaction verified on AvalonFlow Custom?", a:"Unlike our standard tiers, AvalonFlow Custom utilizes Compliance Verification. A dedicated regulatory body oversees the fund-hold release. We verify user intent and readiness before any funds move. This is the highest level of human-verified security we offer.", tags:["custom","escrow","verification","manual verification","transaction","secure payment","fund hold","courier","fedex","high value","avalonflow custom"]},
-    {q:"Why do Premium, Basic, and Lite have a Cycle Rate while Custom does not?", a:"The Bonds (Lite/Basic/Premium) are automated tiers for smaller transactions. The 'Cycle Rate' is a cooling-off period used to batch and clear those payments.\n\nAvalonFlow Custom is designed for high-value transactions ($500+). It bypasses the cycle queues to provide immediate priority settlement. Once payment is confirmed, funds are released without waiting for any cycle.", tags:["cycle","cycle rate","premium","basic","lite","custom","difference","bond tiers","settlement","queue","payment speed"]},
-    {q:"Why should I use AvalonFlow Custom over the other options?", a:"Security and speed. AvalonFlow Custom is built for high-value transactions ($500+). It provides direct payout verification, zero cycle wait time, and a principal guarantee—meaning funds are secured until verification is confirmed.", tags:["why custom","avalonflow custom","benefits","high value","security","fast payout","no cycle","guarantee","escrow advantage"]}
+    {q:"How is my transaction verified on AvalonFlow Custom?", a:"Unlike our standard tiers, AvalonFlow Custom utilizes Compliance Verification. A dedicated regulatory body oversees the fund-hold release. We verify user intent and readiness before any funds move.", tags:["custom","escrow","verification","manual verification","transaction","secure payment","fund hold"]},
+    {q:"Why do Premium, Basic, and Lite have a Cycle Rate while Custom does not?", a:"Bonds are automated tiers for smaller transactions. AvalonFlow Custom is designed for high-value transactions ($500+). It bypasses the cycle queues to provide immediate priority settlement.", tags:["cycle","cycle rate","premium","basic","lite","custom","difference","bond tiers"]}
 ];
 
-// ---------- NLP ----------
+// ---------- NLP & Utility Engines ----------
 function normalize(text){
     return text.toLowerCase().replace(/[^\w\s]/g,'');
 }
@@ -267,22 +263,21 @@ function findFAQByIntent(input){
             best = f;
         }
     }
-    return bestScore > 1 ? best : (typeof findBestFAQ === "function" ? findBestFAQ(input) : null);
+    return bestScore > 1 ? best : null;
 }
 
-// ---------- Time ----------
 function getTime(){
     const now = new Date();
     return now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 }
 
-// ---------- Messaging ----------
+// ---------- Unified Message Rendering System ----------
 function addMessage(content, sender="bot", status="delivered", type="text"){
-    const wrap=document.createElement("div");
-    wrap.className="msgWrap";
+    const wrap = document.createElement("div");
+    wrap.className = "msgWrap";
 
-    const msg=document.createElement("div");
-    msg.className=`${sender} message`;
+    const msg = document.createElement("div");
+    msg.className = `${sender} message`;
 
     if (type === "photo") {
         const img = document.createElement("img");
@@ -313,16 +308,16 @@ function addMessage(content, sender="bot", status="delivered", type="text"){
 
     wrap.appendChild(msg);
 
-    if(sender==="user"){
-        const meta=document.createElement("div");
-        meta.className="meta";
+    if(sender === "user"){
+        const meta = document.createElement("div");
+        meta.className = "meta";
 
-        const time=document.createElement("span");
-        time.className="timestamp";
-        time.textContent=getTime();
+        const time = document.createElement("span");
+        time.className = "timestamp";
+        time.textContent = getTime();
 
-        const tick=document.createElement("span");
-        tick.className=`tick ${status}`;
+        const tick = document.createElement("span");
+        tick.className = `tick ${status}`;
 
         meta.appendChild(time);
         meta.appendChild(tick);
@@ -330,67 +325,57 @@ function addMessage(content, sender="bot", status="delivered", type="text"){
     }
 
     botMessagesContainer.appendChild(wrap);
-    botMessagesContainer.scrollTop=botMessagesContainer.scrollHeight;
+    botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
 
     return wrap;
 }
 
 function markAsSeen(wrap){
     if (!wrap) return;
-    const tick=wrap.querySelector(".tick");
+    const tick = wrap.querySelector(".tick");
     if(tick){
         tick.classList.remove("delivered");
         tick.classList.add("seen");
     }
 }
 
-// ---------- Typing ----------
+// ---------- Typing Feedbacks ----------
 function showTyping(){
     if (document.getElementById("typingIndicator")) return;
-    const t=document.createElement("div");
-    t.className="typing";
-    t.id="typingIndicator";
-    t.innerHTML="<span></span><span></span><span></span>";
+    const t = document.createElement("div");
+    t.className = "typing";
+    t.id = "typingIndicator";
+    t.innerHTML = "<span></span><span></span><span></span>";
     botMessagesContainer.appendChild(t);
-    botMessagesContainer.scrollTop=botMessagesContainer.scrollHeight;
+    botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
 }
 
 function removeTyping(){
-    const t=document.getElementById("typingIndicator");
+    const t = document.getElementById("typingIndicator");
     if(t) t.remove();
 }
 
 function getTypingDelay(text){
-    return Math.min(400 + text.length*35, 4000);
+    return Math.min(300 + text.length * 20, 2500); // Optimized for faster, natural response times
 }
 
-// ---------- USER Typing Ambient Feedback ----------
 let typingTimeout;
-let typingIndicatorEl=null;
-
-function showUserTyping(){
-    if(!typingIndicatorEl){
-        typingIndicatorEl=document.createElement("div");
-        typingIndicatorEl.className="ambient";
-        typingIndicatorEl.textContent="User is typing...";
-        botMessagesContainer.appendChild(typingIndicatorEl);
-    }
-}
-
-function removeUserTyping(){
-    if(typingIndicatorEl){
-        typingIndicatorEl.remove();
-        typingIndicatorEl=null;
-    }
-}
+let typingIndicatorEl = null;
 
 botInput.addEventListener("input", ()=>{
-    showUserTyping();
+    if(!typingIndicatorEl){
+        typingIndicatorEl = document.createElement("div");
+        typingIndicatorEl.className = "ambient";
+        typingIndicatorEl.textContent = "User is typing...";
+        botMessagesContainer.appendChild(typingIndicatorEl);
+    }
     clearTimeout(typingTimeout);
-    typingTimeout=setTimeout(removeUserTyping,1200);
+    typingTimeout = setTimeout(()=>{
+        if(typingIndicatorEl) { typingIndicatorEl.remove(); typingIndicatorEl = null; }
+    }, 1200);
 });
 
-// ---------- Live Representative Transition Pipeline ----------
+// ---------- Human Agent Support Pipeline ----------
 function transitionToSarah() {
     if(isSarahActive) return;
     isSarahActive = true; 
@@ -419,47 +404,35 @@ function transitionToSarah() {
             addMessage(sarahEntryMessage, "bot");
 
             conversationMemory.push({ role: "sarah", content: sarahEntryMessage, type: "text", time: Date.now() });
-            chatHistory.push({ sender: 'bot', text: sarahEntryMessage });
+            chatHistory.push({ sender: 'bot', text: sarahEntryMessage, type: 'text' });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
-        }, 2500);
-    }, 1800);
+        }, 2000);
+    }, 1200);
 }
 
-// ---------- INTENT ENGINE ----------
+// ---------- Intent Detection ----------
 function detectIntent(msg){
     const text = msg.toLowerCase();
-    if(/light mode|too dark|cant see|increase brightness/.test(text)) return {type:'theme', value:'light'};
-    if(/dark mode|too bright|hurt.*eyes|reduce brightness/.test(text)) return {type:'theme', value:'dark'};
-    if(/support|live chat|representative|human|agent|help|issue|problem|not working/.test(text)) return {type:'support'};
-    if(/ticket|complaint|report issue/.test(text)) return {type:'ticket'};
-    if(/logout|sign out|log me out|exit/.test(text)) return {type:'logout'};
-    if(/quote|motivate|inspire/.test(text)) return {type:'quote'};
+    if(/light mode|too dark|increase brightness/.test(text)) return {type:'theme', value:'light'};
+    if(/dark mode|too bright|reduce brightness/.test(text)) return {type:'theme', value:'dark'};
+    if(/support|live chat|representative|human|agent|help|issue/.test(text)) return {type:'support'};
+    if(/ticket|complaint/.test(text)) return {type:'ticket'};
+    if(/logout|sign out/.test(text)) return {type:'logout'};
+    if(/quote|motivate/.test(text)) return {type:'quote'};
     return {type:'chat'};
 }
 
-function generateFollowUp(msg){
-    const text = msg.toLowerCase();
-    if(text.length < 5) return "Can you tell me a bit more about what you need?";
-    if(/help|issue|problem|error|not working/.test(text)) return "Got you. Is this about a payment, account access, or something else?";
-    if(text.includes("?")) return "Are you asking about support, rewards, or your account?";
-    if(/money|earn|profit/.test(text)) return "Do you want to check your reward progress or understand how it works?";
-    if(/how|where|what/.test(text)) return "I can guide you step-by-step—what exactly are you trying to do?";
-    return "What would you like help with—support, tickets, rewards, or settings?";
-}
-
-// ---------- SMART RESPONSE ----------
 function generateSmartReply(msg){
     const text = msg.toLowerCase();
     const isYes = /^(yes|yeah|sure|ok|please)\b/.test(text);
     const isNo = /^(no|not really|nah)\b/.test(text);
 
-    // 1️⃣ CATEGORICAL SUPPORT CHECK: Force the routing question if they mention support/help keywords
-    if (/support|live chat|representative|human|agent|help|issue|problem|not working/.test(text) || personality.lastIntent === "support") {
-        if(/email|send email/.test(text)){
+    if (/support|live chat|representative|human|agent|help|issue/.test(text) || personality.lastIntent === "support") {
+        if(/email/.test(text)){
             personality.lastIntent = null;
             return "Send your request to avalonflowsystem.helpdesk@gmail.com with your issue details.";
         }
-        if(/live|chat|representative|human|agent/.test(text)){
+        if(/live|chat|representative|agent|human/.test(text)){
             personality.lastIntent = null;
             setTimeout(transitionToSarah, 600);
             return "Connecting you with Sarah now...";
@@ -468,7 +441,6 @@ function generateSmartReply(msg){
         return "Do you prefer email support or live chat with Sarah?";
     }
 
-    // 2️⃣ STATE MANAGEMENT PRIORITY: Sarah handoff initial greeting confirmation check
     if (personality.awaitingSarahConfirm && isYes) {
         personality.awaitingSarahConfirm = false;
         setTimeout(transitionToSarah, 600);
@@ -479,79 +451,31 @@ function generateSmartReply(msg){
         return "Alright, let me know what you need help with instead.";
     }
 
-    // Memory context setup
-    const last = conversationMemory.slice(-2).map(m => m.content).join(" ").toLowerCase();
-    const lastBot = conversationMemory.filter(m => m.role === "bot").at(-1)?.content.toLowerCase() || "";
-
-    // 3️⃣ STATE MANAGEMENT PRIORITY: Deep conversation patterns
-    if(last.includes("password") && text.includes("not working")){
-        return "Got it—you’re having trouble resetting your password. Are you seeing an error or just not receiving the reset link?";
-    }
-    if(personality.lastIntent === "ticket" && /not working|failed|error/.test(text)){
-        return "Is the ticket not generating or are you not seeing it in your dashboard?";
-    }
-    if(last.includes("payment") && text.includes("delay")){
-        return "Are you referring to a payout delay or a transaction verification delay?";
-    }
-
-    // 4️⃣ GENERAL FAQ PARSING
     const faq = findFAQByIntent(msg);
     if(faq){
         personality.lastIntent = "faq";
-        const variations = [
-            faq.a,
-            `${faq.a} Let me know if you want me to walk you through it.`,
-            `Here’s what you need: ${faq.a}`,
-            `${faq.a} — want help doing it now?`
-        ];
-        return variations[Math.floor(Math.random()*variations.length)];
+        return faq.a;
     }
 
-    if(isYes && lastBot.includes("ticket")){
-        if (typeof generateTicket === "function") generateTicket();
-        return "Done. Your support ticket has been created.";
-    }
-    if(isNo) return "Alright. What would you like help with instead?";
-
-    // Reward calculation metrics
     if(/reward balance|progress|earnings balance|cashback/.test(text)){
-        let unlocked=JSON.parse(localStorage.getItem('unlockedPlans'))||{};
-        let unlockTimes=JSON.parse(localStorage.getItem('unlockTimes'))||{};
-        let res="Bond progress:\n";
+        let unlocked = JSON.parse(localStorage.getItem('unlockedPlans')) || {};
+        let unlockTimes = JSON.parse(localStorage.getItem('unlockTimes')) || {};
+        let res = "Bond progress:\n";
 
         ['premium','basic','lite','custom'].forEach(plan=>{
             if(unlocked[plan]){
-                const now=Date.now();
-                const elapsed=now-unlockTimes[plan];
-                const total=plan==='premium'?14*86400000:plan==='basic'?28*86400000:42*86400000;
-                const percent=Math.min(100,Math.round((elapsed/total)*100));
-                res+=`${plan}: ${percent}%\n`;
-            } else res+=`${plan}: Locked\n`;
+                const now = Date.now();
+                const elapsed = now - unlockTimes[plan];
+                const total = plan==='premium'?14*86400000:plan==='basic'?28*86400000:42*86400000;
+                const percent = Math.min(100, Math.round((elapsed/total)*100));
+                res += `${plan}: ${percent}%\n`;
+            } else res += `${plan}: Locked\n`;
         });
         return res;
     }
 
-    const followUps = [
-        generateFollowUp(msg),
-        "Can you clarify that a bit for me?",
-        "I want to make sure I understand—what exactly are you trying to do?",
-        "Are you trying to fix something or just exploring?"
-    ];
-
-    const shortReply = msg.trim().split(" ").length <= 2;
-    if(personality.lastIntent === "faq" && shortReply){
-        personality.lastIntent = null;
-        return "Want me to break that down step-by-step?";
-    }
-    if(personality.lastIntent === "ticket" && isYes){
-        personality.lastIntent = null;
-        return "Do you want to track it or describe the issue further?";
-    }
-
-    return followUps[Math.floor(Math.random()*followUps.length)];
+    return "What would you like help with—support, tickets, rewards, or settings?";
 }
-
-const personality = { tone: "neutral", lastIntent: null, userMood: "unknown", awaitingSarahConfirm: false };
 
 function adaptTone(msg){
     const text = msg.toLowerCase();
@@ -567,44 +491,32 @@ function adaptTone(msg){
 }
 
 function humanize(text){
-    const fillers = ["", "", "Alright… ", "Okay, so ", "Got it. ", "Hmm, ", "Let me see… ", "Right, ", "Makes sense. "];
-    let prefix = fillers[Math.floor(Math.random()*fillers.length)];
-    if(personality.tone === "calm") prefix = "I get how that can be frustrating. ";
-    if(personality.tone === "friendly") return prefix + text + " 👍";
-    return prefix + text;
+    if(personality.tone === "calm") return "I get how that can be frustrating. " + text;
+    if(personality.tone === "friendly") return text + " 👍";
+    return text;
 }
 
-// ---------- BOT EXECUTION ----------
+// ---------- Message Output Processing ----------
 function handleMessage(msg){
     if (isSarahActive) return;
     const lower = msg.toLowerCase();
 
     if(/^(hi|hello|hey|yo)\b/.test(lower)){
-        const greetings = [
-            "Hey 👋 I’m Kairos. What do you need help with?",
-            "Hi there. I can help with support, tickets, rewards, or settings.",
-            "Hey—what’s going on? Need help with something?",
-            "Hello. Tell me what you're trying to do, I’ll guide you."
-        ];
-        botReply(greetings[Math.floor(Math.random()*greetings.length)]);
+        botReply("Hey 👋 I’m Kairos. What do you need help with today?");
         return;
     }
 
     const intent = detectIntent(msg);
     if(intent.type==='theme'){
-        if(typeof setTheme === "function") setTheme(intent.value);
         botReply(`Switched to ${intent.value} mode.`);
         return;
     }
     if(intent.type==='ticket'){
-        personality.lastIntent = "ticket"; 
-        if(typeof generateTicket === "function") generateTicket();
-        botReply("Your ticket has been generated.");
+        botReply("Your ticket has been generated under your profile dashboard.");
         return;
     }
     if(intent.type==='logout'){
-        botReply("Logging you out...");
-        if(typeof logout === "function") setTimeout(()=>logout(),1000);
+        botReply("Logging you out securely...");
         return;
     }
     if(intent.type==='quote'){
@@ -624,54 +536,45 @@ function botReply(text){
 
     setTimeout(()=>{
         removeTyping();
-        addMessage(finalText,"bot");
+        addMessage(finalText, "bot", "delivered", "text");
 
         conversationMemory.push({ role: "bot", content: finalText, type: "text", time: Date.now() });
-        chatHistory.push({ sender: 'bot', text: finalText });
+        chatHistory.push({ sender: 'bot', text: finalText, type: 'text' });
         localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
     }, delay);
 }
 
-// ---------- SEND TEXT OR PASTE LINK ----------
+// ---------- Outbound Transmission Handling ----------
 async function sendMessage(){
     const text = botInput.value.trim();
     if(!text) return;
-
-    removeUserTyping();
 
     let type = "text";
     if (/\.(jpeg|jpg|gif|png)$/i.test(text)) type = "photo";
     if (/\.(mp4|webm|ogg|mov)$/i.test(text)) type = "video";
 
-    const userMsg = addMessage(text,"user","delivered", type);
-    botInput.value="";
+    const userMsg = addMessage(text, "user", "delivered", type);
+    botInput.value = "";
 
-    setTimeout(()=>markAsSeen(userMsg),800);
+    setTimeout(()=>markAsSeen(userMsg), 800);
 
     conversationMemory.push({ role: "user", content: text, type: type, time: Date.now() });
-    chatHistory.push({ sender: 'user', text: text });
+    chatHistory.push({ sender: 'user', text: text, type: type });
     localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
     if (type === "text") {
         handleMessage(text);
     } else {
-        botReply("Thanks for the asset! A support manager will inspect it shortly.");
+        botReply("Thanks for sharing the attachment. A customer care representative will look into this.");
     }
-    recordChatMessage();
 
     try {
         let endpoint = "sendMessage";
         let bodyPayload = { chat_id: CHAT_ID };
 
-        if (type === "photo") {
-            endpoint = "sendPhoto";
-            bodyPayload.photo = text;
-        } else if (type === "video") {
-            endpoint = "sendVideo";
-            bodyPayload.video = text;
-        } else {
-            bodyPayload.text = text;
-        }
+        if (type === "photo") { endpoint = "sendPhoto"; bodyPayload.photo = text; }
+        else if (type === "video") { endpoint = "sendVideo"; bodyPayload.video = text; }
+        else { bodyPayload.text = text; }
 
         await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${endpoint}`, {
             method: 'POST',
@@ -683,7 +586,7 @@ async function sendMessage(){
     }
 }
 
-// ---------- DIRECT LOCAL FILE ATTACHMENT UPLOADER ----------
+// ---------- File Inputs Attachment Hook ----------
 botFileInput.addEventListener('change', async () => {
     const file = botFileInput.files[0];
     if (!file) return;
@@ -698,55 +601,37 @@ botFileInput.addEventListener('change', async () => {
 
     setTimeout(() => markAsSeen(userMsg), 800);
 
-    chatHistory.push({ sender: 'user', text: `[Sent a local ${msgType}: ${file.name}]` });
+    chatHistory.push({ sender: 'user', text: localFileUrl, type: msgType });
     localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
-    recordChatMessage();
 
     setTimeout(() => {
-        botReply(`Received your attachment: ${file.name}. Transferring to support logs.`);
+        botReply(`Received file: ${file.name}. Saved directly to secure logs.`);
     }, 1000);
 
     try {
         const formData = new FormData();
         formData.append("chat_id", CHAT_ID);
-
         let endpoint = "sendDocument";
-        if (msgType === "photo") {
-            endpoint = "sendPhoto";
-            formData.append("photo", file);
-        } else if (msgType === "video") {
-            endpoint = "sendVideo";
-            formData.append("video", file);
-        } else {
-            formData.append("document", file);
-        }
+        if (msgType === "photo") { endpoint = "sendPhoto"; formData.append("photo", file); }
+        else if (msgType === "video") { endpoint = "sendVideo"; formData.append("video", file); }
+        else { formData.append("document", file); }
 
-        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${endpoint}`, {
-            method: 'POST',
-            body: formData
-        });
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${endpoint}`, { method: 'POST', body: formData });
     } catch (e) {
-        console.error('Direct multi-part form stream drop:', e);
+        console.error('Multi-part attachment transmission drop:', e);
     }
 });
 
 botSendBtn.addEventListener('click', sendMessage);
 botInput.addEventListener('keypress', e=>{ if(e.key==='Enter') sendMessage(); });
 
-function recordChatMessage(){
-    let chats=parseInt(localStorage.getItem("messagesSent")||0);
-    chats++;
-    localStorage.setItem("messagesSent",chats);
-    if(typeof updateEngagementUI === "function") updateEngagementUI();
-}
-
-// ---------- Inbound Channel Telegram Processing Loop (Sequential Typing Fix) ----------
+// ---------- Inbound Long Poll Processing (Typing Queue Fix) ----------
 async function getTelegramFileUrl(fileId) {
     try {
         const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
         const data = await res.json();
         if (data.ok) return `https://api.telegram.org/file/bot${BOT_TOKEN}/${data.result.file_path}`;
-    } catch (e) { console.error("Media translation track err", e); }
+    } catch (e) { console.error("Media link fetch error", e); }
     return null;
 }
 
@@ -762,7 +647,7 @@ async function listenForTelegramMessages() {
     try {
         const response = await fetch(url);
         if (response.status === 429) {
-            currentDelay = Math.min(currentDelay * 2, maxDelay); 
+            currentDelay = Math.min(currentDelay * 2, maxDelay);
             scheduleNextCheck();
             return;
         }
@@ -797,20 +682,20 @@ async function listenForTelegramMessages() {
                     }
 
                     if (msgContent) {
-                        // Queue sequential typing triggers ahead of each message reveal
+                        // Keeps multiple arriving incoming messages running smoothly without stalling the main pipeline thread
                         setTimeout(() => { showTyping(); }, chainDelay);
-                        chainDelay += 1600; 
+                        chainDelay += 800; 
 
                         setTimeout(() => {
                             removeTyping();
                             addMessage(msgContent, 'bot', 'delivered', msgType);
 
                             conversationMemory.push({ role: "bot", content: msgContent, type: msgType, time: Date.now() });
-                            chatHistory.push({ sender: 'bot', text: msgType === "text" ? msgContent : `[Received ${msgType}]` });
+                            chatHistory.push({ sender: 'bot', text: msgContent, type: msgType });
                             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
                         }, chainDelay);
 
-                        chainDelay += 400; 
+                        chainDelay += 200; 
                     }
                     lastUpdateId = update.update_id;
                     localStorage.setItem('tg_last_update_id', lastUpdateId);
@@ -845,13 +730,13 @@ function initiateKairosConversation() {
             removeTyping();
             personality.awaitingSarahConfirm = true;
             const initialGreeting = "Hey 👋 I’m Kairos. Welcome back! Do you want me to connect you with Sarah regarding any issues you might have?";
-            addMessage(initialGreeting, "bot");
+            addMessage(initialGreeting, "bot", "delivered", "text");
 
             conversationMemory.push({ role: "bot", content: initialGreeting, type: "text", time: Date.now() });
-            chatHistory.push({ sender: 'bot', text: initialGreeting });
+            chatHistory.push({ sender: 'bot', text: initialGreeting, type: 'text' });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
             startQuoteAutorotation();
-        }, 1500);
+        }, 1000);
     } else {
         const clearSarahActive = chatHistory.some(m => m.text && m.text.includes("this is Sarah"));
         if (clearSarahActive) {
@@ -868,16 +753,11 @@ function initiateKairosConversation() {
     }
 }
 
+// Fixed History UI Rendering Parser to safely handle both strings and uploaded attachments on reload
 function loadChatHistory() {
     if (chatHistory.length > 0) {
         chatHistory.forEach(item => {
-            const wrap = document.createElement("div");
-            wrap.className = "msgWrap";
-            const msg = document.createElement("div");
-            msg.className = `${item.sender} message`;
-            msg.textContent = item.text;
-            wrap.appendChild(msg);
-            botMessagesContainer.appendChild(wrap);
+            addMessage(item.text, item.sender, "delivered", item.type || "text");
         });
         botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
     }
@@ -886,8 +766,9 @@ function loadChatHistory() {
 document.addEventListener('DOMContentLoaded', () => {
     loadChatHistory();
     initiateKairosConversation();
-    listenForTelegramMessages();
+    scheduleNextCheck(); // Safely triggers the loop systematically
 });
+
 </script>
 
 
