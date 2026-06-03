@@ -199,6 +199,199 @@ let conversationMemory = [];
 
 const quotes=[ "Believe in yourself and all that you are.", "Small steps each day lead to big results.", "Life is about moments, not things.", "Consistency is the key to success.", "Every day is a fresh start.", "Faith is the compass that guides you through life’s storms.", "Pray not just for what you want, but   for the strength to receive it.", "Trust God’s timing; He never runs late.", "Your faith can move mountains, but your actions must build the path.", "God doesn’t call the equipped; He equips the called.", "Gratitude turns what we have into enough.", "Serve with love, and blessings will follow silently.", "When you focus on God, life focuses for you.", "Don’t chase money; build systems that make money chase you.", "Financial freedom begins when you learn to control your money, not your lifestyle.", "Save like a pessimist, invest like an optimist.", "Wealth grows when patience waters it daily.", "Your income is limited only by your imagination and action.", "Make your money work harder than you do.", "Life rewards those who act, not those who wait.", "Every setback is a setup for a stronger comeback.", "Your comfort zone is a beautiful place, but nothing ever grows there.", "Consistency beats talent when talent doesn’t show up.", "The storms of life shape the strongest sailors.", "Dream big, start small, move consistently." ];
 
+// ---------- SMART RESPONSE ----------
+function generateSmartReply(msg){
+
+const text = msg.toLowerCase();
+
+// clean YES/NO checks (FIX #2)
+const isYes = /^(yes|yeah|sure|ok|please)\b/.test(text);
+const isNo = /^(no|not really|nah)\b/.test(text);
+
+// Support follow-up handling
+if(personality.lastIntent === "support"){
+
+    if(/email|send email/.test(text)){
+        personality.lastIntent = null;
+        return "Send your request to avalonflowsystem.helpdesk@gmail.com with your issue details.";
+    }
+
+    if(/live|chat|representative|human|agent/.test(text)){
+        personality.lastIntent = null;
+        setTimeout(transitionToSarah, 600);
+        return "Connecting you with Sarah now...";
+    }
+
+    return "Do you prefer email support or live chat with Sarah?";
+}
+
+
+// FAQ FIRST (priority)
+const faq = findFAQByIntent(msg);
+if(faq){
+    personality.lastIntent = "faq";
+    const variations = [
+        faq.a,
+        `${faq.a} Let me know if you want me to walk you through it.`,
+        `Here’s what you need: ${faq.a}`,
+        `${faq.a} — want help doing it now?`
+    ];
+
+    return variations[Math.floor(Math.random()*variations.length)];
+}
+
+// Memory context
+const last = conversationMemory
+    .slice(-2)
+    .map(m => m.content)
+    .join(" ")
+    .toLowerCase();
+
+const lastBot = conversationMemory
+    .filter(m => m.role === "bot")
+    .at(-1)?.content.toLowerCase() || "";
+
+// Sarah handoff confirmation
+if (
+  personality.awaitingSarahConfirm &&
+  isYes
+) {
+  personality.awaitingSarahConfirm = false;
+  setTimeout(transitionToSarah, 600);
+  return "Understood. Connecting you with Sarah now...";
+}
+
+// Context: password issue
+if(last.includes("password") && text.includes("not working")){
+    return "Got it—you’re having trouble resetting your password. Are you seeing an error or just not receiving the reset link?";
+}
+
+// ticket context
+if(personality.lastIntent === "ticket" && /not working|failed|error/.test(text)){
+    return "Is the ticket not generating or are you not seeing it in your dashboard?";
+}
+
+// payment delay
+if(last.includes("payment") && text.includes("delay")){
+    return "Are you referring to a payout delay or a transaction verification delay?";
+}
+
+// YES / NO logic (clean version)
+if(isYes){
+    if(lastBot.includes("ticket")){
+        generateTicket();
+        return "Done. Your support ticket has been created.";
+    }
+}
+
+if(isNo){
+    return "Alright. What would you like help with instead?";
+}
+
+// reward logic
+if(/reward balance|progress|earnings balance|cashback/.test(text)){
+    let unlocked = JSON.parse(localStorage.getItem('unlockedPlans')) || {};
+    let unlockTimes = JSON.parse(localStorage.getItem('unlockTimes')) || {};
+    let res = "Bond progress:\n";
+
+    ['premium','basic','lite','custom'].forEach(plan=>{
+        if(unlocked[plan]){
+            const now = Date.now();
+            const elapsed = now - unlockTimes[plan];
+            const total = plan==='premium'?14*86400000:plan==='basic'?28*86400000:42*86400000;
+            const percent = Math.min(100, Math.round((elapsed/total)*100));
+            res += `${plan}: ${percent}%\n`;
+        } else {
+            res += `${plan}: Locked\n`;
+        }
+    });
+
+    return res;
+}
+
+// fallback responses
+const followUps = [
+    generateFollowUp(msg),
+    "Can you clarify that a bit for me?",
+    "I want to make sure I understand—what exactly are you trying to do?",
+    "Are you trying to fix something or just exploring?"
+];
+
+// FAQ short reply handling
+const shortReply = msg.trim().split(" ").length <= 2;
+
+if(personality.lastIntent === "faq" && shortReply){
+    personality.lastIntent = null;
+    return "Want me to break that down step-by-step?";
+}
+
+// Sarah decline
+if(
+  personality.awaitingSarahConfirm &&
+  isNo
+){
+    personality.awaitingSarahConfirm = false;
+    return "Alright, let me know what you need help with instead.";
+}
+
+// ticket follow-up
+if(personality.lastIntent === "ticket" && isYes){
+    personality.lastIntent = null;
+    return "Do you want to track it or describe the issue further?";
+}
+
+return followUps[Math.floor(Math.random()*followUps.length)];
+}
+
+const personality = {
+    tone: "neutral", // friendly | calm | professional
+    lastIntent: null,
+    userMood: "unknown"
+};
+
+function adaptTone(msg){
+    const text = msg.toLowerCase();
+
+    if(/frustrated|angry|not working|annoying/.test(text)){
+        personality.tone = "calm";
+        personality.userMood = "frustrated";
+    }
+    else if(/thanks|nice|good/.test(text)){
+        personality.tone = "friendly";
+        personality.userMood = "positive";
+    }
+    else{
+        personality.tone = "neutral";
+    }
+}
+
+function humanize(text){
+
+    const fillers = [
+    "",
+    "",
+    "Alright… ",
+    "Okay, so ",
+    "Got it. ",
+    "Hmm, ",
+    "Let me see… ",
+    "Right, ",
+    "Makes sense. "
+];
+
+    let prefix = fillers[Math.floor(Math.random()*fillers.length)];
+
+    if(personality.tone === "calm"){
+        prefix = "I get how that can be frustrating. ";
+    }
+
+    if(personality.tone === "friendly"){
+        return prefix + text + " 👍";
+    }
+
+    return prefix + text;
+}
+
 const faqs = [
 
 {q:"How do I reset my password?", 
@@ -553,198 +746,6 @@ function generateFollowUp(msg){
 }
 
 
-// ---------- SMART RESPONSE ----------
-function generateSmartReply(msg){
-
-const text = msg.toLowerCase();
-
-// clean YES/NO checks (FIX #2)
-const isYes = /^(yes|yeah|sure|ok|please)\b/.test(text);
-const isNo = /^(no|not really|nah)\b/.test(text);
-
-// Support follow-up handling
-if(personality.lastIntent === "support"){
-
-    if(/email|send email/.test(text)){
-        personality.lastIntent = null;
-        return "Send your request to avalonflowsystem.helpdesk@gmail.com with your issue details.";
-    }
-
-    if(/live|chat|representative|human|agent/.test(text)){
-        personality.lastIntent = null;
-        setTimeout(transitionToSarah, 600);
-        return "Connecting you with Sarah now...";
-    }
-
-    return "Do you prefer email support or live chat with Sarah?";
-}
-
-
-// FAQ FIRST (priority)
-const faq = findFAQByIntent(msg);
-if(faq){
-    personality.lastIntent = "faq";
-    const variations = [
-        faq.a,
-        `${faq.a} Let me know if you want me to walk you through it.`,
-        `Here’s what you need: ${faq.a}`,
-        `${faq.a} — want help doing it now?`
-    ];
-
-    return variations[Math.floor(Math.random()*variations.length)];
-}
-
-// Memory context
-const last = conversationMemory
-    .slice(-2)
-    .map(m => m.content)
-    .join(" ")
-    .toLowerCase();
-
-const lastBot = conversationMemory
-    .filter(m => m.role === "bot")
-    .at(-1)?.content.toLowerCase() || "";
-
-// Sarah handoff confirmation
-if (
-  personality.awaitingSarahConfirm &&
-  isYes
-) {
-  personality.awaitingSarahConfirm = false;
-  setTimeout(transitionToSarah, 600);
-  return "Understood. Connecting you with Sarah now...";
-}
-
-// Context: password issue
-if(last.includes("password") && text.includes("not working")){
-    return "Got it—you’re having trouble resetting your password. Are you seeing an error or just not receiving the reset link?";
-}
-
-// ticket context
-if(personality.lastIntent === "ticket" && /not working|failed|error/.test(text)){
-    return "Is the ticket not generating or are you not seeing it in your dashboard?";
-}
-
-// payment delay
-if(last.includes("payment") && text.includes("delay")){
-    return "Are you referring to a payout delay or a transaction verification delay?";
-}
-
-// YES / NO logic (clean version)
-if(isYes){
-    if(lastBot.includes("ticket")){
-        generateTicket();
-        return "Done. Your support ticket has been created.";
-    }
-}
-
-if(isNo){
-    return "Alright. What would you like help with instead?";
-}
-
-// reward logic
-if(/reward balance|progress|earnings balance|cashback/.test(text)){
-    let unlocked = JSON.parse(localStorage.getItem('unlockedPlans')) || {};
-    let unlockTimes = JSON.parse(localStorage.getItem('unlockTimes')) || {};
-    let res = "Bond progress:\n";
-
-    ['premium','basic','lite','custom'].forEach(plan=>{
-        if(unlocked[plan]){
-            const now = Date.now();
-            const elapsed = now - unlockTimes[plan];
-            const total = plan==='premium'?14*86400000:plan==='basic'?28*86400000:42*86400000;
-            const percent = Math.min(100, Math.round((elapsed/total)*100));
-            res += `${plan}: ${percent}%\n`;
-        } else {
-            res += `${plan}: Locked\n`;
-        }
-    });
-
-    return res;
-}
-
-// fallback responses
-const followUps = [
-    generateFollowUp(msg),
-    "Can you clarify that a bit for me?",
-    "I want to make sure I understand—what exactly are you trying to do?",
-    "Are you trying to fix something or just exploring?"
-];
-
-// FAQ short reply handling
-const shortReply = msg.trim().split(" ").length <= 2;
-
-if(personality.lastIntent === "faq" && shortReply){
-    personality.lastIntent = null;
-    return "Want me to break that down step-by-step?";
-}
-
-// Sarah decline
-if(
-  personality.awaitingSarahConfirm &&
-  isNo
-){
-    personality.awaitingSarahConfirm = false;
-    return "Alright, let me know what you need help with instead.";
-}
-
-// ticket follow-up
-if(personality.lastIntent === "ticket" && isYes){
-    personality.lastIntent = null;
-    return "Do you want to track it or describe the issue further?";
-}
-
-return followUps[Math.floor(Math.random()*followUps.length)];
-}
-
-const personality = {
-    tone: "neutral", // friendly | calm | professional
-    lastIntent: null,
-    userMood: "unknown"
-};
-
-function adaptTone(msg){
-    const text = msg.toLowerCase();
-
-    if(/frustrated|angry|not working|annoying/.test(text)){
-        personality.tone = "calm";
-        personality.userMood = "frustrated";
-    }
-    else if(/thanks|nice|good/.test(text)){
-        personality.tone = "friendly";
-        personality.userMood = "positive";
-    }
-    else{
-        personality.tone = "neutral";
-    }
-}
-
-function humanize(text){
-
-    const fillers = [
-    "",
-    "",
-    "Alright… ",
-    "Okay, so ",
-    "Got it. ",
-    "Hmm, ",
-    "Let me see… ",
-    "Right, ",
-    "Makes sense. "
-];
-
-    let prefix = fillers[Math.floor(Math.random()*fillers.length)];
-
-    if(personality.tone === "calm"){
-        prefix = "I get how that can be frustrating. ";
-    }
-
-    if(personality.tone === "friendly"){
-        return prefix + text + " 👍";
-    }
-
-    return prefix + text;
-}
 
 // ---------- BOT EXECUTION ----------
 
