@@ -447,15 +447,21 @@ function addMessage(content, sender="bot", status="delivered", type="text"){
     const avatarImg = document.createElement("img");
     avatarImg.className = "chat-bubble-avatar";
 
-    // Assign correct photo source dynamically based on financial reality context
-    if (sender === "user") {
-        const savedUserPhoto = localStorage.getItem('profilePhoto');
-        avatarImg.src = savedUserPhoto ? savedUserPhoto : DEFAULT_AVATAR;
+    // Assign correct photo source dynamically
+if (sender === "user") {
+    const savedUserPhoto = localStorage.getItem('profilePhoto');
+    avatarImg.src = savedUserPhoto ? savedUserPhoto : DEFAULT_AVATAR;
+} else {
+    // FIX: If Sarah is active, force her avatar for ALL agent/bot responses
+    if (isSarahActive) {
+        avatarImg.src = SARAH_AVATAR;
     } else {
-    // Check if the specific text being rendered belongs to Sarah's greeting pool or custom alert
-    const isSarahText = sarahProfile.greetings.includes(content) || content.includes("high-value Custom tier");
-    avatarImg.src = isSarahText ? SARAH_AVATAR : KAIROS_AVATAR;
+        // Fallback check for text matching just in case of initial transition synchronization
+        const isSarahText = sarahProfile.greetings.includes(content) || content.includes("high-value Custom tier");
+        avatarImg.src = isSarahText ? SARAH_AVATAR : KAIROS_AVATAR;
+    }
 }
+
 
 
     const msg = document.createElement("div");
