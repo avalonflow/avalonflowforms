@@ -190,21 +190,19 @@
 </div>
 
 <script>
-// ---------- Configuration Constants ----------
-const BOT_TOKEN = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
-const CHAT_ID = '-1003913850436'; 
-
 // ---------- Kairos Bot / FAQ ----------
 const botMessagesContainer = document.getElementById('botMessagesContainer');
 const botInput = document.getElementById('botInput');
 const botSendBtn = document.getElementById('botSendBtn');
-const statusText = document.getElementById('status-text'); // Handles ongoing tracking text updates
 
-let conversationMemory = [];
+// ⚙️ Telegram Sync & Profile Configuration Properties Injected Safely
+const BOT_TOKEN = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
+const CHAT_ID = '-1003913850436'; 
+const statusText = document.getElementById('status-text');
+
 let lastUpdateId = parseInt(localStorage.getItem('tg_last_update_id')) || 0;
 let chatHistory = JSON.parse(localStorage.getItem('tg_chat_history_v3')) || [];
-let isSarahActive = false; // Persistent state variable to prevent overlapping dialogue loops
-
+let isSarahActive = false;
 let baseDelay = 3000;      
 let currentDelay = baseDelay; 
 let maxDelay = 30000;     
@@ -214,13 +212,15 @@ let quoteRotationTimer = null;
 const currentTabId = Math.random().toString();
 sessionStorage.setItem('active_chat_tab', currentTabId);
 
-const quotes=[ "Believe in yourself and all that you are.", "Small steps each day lead to big results.", "Life is about moments, not things.", "Consistency is the key to success.", "Every day is a fresh start.", "Faith is the compass that guides you through life’s storms.", "Pray not just for what you want, but   for the strength to receive it.", "Trust God’s timing; He never runs late.", "Your faith can move mountains, but your actions must build the path.", "God doesn’t call the equipped; He equips the called.", "Gratitude turns what we have into enough.", "Serve with love, and blessings will follow silently.", "When you focus on God, life focuses for you.", "Don’t chase money; build systems that make money chase you.", "Financial freedom begins when you learn to control your money, not your lifestyle.", "Save like a pessimist, invest like an optimist.", "Wealth grows when patience waters it daily.", "Your income is limited only by your imagination and action.", "Make your money work harder than you do.", "Life rewards those who act, not those who wait.", "Every setback is a setup for a stronger comeback.", "Your comfort zone is a beautiful place, but nothing ever grows there.", "Consistency beats talent when talent doesn’t show up.", "The storms of life shape the strongest sailors.", "Dream big, start small, move consistently." ];
-
 const sarahProfile = {
     name: "Sarah (Account Representative)",
     avatarColor: "linear-gradient(135deg, #ff416c, #ff4b2b)",
     statusText: "Connected with Sarah"
 };
+
+let conversationMemory = [];
+
+const quotes=[ "Believe in yourself and all that you are.", "Small steps each day lead to big results.", "Life is about moments, not things.", "Consistency is the key to success.", "Every day is a fresh start.", "Faith is the compass that guides you through life’s storms.", "Pray not just for what you want, but   for the strength to receive it.", "Trust God’s timing; He never runs late.", "Your faith can move mountains, but your actions must build the path.", "God doesn’t call the equipped; He equips the called.", "Gratitude turns what we have into enough.", "Serve with love, and blessings will follow silently.", "When you focus on God, life focuses for you.", "Don’t chase money; build systems that make money chase you.", "Financial freedom begins when you learn to control your money, not your lifestyle.", "Save like a pessimist, invest like an optimist.", "Wealth grows when patience waters it daily.", "Your income is limited only by your imagination and action.", "Make your money work harder than you do.", "Life rewards those who act, not those who wait.", "Every setback is a setup for a stronger comeback.", "Your comfort zone is a beautiful place, but nothing ever grows there.", "Consistency beats talent when talent doesn’t show up.", "The storms of life shape the strongest sailors.", "Dream big, start small, move consistently." ];
 
 const faqs = [
 
@@ -417,7 +417,7 @@ function showTyping(){
     botMessagesContainer.scrollTop=botMessagesContainer.scrollHeight;
 }
 
-// ---------- Core Living Transition Pipeline Block ----------
+// ---------- Live Escalation Desk Intercept Pipeline Block ----------
 function transitionToSarah() {
     isSarahActive = true; 
 
@@ -542,6 +542,7 @@ function generateSmartReply(msg){
     const text = msg.toLowerCase();
     const lastBot = conversationMemory.filter(m => m.role === "bot").slice(-1)[0]?.content.toLowerCase() || "";
 
+    // If customer consents to Sarah handover prompt, pivot interface instantly
     if (lastBot.includes("connect you with sarah") && /yes|yeah|sure|ok|please/.test(text)) {
         setTimeout(transitionToSarah, 600);
         return "Understood. Switching your session over to our account desk now...";
@@ -805,8 +806,10 @@ if(conversationMemory.length > 10){
 }
 
     handleMessage(text);
+
     recordChatMessage();
 
+    // Outbound API Dispatch Pipeline
     try {
         await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: 'POST',
@@ -814,7 +817,7 @@ if(conversationMemory.length > 10){
             body: JSON.stringify({ chat_id: CHAT_ID, text: text })
         });
     } catch (e) {
-        console.error('Outbound synchronization drop occurred.');
+        console.error('Outbound synchronizer stream connection timed out.');
     }
 }
 
@@ -981,6 +984,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initiateKairosConversation();
     listenForTelegramMessages();
 });
+
+
 </script>
 
 
