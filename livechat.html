@@ -622,7 +622,7 @@ function generateSmartReply(msg){
         if(/live|chat|representative|agent|human/.test(text)){
             personality.lastIntent = null;
             setTimeout(transitionToSarah, 600);
-            return "Understood. One moment while I connect you with Sarah from our support team...";
+            return "I see. Give me a moment while I connect you with Sarah from our support team...";
         }
         personality.lastIntent = "support";
         return "Do you prefer to email support or live chat with Sarah?";
