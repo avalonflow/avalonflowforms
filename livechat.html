@@ -214,18 +214,30 @@ header .logo-card img {
 
 #assistantBotCard {
   width: 100%;
-  max-width: 350px;
-  margin-top: 5px;
-  padding: 18px;
+  max-width: 400px;
   z-index: 1;
   box-sizing: border-box;
 
-  background: rgba(120, 180, 255, 0.7);
+  /* FIX: Decreases the top margin gap to bring the card up slightly */
+  margin-top: -10px; 
+  /* FIX: Adds bottom margin space to leave clear visibility for your fixed footer */
+  margin-bottom: 75px; 
+
+  /* FIX: Dynamically scales the card to occupy the bulk of the remaining vertical screen */
+  height: 62vh; 
+  min-height: 480px;
+
+  display: flex;
+  flex-direction: column;
+
+  /* Keeps your exact outer container glass aesthetics intact */
+  background: rgba(20, 20, 35, 0.6);
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.25);
   backdrop-filter: blur(14px);
   border: 1px solid rgba(255,255,255,0.08);
 }
+
 
 /* New Unified Flex Container Bar */
 .input-area {
@@ -295,13 +307,18 @@ header .logo-card img {
 }
 
 #botMessagesContainer {
-  height: 180px;
+  flex: 1; /* Automatically stretches to fill the expanded card height */
   overflow-y: auto;
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(12px);
-  padding: 10px;
+  
+  /* FIX: Premium dark glassmorphism blend that complements the header neon glow */
+  background: rgba(13, 11, 26, 0.65) !important; 
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(107, 44, 216, 0.15);
+  
+  padding: 12px;
   border-radius: 0 0 12px 12px;
 }
+
 
 /* Messages */
 .message {
