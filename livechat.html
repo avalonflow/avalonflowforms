@@ -194,13 +194,12 @@
 const BOT_TOKEN = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
 const CHAT_ID = '-1003913850436'; 
 
-// ---------- Elements Mapping ----------
+// ---------- Kairos Bot / FAQ ----------
 const botMessagesContainer = document.getElementById('botMessagesContainer');
 const botInput = document.getElementById('botInput');
 const botSendBtn = document.getElementById('botSendBtn');
 const statusText = document.getElementById('status-text'); // Handles ongoing tracking text updates
 
-// ---------- Core Conversational Memories & Variables ----------
 let conversationMemory = [];
 let lastUpdateId = parseInt(localStorage.getItem('tg_last_update_id')) || 0;
 let chatHistory = JSON.parse(localStorage.getItem('tg_chat_history_v3')) || [];
@@ -215,43 +214,100 @@ let quoteRotationTimer = null;
 const currentTabId = Math.random().toString();
 sessionStorage.setItem('active_chat_tab', currentTabId);
 
-const personality = {
-    tone: "neutral", // friendly | calm | professional
-    lastIntent: null,
-    userMood: "unknown"
-};
+const quotes=[ "Believe in yourself and all that you are.", "Small steps each day lead to big results.", "Life is about moments, not things.", "Consistency is the key to success.", "Every day is a fresh start.", "Faith is the compass that guides you through life’s storms.", "Pray not just for what you want, but   for the strength to receive it.", "Trust God’s timing; He never runs late.", "Your faith can move mountains, but your actions must build the path.", "God doesn’t call the equipped; He equips the called.", "Gratitude turns what we have into enough.", "Serve with love, and blessings will follow silently.", "When you focus on God, life focuses for you.", "Don’t chase money; build systems that make money chase you.", "Financial freedom begins when you learn to control your money, not your lifestyle.", "Save like a pessimist, invest like an optimist.", "Wealth grows when patience waters it daily.", "Your income is limited only by your imagination and action.", "Make your money work harder than you do.", "Life rewards those who act, not those who wait.", "Every setback is a setup for a stronger comeback.", "Your comfort zone is a beautiful place, but nothing ever grows there.", "Consistency beats talent when talent doesn’t show up.", "The storms of life shape the strongest sailors.", "Dream big, start small, move consistently." ];
 
-// ---------- Sarah Profile Configuration State ----------
 const sarahProfile = {
     name: "Sarah (Account Representative)",
     avatarColor: "linear-gradient(135deg, #ff416c, #ff4b2b)",
     statusText: "Connected with Sarah"
 };
 
-// ---------- Kairos Bot / FAQ ----------
-const quotes = [ "Believe in yourself and all that you are.", "Small steps each day lead to big results.", "Life is about moments, not things.", "Consistency is the key to success.", "Every day is a fresh start.", "Faith is the compass that guides you through life’s storms.", "Pray not just for what you want, but for the strength to receive it.", "Trust God’s timing; He never runs late.", "Your faith can move mountains, but your actions must build the path.", "God doesn’t call the equipped; He equips the called.", "Gratitude turns what we have into enough.", "Serve with love, and blessings will follow silently.", "When you focus on God, life focuses for you.", "Don’t chase money; build systems that make money chase you.", "Financial freedom begins when you learn to control your money, not your lifestyle.", "Save like a pessimist, invest like an optimist.", "Wealth grows when patience waters it daily.", "Your income is limited only by your imagination and action.", "Make your money work harder than you do.", "Life rewards those who act, not those who wait.", "Every setback is a setup for a stronger comeback.", "Your comfort zone is a beautiful place, but nothing ever grows there.", "Consistency beats talent when talent doesn’t show up.", "The storms of life shape the strongest sailors.", "Dream big, start small, move consistently." ];
-
 const faqs = [
-    {q:"How do I reset my password?", a:"Click 'Forgot password' on the login page and follow instructions.", tags:["password","reset","login","signin","account access"]},
-    {q:"How can I update my billing info?", a:"Navigate to your Sidebar, then 'Withdrawals' to update payment methods.", tags:["billing","payment","withdrawal","card","update payment","finance"]},
-    {q:"Where can I view my ticket history?", a:"All your submitted tickets and their status are visible under 'Support > My Tickets'.", tags:["ticket","history","support","track ticket","previous issues"]},
-    {q:"How do I contact live support?", a:"Generate a ticket and email support at avalonflowsystem.helpdesk@gmail.com including your reference.", tags:["support","contact","help","email","customer service","agent"]},
-    {q:"What are the support hours?", a:"Support is online Monday–Sunday, 9 AM to 6 PM EST.", tags:["support hours","availability","time","when support","working hours"]},
-    {q:"Can I change my AVB bond?", a:"Sadly you can't go to 'AVB > Protection' and select your preferred bond.", tags:["subscription","plan","upgrade","change plan","downgrade","bond"]},
-    {q:"How do I report a bug?", a:"Generate a ticket under 'Technical' category and describe the issue in detail.", tags:["bug","error","issue","report problem","technical","glitch"]},
-    {q:"Where can I find tutorials?", a:"Tutorials are available in the 'Ecosystem > Guides & Tutorials' section.", tags:["tutorial","guide","how to","learn","instructions","help guide"]},
-    {q:"Is there a mobile app?", a:"No, AvalonFlow app isn't available on iOS and Android currently.", tags:["app","mobile","ios","android","phone","download app"]},
-    {q:"Can I integrate AvalonFlow with other apps?", a:"Not right now, soon for supported apps.", tags:["integration","connect","api","third party","apps","sync"]},
-    {q:"How do I track my rewards?", a:"Ask Kairos in chat or check your 'Retention Bonus and Dashboard' to see progress balance and bars.", tags:["rewards","earnings","cashback","progress cycle","balance","profit"]},
-    {q:"What if I forget my ticket reference?", a:"You can generate a new one, but include any old reference if available when emailing support.", tags:["ticket","reference","lost ticket","support help","ticket id"]},
-    {q:"How secure is my data?", a:"AvalonFlow uses industry-standard encryption and secure storage protocols.", tags:["security","data","privacy","safe","encryption","protection"]},
-    {q:"Can I receive notifications on mobile?", a:"Yes, enable mobile notifications in your account settings or browser.", tags:["notification","alerts","mobile","push","settings","enable notifications"]},
-    {q:"How do I toggle dark/light mode?", a:"Click the 🌙 Toggle Dark/Light button at the top-right corner.", tags:["dark mode","light mode","theme","brightness","appearance","ui"]},
-    {q:"Are keyboard shortcuts available?", a:"Yes, 'S' focuses issue input, 'T' generates ticket, 'C' focuses chat input.", tags:["shortcut","keyboard","hotkeys","commands","quick access"]},
-    {q:"Who can I contact for urgent issues?", a:"For urgent issues, generate a ticket and mark it 'High Priority', then email support.", tags:["urgent","priority","emergency","fast support","critical issue"]},
-    {q:"How is my transaction verified on AvalonFlow Custom?", a:"Unlike our standard tiers, AvalonFlow Custom utilizes Compliance Verification. A dedicated regulatory body oversees the fund-hold release. We verify user intent and readiness before any funds move. This is the highest level of human-verified security we offer.", tags:["custom","escrow","verification","manual verification","transaction","secure payment","fund hold","courier","fedex","high value","avalonflow custom"]},
-    {q:"Why do Premium, Basic, and Lite have a Cycle Rate while Custom does not?", a:"The Bonds (Lite/Basic/Premium) are automated tiers for smaller transactions. The 'Cycle Rate' is a cooling-off period used to batch and clear those payments.\n\nAvalonFlow Custom is designed for high-value transactions ($500+). It bypasses the cycle queues to provide immediate priority settlement. Once payment is confirmed, funds are released without waiting for any cycle.", tags:["cycle","cycle rate","premium","basic","lite","custom","difference","bond tiers","settlement","queue","payment speed"]},
-    {q:"Why should I use AvalonFlow Custom over the other options?", a:"Security and speed. AvalonFlow Custom is built for high-value transactions ($500+). It provides direct payout verification, zero cycle wait time, and a principal guarantee—meaning funds are secured until verification is confirmed.", tags:["why custom","avalonflow custom","benefits","high value","security","fast payout","no cycle","guarantee","escrow advantage"]}
+
+{q:"How do I reset my password?", 
+a:"Click 'Forgot password' on the login page and follow instructions.", 
+tags:["password","reset","login","signin","account access"]},
+
+{q:"How can I update my billing info?", 
+a:"Navigate to your Sidebar, then 'Withdrawals' to update payment methods.", 
+tags:["billing","payment","withdrawal","card","update payment","finance"]},
+
+{q:"Where can I view my ticket history?", 
+a:"All your submitted tickets and their status are visible under 'Support > My Tickets'.", 
+tags:["ticket","history","support","track ticket","previous issues"]},
+
+{q:"How do I contact live support?", 
+a:"Generate a ticket and email support at avalonflowsystem.helpdesk@gmail.com including your reference.", 
+tags:["support","contact","help","email","customer service","agent"]},
+
+{q:"What are the support hours?", 
+a:"Support is online Monday–Sunday, 9 AM to 6 PM EST.", 
+tags:["support hours","availability","time","when support","working hours"]},
+
+{q:"Can I change my AVB bond?", 
+a:"Sadly you can't go to 'AVB > Protection' and select your preferred bond.", 
+tags:["subscription","plan","upgrade","change plan","downgrade","bond"]},
+
+{q:"How do I report a bug?", 
+a:"Generate a ticket under 'Technical' category and describe the issue in detail.", 
+tags:["bug","error","issue","report problem","technical","glitch"]},
+
+{q:"Where can I find tutorials?", 
+a:"Tutorials are available in the 'Ecosystem > Guides & Tutorials' section.", 
+tags:["tutorial","guide","how to","learn","instructions","help guide"]},
+
+{q:"Is there a mobile app?", 
+a:"No, AvalonFlow app isn't available on iOS and Android currently.", 
+tags:["app","mobile","ios","android","phone","download app"]},
+
+{q:"Can I integrate AvalonFlow with other apps?", 
+a:"Not right now, soon for supported apps.", 
+tags:["integration","connect","api","third party","apps","sync"]},
+
+{q:"How do I track my rewards?", 
+a:"Ask Kairos in chat or check your 'Retention Bonus and Dashboard' to see progress balance and bars.", 
+tags:["rewards","earnings","cashback","progress cycle","balance","profit"]},
+
+{q:"What if I forget my ticket reference?", 
+a:"You can generate a new one, but include any old reference if available when emailing support.", 
+tags:["ticket","reference","lost ticket","support help","ticket id"]},
+
+{q:"How secure is my data?", 
+a:"AvalonFlow uses industry-standard encryption and secure storage protocols.", 
+tags:["security","data","privacy","safe","encryption","protection"]},
+
+{q:"Can I receive notifications on mobile?", 
+a:"Yes, enable mobile notifications in your account settings or browser.", 
+tags:["notification","alerts","mobile","push","settings","enable notifications"]},
+
+{q:"How do I toggle dark/light mode?", 
+a:"Click the 🌙 Toggle Dark/Light button at the top-right corner.", 
+tags:["dark mode","light mode","theme","brightness","appearance","ui"]},
+
+{q:"Are keyboard shortcuts available?", 
+a:"Yes, 'S' focuses issue input, 'T' generates ticket, 'C' focuses chat input.", 
+tags:["shortcut","keyboard","hotkeys","commands","quick access"]},
+
+{q:"Who can I contact for urgent issues?", 
+a:"For urgent issues, generate a ticket and mark it 'High Priority', then email support.", 
+tags:["urgent","priority","emergency","fast support","critical issue"]},
+{
+q:"How is my transaction verified on AvalonFlow Custom?",
+a:"Unlike our standard tiers, AvalonFlow Custom utilizes Compliance Verification. A dedicated regulatory body oversees the fund-hold release. We verify user intent and readiness before any funds move. This is the highest level of human-verified security we offer.",
+tags:["custom","escrow","verification","manual verification","transaction","secure payment","fund hold","courier","fedex","high value","avalonflow custom"]
+},
+
+{
+q:"Why do Premium, Basic, and Lite have a Cycle Rate while Custom does not?",
+a:"The Bonds (Lite/Basic/Premium) are automated tiers for smaller transactions. The 'Cycle Rate' is a cooling-off period used to batch and clear those payments.\n\nAvalonFlow Custom is designed for high-value transactions ($500+). It bypasses the cycle queues to provide immediate priority settlement. Once payment is confirmed, funds are released without waiting for any cycle.",
+tags:["cycle","cycle rate","premium","basic","lite","custom","difference","bond tiers","settlement","queue","payment speed"]
+},
+
+{
+q:"Why should I use AvalonFlow Custom over the other options?",
+a:"Security and speed. AvalonFlow Custom is built for high-value transactions ($500+). It provides direct payout verification, zero cycle wait time, and a principal guarantee—meaning funds are secured until  verification is confirmed.",
+tags:["why custom","avalonflow custom","benefits","high value","security","fast payout","no cycle","guarantee","escrow advantage"]
+}
 ];
 
 // ---------- NLP ----------
@@ -262,23 +318,29 @@ function normalize(text){
 function similarity(a, b){
     const aWords = normalize(a).split(' ');
     const bWords = normalize(b).split(' ');
+
     const important = ['password','ticket','support','billing','plan','rewards'];
+
     let score = 0;
+
     aWords.forEach(w=>{
         if(bWords.includes(w)){
             score += important.includes(w) ? 2 : 1;
         }
     });
+
     return score / bWords.length;
 }
 
 function findFAQByIntent(input){
     const text = input.toLowerCase();
+
     let best = null;
     let bestScore = 0;
 
     for(const f of faqs){
         let score = 0;
+
         f.tags.forEach(tag=>{
             if(text.includes(tag)) score += 2;
             else if(tag.split(" ").some(word => text.includes(word))) score += 1;
@@ -289,15 +351,17 @@ function findFAQByIntent(input){
             best = f;
         }
     }
-    // Safety fallback logic optimized to gracefully verify context targets
+
     return bestScore > 1 ? best : (typeof findBestFAQ === "function" ? findBestFAQ(input) : null);
 }
+
 
 // ---------- Time ----------
 function getTime(){
     const now = new Date();
     return now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 }
+
 
 // ---------- Messaging ----------
 function addMessage(text, sender="bot", status="delivered"){
@@ -341,6 +405,7 @@ function markAsSeen(wrap){
     }
 }
 
+
 // ---------- Typing ----------
 function showTyping(){
     if (document.getElementById("typingIndicator")) return;
@@ -352,90 +417,9 @@ function showTyping(){
     botMessagesContainer.scrollTop=botMessagesContainer.scrollHeight;
 }
 
-function removeTyping(){
-    const t=document.getElementById("typingIndicator");
-    if(t) t.remove();
-}
-
-function getTypingDelay(text){
-    return Math.min(400 + text.length*35, 4000);
-}
-
-// ---------- USER Typing ----------
-let typingTimeout;
-let typingIndicatorEl=null;
-
-function showUserTyping(){
-    if(!typingIndicatorEl){
-        typingIndicatorEl=document.createElement("div");
-        typingIndicatorEl.className="ambient";
-        typingIndicatorEl.textContent="User is typing...";
-        botMessagesContainer.appendChild(typingIndicatorEl);
-    }
-}
-
-function removeUserTyping(){
-    if(typingIndicatorEl){
-        typingIndicatorEl.remove();
-        typingIndicatorEl=null;
-    }
-}
-
-botInput.addEventListener("input", ()=>{
-    showUserTyping();
-    clearTimeout(typingTimeout);
-    typingTimeout=setTimeout(removeUserTyping,1200);
-});
-
-// ---------- INTENT ENGINE ----------
-function detectIntent(msg){
-    const text = msg.toLowerCase();
-
-    if(/light mode|too dark|cant see|increase brightness/.test(text))
-        return {type:'theme', value:'light'};
-
-    if(/dark mode|too bright|hurt.*eyes|reduce brightness/.test(text))
-        return {type:'theme', value:'dark'};
-
-    if(/help|issue|problem|not working/.test(text))
-        return {type:'support'};
-
-    if(/ticket|complaint|report issue/.test(text))
-        return {type:'ticket'};
-
-    if(/logout|sign out|log me out|exit/.test(text))
-        return {type:'logout'};
-
-    if(/quote|motivate|inspire/.test(text))
-        return {type:'quote'};
-
-    return {type:'chat'};
-}
-
-function generateFollowUp(msg){
-    const text = msg.toLowerCase();
-
-    if(text.length < 5){
-        return "Can you tell me a bit more about what you need?";
-    }
-    if(/help|issue|problem|error|not working/.test(text)){
-        return "Got you. Is this about a payment, account access, or something else?";
-    }
-    if(text.includes("?")){
-        return "Are you asking about support, rewards, or your account?";
-    }
-    if(/money|earn|profit/.test(text)){
-        return "Do you want to check your reward progress or understand how it works?";
-    }
-    if(/how|where|what/.test(text)){
-        return "I can guide you step-by-step—what exactly are you trying to do?";
-    }
-    return "What would you like help with—support, tickets, rewards, or settings?";
-}
-
 // ---------- Core Living Transition Pipeline Block ----------
 function transitionToSarah() {
-    isSarahActive = true; // Permanently lock out Kairos functions
+    isSarahActive = true; 
 
     const botHeader = document.getElementById('botHeader');
     if (botHeader) {
@@ -463,12 +447,101 @@ function transitionToSarah() {
     }, 2500);
 }
 
+function removeTyping(){
+    const t=document.getElementById("typingIndicator");
+    if(t) t.remove();
+}
+
+function getTypingDelay(text){
+    return Math.min(400 + text.length*35, 4000);
+}
+
+
+// ---------- USER Typing ----------
+let typingTimeout;
+let typingIndicatorEl=null;
+
+function showUserTyping(){
+    if(!typingIndicatorEl){
+        typingIndicatorEl=document.createElement("div");
+        typingIndicatorEl.className="ambient";
+        typingIndicatorEl.textContent="User is typing...";
+        botMessagesContainer.appendChild(typingIndicatorEl);
+    }
+}
+
+function removeUserTyping(){
+    if(typingIndicatorEl){
+        typingIndicatorEl.remove();
+        typingIndicatorEl=null;
+    }
+}
+
+botInput.addEventListener("input", ()=>{
+    showUserTyping();
+    clearTimeout(typingTimeout);
+    typingTimeout=setTimeout(removeUserTyping,1200);
+});
+
+
+// ---------- INTENT ENGINE ----------
+function detectIntent(msg){
+    const text = msg.toLowerCase();
+
+    if(/light mode|too dark|cant see|increase brightness/.test(text))
+        return {type:'theme', value:'light'};
+
+    if(/dark mode|too bright|hurt.*eyes|reduce brightness/.test(text))
+        return {type:'theme', value:'dark'};
+
+    if(/help|issue|problem|not working/.test(text))
+        return {type:'support'};
+
+    if(/ticket|complaint|report issue/.test(text))
+        return {type:'ticket'};
+
+    if(/logout|sign out|log me out|exit/.test(text))
+        return {type:'logout'};
+
+    if(/quote|motivate|inspire/.test(text))
+        return {type:'quote'};
+
+    return {type:'chat'};
+}
+
+function generateFollowUp(msg){
+
+    const text = msg.toLowerCase();
+
+    if(text.length < 5){
+        return "Can you tell me a bit more about what you need?";
+    }
+
+    if(/help|issue|problem|error|not working/.test(text)){
+        return "Got you. Is this about a payment, account access, or something else?";
+    }
+
+    if(text.includes("?")){
+        return "Are you asking about support, rewards, or your account?";
+    }
+
+    if(/money|earn|profit/.test(text)){
+        return "Do you want to check your reward progress or understand how it works?";
+    }
+
+    if(/how|where|what/.test(text)){
+        return "I can guide you step-by-step—what exactly are you trying to do?";
+    }
+
+    return "What would you like help with—support, tickets, rewards, or settings?";
+}
+
+
 // ---------- SMART RESPONSE ----------
 function generateSmartReply(msg){
     const text = msg.toLowerCase();
     const lastBot = conversationMemory.filter(m => m.role === "bot").slice(-1)[0]?.content.toLowerCase() || "";
 
-    // Gated operational interception value checks to handle human desk transition routing
     if (lastBot.includes("connect you with sarah") && /yes|yeah|sure|ok|please/.test(text)) {
         setTimeout(transitionToSarah, 600);
         return "Understood. Switching your session over to our account desk now...";
@@ -477,47 +550,51 @@ function generateSmartReply(msg){
     // FAQ FIRST (priority)
     const faq = findFAQByIntent(msg);
     if(faq){
-        personality.lastIntent = "faq";
-        const variations = [
-            faq.a,
-            `${faq.a} Let me know if you want me to walk you through it.`,
-            `Here’s what you need: ${faq.a}`,
-            `${faq.a} — want help doing it now?`
-        ];
-        return variations[Math.floor(Math.random()*variations.length)];
-    }
+personality.lastIntent = "faq";
+    const variations = [
+        faq.a,
+        `${faq.a} Let me know if you want me to walk you through it.`,
+        `Here’s what you need: ${faq.a}`,
+        `${faq.a} — want help doing it now?`
+    ];
+
+    return variations[Math.floor(Math.random()*variations.length)];
+}
 
     // Memory context
-    const last = conversationMemory
-        .slice(-2)
-        .map(m => m.content)
-        .join(" ")
-        .toLowerCase();
+const last = conversationMemory
+    .slice(-2)
+    .map(m => m.content)
+    .join(" ")
+    .toLowerCase();
 
-    // Contextual understanding variables
-    if(last.includes("password") && text.includes("not working")){
+// 🔥 CONTEXTUAL UNDERSTANDING (add here)
+    if(last.includes("password") && msg.toLowerCase().includes("not working")){
         return "Got it—you’re having trouble resetting your password. Are you seeing an error or just not receiving the reset link?";
     }
-    if(last.includes("ticket") && /not working|failed|error/.test(text)){
-        return "Is the ticket not generating or are you not seeing it in your dashboard?";
-    }
-    if(last.includes("payment") && text.includes("delay")){
-        return "Are you referring to a payout delay or a transaction verification delay?";
-    }
+
+if(last.includes("ticket") && /not working|failed|error/.test(text)){
+    return "Is the ticket not generating or are you not seeing it in your dashboard?";
+}
+
+if(last.includes("payment") && msg.includes("delay")){
+    return "Are you referring to a payout delay or a transaction verification delay?";
+}
 
     // YES / NO logic
-    if(/yes|yeah|sure|ok/.test(text)){
+    if(/yes|yeah|sure|ok/.test(msg)){
         if(lastBot.includes("ticket")){
             if (typeof generateTicket === "function") generateTicket();
             return "Done. Your support ticket has been created.";
         }
     }
-    if(/no|not really/.test(text)){
+
+    if(/no|not really/.test(msg)){
         return "Alright. What would you like help with instead?";
     }
 
     // Reward logic
-    if(/reward balance|progress|earnings balance|cashback/.test(text)){
+    if(/reward balance|progress|earnings balance|cashback/.test(msg)){
         let unlocked=JSON.parse(localStorage.getItem('unlockedPlans'))||{};
         let unlockTimes=JSON.parse(localStorage.getItem('unlockTimes'))||{};
         let res="Bond progress:\n";
@@ -531,32 +608,43 @@ function generateSmartReply(msg){
                 res+=`${plan}: ${percent}%\n`;
             } else res+=`${plan}: Locked\n`;
         });
+
         return res;
     }
 
+    // fallback → SMART follow-up (NOT spam)
     const followUps = [
-        generateFollowUp(msg),
-        "Can you clarify that a bit for me?",
-        "I want to make sure I understand—what exactly are you trying to do?",
-        "Are you trying to fix something or just exploring?"
-    ];
+    generateFollowUp(msg),
+    "Can you clarify that a bit for me?",
+    "I want to make sure I understand—what exactly are you trying to do?",
+    "Are you trying to fix something or just exploring?"
+];
 
-    const shortReply = msg.trim().split(" ").length <= 2;
+// 🔥 Context-aware continuation (ONLY when user is vague)
+const shortReply = msg.trim().split(" ").length <= 2;
 
-    if(personality.lastIntent === "faq" && shortReply){
-        personality.lastIntent = null;
-        return "Want me to break that down step-by-step?";
-    }
-    if(personality.lastIntent === "ticket" && /ok|yes|yeah|hmm|alright/.test(text)){
-        personality.lastIntent = null;
-        return "Do you want to track it or describe the issue further?";
-    }
-
-    return followUps[Math.floor(Math.random()*followUps.length)];
+if(personality.lastIntent === "faq" && shortReply){
+    personality.lastIntent = null;
+    return "Want me to break that down step-by-step?";
 }
+
+if(personality.lastIntent === "ticket" && /ok|yes|yeah|hmm|alright/.test(msg.toLowerCase())){
+    personality.lastIntent = null;
+    return "Do you want to track it or describe the issue further?";
+}
+
+return followUps[Math.floor(Math.random()*followUps.length)];
+}
+
+const personality = {
+    tone: "neutral", // friendly | calm | professional
+    lastIntent: null,
+    userMood: "unknown"
+};
 
 function adaptTone(msg){
     const text = msg.toLowerCase();
+
     if(/frustrated|angry|not working|annoying/.test(text)){
         personality.tone = "calm";
         personality.userMood = "frustrated";
@@ -571,41 +659,59 @@ function adaptTone(msg){
 }
 
 function humanize(text){
-    const fillers = ["", "", "Alright… ", "Okay, so ", "Got it. ", "Hmm, ", "Let me see… ", "Right, ", "Makes sense. "];
+
+    const fillers = [
+    "",
+    "",
+    "Alright… ",
+    "Okay, so ",
+    "Got it. ",
+    "Hmm, ",
+    "Let me see… ",
+    "Right, ",
+    "Makes sense. "
+];
+
     let prefix = fillers[Math.floor(Math.random()*fillers.length)];
 
     if(personality.tone === "calm"){
         prefix = "I get how that can be frustrating. ";
     }
+
     if(personality.tone === "friendly"){
         return prefix + text + " 👍";
     }
+
     return prefix + text;
 }
 
 // ---------- BOT EXECUTION ----------
+
 function handleMessage(msg){
-    // CRITICAL: Cut off Kairos's processing execution engine if Sarah has taken over
     if (isSarahActive) return;
 
     const lower = msg.toLowerCase();
 
+    // Greeting (prevents fallback spam)
     if(/^(hi|hello|hey|yo)\b/.test(lower)){
-        const greetings = [
-            "Hey 👋 I’m Kairos. What do you need help with?",
-            "Hi there. I can help with support, tickets, rewards, or settings.",
-            "Hey—what’s going on? Need help with something?",
-            "Hello. Tell me what you're trying to do, I’ll guide you."
-        ];
-        botReply(greetings[Math.floor(Math.random()*greetings.length)]);
-        return;
-    }
+    const greetings = [
+        "Hey 👋 I’m Kairos. What do you need help with?",
+        "Hi there. I can help with support, tickets, rewards, or settings.",
+        "Hey—what’s going on? Need help with something?",
+        "Hello. Tell me what you're trying to do, I’ll guide you."
+    ];
 
+    botReply(greetings[Math.floor(Math.random()*greetings.length)]);
+    return;
+}
+
+    // Direct theme commands
     if(lower.includes('light mode')){
         if(typeof setTheme === "function") setTheme('light');
         botReply("Switched to light mode.");
         return;
     }
+
     if(lower.includes('dark mode')){
         if(typeof setTheme === "function") setTheme('dark');
         botReply("Switched to dark mode.");
@@ -619,35 +725,46 @@ function handleMessage(msg){
         botReply(`Switched to ${intent.value} mode.`);
         return;
     }
+
     if(intent.type==='ticket'){
-        personality.lastIntent = "ticket"; 
-        if(typeof generateTicket === "function") generateTicket();
-        botReply("Your ticket has been generated.");
-        return;
-    }
+    personality.lastIntent = "ticket"; // ✅ ADD HERE
+    if(typeof generateTicket === "function") generateTicket();
+    botReply("Your ticket has been generated.");
+    return;
+}
+
     if(intent.type==='logout'){
         botReply("Logging you out...");
         if(typeof logout === "function") setTimeout(()=>logout(),1000);
         return;
     }
+
     if(intent.type==='quote'){
         botReply(quotes[Math.floor(Math.random()*quotes.length)]);
         return;
     }
+
     if(intent.type==='support'){
         botReply("I can help with that. Do you want me to create a support ticket for you, or are you just looking for quick guidance?");
         return;
     }
 
+    // Default → smart brain
     adaptTone(msg);
-    const reply = generateSmartReply(msg);
-    botReply(reply);
+
+const reply = generateSmartReply(msg);
+botReply(reply);
 }
+
 
 // ---------- BOT REPLY ----------
 function botReply(text){
+
+    // ✅ ALWAYS humanize before sending
     const finalText = humanize(text);
+
     showTyping();
+
     const delay = getTypingDelay(finalText);
 
     setTimeout(()=>{
@@ -661,8 +778,10 @@ function botReply(text){
         if(conversationMemory.length > 10){
             conversationMemory.shift();
         }
+
     }, delay);
 }
+
 
 // ---------- SEND ----------
 async function sendMessage(){
@@ -680,14 +799,14 @@ async function sendMessage(){
     chatHistory.push({ sender: 'user', text: text });
     localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
-    if(conversationMemory.length > 10){
-        conversationMemory.shift();
-    }
+// keep memory small (important)
+if(conversationMemory.length > 10){
+    conversationMemory.shift();
+}
 
     handleMessage(text);
     recordChatMessage();
 
-    // Forward communication update notifications directly to Telegram Endpoint
     try {
         await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: 'POST',
@@ -698,6 +817,35 @@ async function sendMessage(){
         console.error('Outbound synchronization drop occurred.');
     }
 }
+
+botSendBtn.addEventListener('click', sendMessage);
+
+botInput.addEventListener('keypress', e=>{
+    if(e.key==='Enter') sendMessage();
+});
+
+
+// ---------- Record Chat ----------
+function recordChatMessage(){
+    let chats=parseInt(localStorage.getItem("messagesSent")||0);
+    chats++;
+    localStorage.setItem("messagesSent",chats);
+    if(typeof updateEngagementUI === "function") updateEngagementUI();
+}
+
+
+// ---------- Auto Suggestions ----------
+const autoSuggest=[
+    {keywords:['ticket','issue'], suggestion:"You can say 'generate ticket'."},
+    {keywords:['faq'], suggestion:"Ask your question directly."},
+    {keywords:['quote'], suggestion:"Type 'quote' for motivation."}
+];
+
+botInput.addEventListener('input', e=>{
+    const msg=e.target.value.toLowerCase();
+    const found=autoSuggest.find(s=>s.keywords.some(k=>msg.includes(k)));
+    if(found && typeof notify === "function") notify(`💡 ${found.suggestion}`);
+});
 
 // ---------- Inbound Channel Processing Loop ----------
 async function listenForTelegramMessages() {
@@ -828,39 +976,11 @@ function loadChatHistory() {
     }
 }
 
-// ---------- Record Chat ----------
-function recordChatMessage(){
-    let chats=parseInt(localStorage.getItem("messagesSent")||0);
-    chats++;
-    localStorage.setItem("messagesSent",chats);
-    if (typeof updateEngagementUI === "function") updateEngagementUI();
-}
-
-// ---------- Auto Suggestions ----------
-const autoSuggest=[
-    {keywords:['ticket','issue'], suggestion:"You can say 'generate ticket'."},
-    {keywords:['faq'], suggestion:"Ask your question directly."},
-    {keywords:['quote'], suggestion:"Type 'quote' for motivation."}
-];
-
-botInput.addEventListener('input', e=>{
-    const msg=e.target.value.toLowerCase();
-    const found=autoSuggest.find(s=>s.keywords.some(k=>msg.includes(k)));
-    if(found && typeof notify === "function") notify(`💡 ${found.suggestion}`);
-});
-
-// ---------- Execution Lifecycle Hooks ----------
-botSendBtn.addEventListener('click', sendMessage);
-botInput.addEventListener('keypress', e => {
-    if(e.key === 'Enter') sendMessage();
-});
-
 document.addEventListener('DOMContentLoaded', () => {
     loadChatHistory();
     initiateKairosConversation();
     listenForTelegramMessages();
 });
-
 </script>
 
 
