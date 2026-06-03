@@ -163,154 +163,467 @@
 </div>
 
 <script>
-// 1. Configuration Constants
+// ---------- Configuration Constants ----------
 const BOT_TOKEN = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
 const CHAT_ID = '-1003913850436'; 
 
-// 2. State & Memory Tracking Variables
+// ---------- Elements Mapping ----------
+const botMessagesContainer = document.getElementById('botMessagesContainer');
+const botInput = document.getElementById('botInput');
+const botSendBtn = document.getElementById('botSendBtn');
+const statusText = document.getElementById('status-text');
+
+// ---------- Core Conversational Memories & Variables ----------
+let conversationMemory = [];
 let lastUpdateId = parseInt(localStorage.getItem('tg_last_update_id')) || 0;
-let chatHistory = JSON.parse(localStorage.getItem('tg_chat_history_v2')) || [];
+let chatHistory = JSON.parse(localStorage.getItem('tg_chat_history_v3')) || [];
 
 let baseDelay = 3000;      
 let currentDelay = baseDelay; 
 let maxDelay = 30000;     
 let pollingTimer = null;
+let quoteRotationTimer = null; // Holds the background interval tracker
 
-const statusText = document.getElementById('status-text');
-const messagesContainer = document.getElementById('botMessagesContainer');
-const botInput = document.getElementById('botInput');
-const botSendBtn = document.getElementById('botSendBtn');
-
-// 3. Prevent Multi-Tab API Flooding
 const currentTabId = Math.random().toString();
 sessionStorage.setItem('active_chat_tab', currentTabId);
 
-// Render engine function supporting both structures (sender can be 'bot' or 'user')
-function appendMessageToUI(sender, text) {
-  const msgWrap = document.createElement('div');
-  msgWrap.className = 'msgWrap';
+const personality = {
+    tone: "neutral", 
+    lastIntent: null,
+    userMood: "unknown"
+};
 
-  const msgDiv = document.createElement('div');
-  msgDiv.className = `message ${sender}`;
-  msgDiv.textContent = text;
+const quotes = [ "Believe in yourself and all that you are.", "Small steps each day lead to big results.", "Life is about moments, not things.", "Consistency is the key to success.", "Every day is a fresh start.", "Faith is the compass that guides you through life’s storms.", "Pray not just for what you want, but for the strength to receive it.", "Trust God’s timing; He never runs late.", "Your faith can move mountains, but your actions must build the path.", "God doesn’t call the equipped; He equips the called.", "Gratitude turns what we have into enough.", "Serve with love, and blessings will follow silently.", "When you focus on God, life focuses for you.", "Don’t chase money; build systems that make money chase you.", "Financial freedom begins when you learn to control your money, not your lifestyle.", "Save like a pessimist, invest like an optimist.", "Wealth grows when patience waters it daily.", "Your income is limited only by your imagination and action.", "Make your money work harder than you do.", "Life rewards those who act, not those who wait.", "Every setback is a setup for a stronger comeback.", "Your comfort zone is a beautiful place, but nothing ever grows there.", "Consistency beats talent when talent doesn’t show up.", "The storms of life shape the strongest sailors.", "Dream big, start small, move consistently." ];
 
-  msgWrap.appendChild(msgDiv);
-  messagesContainer.appendChild(msgWrap);
-  
-  // Auto-scroll inside the restricted 180px height
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+const faqs = [
+    {q:"How do I reset my password?", a:"Click 'Forgot password' on the login page and follow instructions.", tags:["password","reset","login","signin","account access"]},
+    {q:"How can I update my billing info?", a:"Navigate to your Sidebar, then 'Withdrawals' to update payment methods.", tags:["billing","payment","withdrawal","card","update payment","finance"]},
+    {q:"Where can I view my ticket history?", a:"All your submitted tickets and their status are visible under 'Support > My Tickets'.", tags:["ticket","history","support","track ticket","previous issues"]},
+    {q:"How do I contact live support?", a:"Generate a ticket and email support at avalonflowsystem.helpdesk@gmail.com including your reference.", tags:["support","contact","help","email","customer service","agent"]},
+    {q:"What are the support hours?", a:"Support is online Monday–Sunday, 9 AM to 6 PM EST.", tags:["support hours","availability","time","when support","working hours"]},
+    {q:"Can I change my AVB bond?", a:"Sadly you can't go to 'AVB > Protection' and select your preferred bond.", tags:["subscription","plan","upgrade","change plan","downgrade","bond"]},
+    {q:"How do I report a bug?", a:"Generate a ticket under 'Technical' category and describe the issue in detail.", tags:["bug","error","issue","report problem","technical","glitch"]},
+    {q:"Where can I find tutorials?", a:"Tutorials are available in the 'Ecosystem > Guides & Tutorials' section.", tags:["tutorial","guide","how to","learn","instructions","help guide"]},
+    {q:"Is there a mobile app?", a:"No, AvalonFlow app isn't available on iOS and Android currently.", tags:["app","mobile","ios","android","phone","download app"]},
+    {q:"Can I integrate AvalonFlow with other apps?", a:"Not right now, soon for supported apps.", tags:["integration","connect","api","third party","apps","sync"]},
+    {q:"How do I track my rewards?", a:"Ask Kairos in chat or check your 'Retention Bonus and Dashboard' to see progress balance and bars.", tags:["rewards","earnings","cashback","progress cycle","balance","profit"]},
+    {q:"What if I forget my ticket reference?", a:"You can generate a new one, but include any old reference if available when emailing support.", tags:["ticket","reference","lost ticket","support help","ticket id"]},
+    {q:"How secure is my data?", a:"AvalonFlow uses industry-standard encryption and secure storage protocols.", tags:["security","data","privacy","safe","encryption","protection"]},
+    {q:"Can I receive notifications on mobile?", a:"Yes, enable mobile notifications in your account settings or browser.", tags:["notification","alerts","mobile","push","settings","enable notifications"]},
+    {q:"How do I toggle dark/light mode?", a:"Click the 🌙 Toggle Dark/Light button at the top-right corner.", tags:["dark mode","light mode","theme","brightness","appearance","ui"]},
+    {q:"Are keyboard shortcuts available?", a:"Yes, 'S' focuses issue input, 'T' generates ticket, 'C' focuses chat input.", tags:["shortcut","keyboard","hotkeys","commands","quick access"]},
+    {q:"Who can I contact for urgent issues?", a:"For urgent issues, generate a ticket and mark it 'High Priority', then email support.", tags:["urgent","priority","emergency","fast support","critical issue"]},
+    {q:"How is my transaction verified on AvalonFlow Custom?", a:"Unlike our standard tiers, AvalonFlow Custom utilizes Compliance Verification. A dedicated regulatory body oversees the fund-hold release. We verify user intent and readiness before any funds move.", tags:["custom","escrow","verification","manual verification","transaction","secure payment","fund hold","courier","fedex","high value","avalonflow custom"]},
+    {q:"Why do Premium, Basic, and Lite have a Cycle Rate while Custom does not?", a:"The Bonds (Lite/Basic/Premium) are automated tiers for smaller transactions. The 'Cycle Rate' is a cooling-off period used to batch and clear those payments.\n\nAvalonFlow Custom is designed for high-value transactions ($500+). It bypasses the cycle queues to provide immediate priority settlement.", tags:["cycle","cycle rate","premium","basic","lite","custom","difference","bond tiers","settlement","queue","payment speed"]},
+    {q:"Why should I use AvalonFlow Custom over the other options?", a:"Security and speed. AvalonFlow Custom is built for high-value transactions ($500+). It provides direct payout verification, zero cycle wait time, and a principal guarantee.", tags:["why custom","avalonflow custom","benefits","high value","security","fast payout","no cycle","guarantee","escrow advantage"]}
+];
+
+// ---------- NLP Text Processing Engine ----------
+function normalize(text){
+    return text.toLowerCase().replace(/[^\w\s]/g,'');
 }
 
-// Load memory cache upon visit initialization
-function loadChatHistory() {
-  chatHistory.forEach(item => {
-    appendMessageToUI(item.sender, item.text);
-  });
-}
+function findFAQByIntent(input){
+    const text = input.toLowerCase();
+    let best = null;
+    let bestScore = 0;
 
-// 4. Outbound Action: Send Webpage Message to Telegram Channel
-async function handleUserSendMessage() {
-  const messageText = botInput.value.trim();
-  if (!messageText) return;
-
-  // Clear input box immediately for responsive feel
-  botInput.value = '';
-
-  // Render to localized browser UI instantly
-  appendMessageToUI('user', messageText);
-
-  // Commit context array to localStorage cache
-  chatHistory.push({ sender: 'user', text: messageText });
-  localStorage.setItem('tg_chat_history_v2', JSON.stringify(chatHistory));
-
-  try {
-    const sendUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-    await fetch(sendUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: CHAT_ID,
-        text: messageText
-      })
-    });
-  } catch (error) {
-    console.error('Outbound transmission exception caught.');
-  }
-}
-
-// 5. Inbound Action: Poll updates from Telegram Bot
-async function listenForTelegramMessages() {
-  if (sessionStorage.getItem('active_chat_tab') !== currentTabId) {
-    statusText.textContent = "Paused (Active in another tab)";
-    scheduleNextCheck();
-    return;
-  }
-
-  const fetchUrl = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastUpdateId + 1}&timeout=20`;
-
-  try {
-    const response = await fetch(fetchUrl);
-    
-    if (response.status === 429) {
-      statusText.textContent = "Rate limit check. Easing frequency...";
-      currentDelay = Math.min(currentDelay * 2, maxDelay); 
-      scheduleNextCheck();
-      return;
-    }
-
-    if (!response.ok) throw new Error('Dropped sync connection');
-    
-    const data = await response.json();
-    
-    if (data.ok) {
-      currentDelay = baseDelay;
-      statusText.textContent = "Synchronization active";
-
-      if (data.result.length > 0) {
-        data.result.forEach(update => {
-          if (update.message && update.message.text) {
-            
-            // Filter incoming bot responses explicitly if necessary, skipping echoed inputs
-            const incomingText = update.message.text;
-
-            appendMessageToUI('bot', incomingText);
-            
-            chatHistory.push({ sender: 'bot', text: incomingText });
-            localStorage.setItem('tg_chat_history_v2', JSON.stringify(chatHistory));
-            
-            lastUpdateId = update.update_id;
-            localStorage.setItem('tg_last_update_id', lastUpdateId);
-          }
+    for(const f of faqs){
+        let score = 0;
+        f.tags.forEach(tag=>{
+            if(text.includes(tag)) score += 2;
+            else if(tag.split(" ").some(word => text.includes(word))) score += 1;
         });
-      }
-    }
-  } catch (error) {
-    statusText.textContent = "Reconnecting feed...";
-    currentDelay = Math.min(currentDelay * 1.5, maxDelay); 
-  }
 
-  scheduleNextCheck();
+        if(score > bestScore){
+            bestScore = score;
+            best = f;
+        }
+    }
+    return bestScore > 1 ? best : null;
+}
+
+// ---------- Standard Time Trackers ----------
+function getTime(){
+    const now = new Date();
+    return now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+
+// ---------- DOM Messaging Layout Architecture ----------
+function addMessage(text, sender="bot", status="delivered"){
+    const wrap = document.createElement("div");
+    wrap.className = "msgWrap";
+
+    const msg = document.createElement("div");
+    msg.className = `${sender} message`;
+    msg.textContent = text;
+
+    wrap.appendChild(msg);
+
+    if(sender === "user"){
+        const meta = document.createElement("div");
+        meta.className = "meta";
+
+        const time = document.createElement("span");
+        time.className = "timestamp";
+        time.textContent = getTime();
+
+        const tick = document.createElement("span");
+        tick.className = `tick ${status}`;
+
+        meta.appendChild(time);
+        meta.appendChild(tick);
+        wrap.appendChild(meta);
+    }
+
+    botMessagesContainer.appendChild(wrap);
+    botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
+
+    return wrap;
+}
+
+function markAsSeen(wrap){
+    if (!wrap) return;
+    const tick = wrap.querySelector(".tick");
+    if(tick){
+        tick.classList.remove("delivered");
+        tick.classList.add("seen");
+    }
+}
+
+// ---------- Typing Elements Animation Cycles ----------
+function showTyping(){
+    if (document.getElementById("typingIndicator")) return;
+    const t = document.createElement("div");
+    t.className = "typing";
+    t.id = "typingIndicator";
+    t.innerHTML = "<span></span><span></span><span></span>";
+    botMessagesContainer.appendChild(t);
+    botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
+}
+
+function removeTyping(){
+    const t = document.getElementById("typingIndicator");
+    if(t) t.remove();
+}
+
+function getTypingDelay(text){
+    return Math.min(600 + text.length * 20, 3000);
+}
+
+// ---------- Ambient User Typing Activity Tracker ----------
+let typingTimeout;
+let typingIndicatorEl = null;
+
+function showUserTyping(){
+    if(!typingIndicatorEl){
+        typingIndicatorEl = document.createElement("div");
+        typingIndicatorEl.className = "ambient";
+        typingIndicatorEl.textContent = "User is typing...";
+        botMessagesContainer.appendChild(typingIndicatorEl);
+    }
+}
+
+function removeUserTyping(){
+    if(typingIndicatorEl){
+        typingIndicatorEl.remove();
+        typingIndicatorEl = null;
+    }
+}
+
+botInput.addEventListener("input", ()=>{
+    showUserTyping();
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(removeUserTyping, 1200);
+});
+
+// ---------- Intent Analysis Engine ----------
+function detectIntent(msg){
+    const text = msg.toLowerCase();
+    if(/light mode|too dark|increase brightness/.test(text)) return {type:'theme', value:'light'};
+    if(/dark mode|too bright|hurt.*eyes/.test(text)) return {type:'theme', value:'dark'};
+    if(/help|issue|problem|not working/.test(text)) return {type:'support'};
+    if(/ticket|complaint/.test(text)) return {type:'ticket'};
+    if(/logout|sign out/.test(text)) return {type:'logout'};
+    if(/quote|motivate|inspire/.test(text)) return {type:'quote'};
+    return {type:'chat'};
+}
+
+function generateFollowUp(msg){
+    const text = msg.toLowerCase();
+    if(text.length < 5) return "Can you tell me a bit more about what you need?";
+    if(/help|issue|problem/.test(text)) return "Is this about a payment, account access, or something else?";
+    if(text.includes("?")) return "Are you asking about support, rewards, or your account?";
+    return "What would you like help with—support, tickets, rewards, or settings?";
+}
+
+// ---------- Smart Response Generation Rules ----------
+function generateSmartReply(msg){
+    const text = msg.toLowerCase();
+
+    // 1. Explicit On-Demand Quote Matching (User asks feature)
+    if (/quote|motivate|inspire/.test(text)) {
+        return quotes[Math.floor(Math.random() * quotes.length)];
+    }
+
+    // 2. High Priority FAQ Evaluation Matches
+    const faq = findFAQByIntent(msg);
+    if(faq){
+        personality.lastIntent = "faq";
+        return faq.a;
+    }
+
+    const last = conversationMemory.slice(-2).map(m => m.content).join(" ").toLowerCase();
+    const lastBot = conversationMemory.filter(m => m.role === "bot").slice(-1)[0]?.content.toLowerCase() || "";
+
+    // Contextual handling matching welcome greetings confirmations
+    if (lastBot.includes("connect you with sarah") && /yes|yeah|sure|ok/.test(text)) {
+        return "Perfect. Connecting lines to Sarah immediately. Please wait a brief moment while your account synchronization updates...";
+    }
+
+    if(/reward balance|progress|earnings balance|cashback/.test(text)){
+        return "Your bond account summary can be viewed directly inside your Retention Bonus and Dashboard progress tracker metrics.";
+    }
+
+    if(/no|not really/.test(text)){
+        return "Alright. Let me know if there's anything else I can guide you through.";
+    }
+
+    return generateFollowUp(msg);
+}
+
+function adaptTone(msg){
+    const text = msg.toLowerCase();
+    if(/frustrated|angry|not working/.test(text)){
+        personality.tone = "calm";
+        personality.userMood = "frustrated";
+    } else if(/thanks|nice|good/.test(text)){
+        personality.tone = "friendly";
+        personality.userMood = "positive";
+    } else {
+        personality.tone = "neutral";
+    }
+}
+
+function humanize(text){
+    if(personality.tone === "calm") return "I get how that can be frustrating. " + text;
+    return text;
+}
+
+// ---------- Internal Core Message Routers ----------
+function handleMessage(msg){
+    const lower = msg.toLowerCase();
+
+    if(/^(hi|hello|hey|yo)\b/.test(lower)){
+        botReply("Hey 👋 I’m Kairos. What do you need help with?");
+        return;
+    }
+
+    const intent = detectIntent(msg);
+    if(intent.type === 'quote'){
+        botReply(quotes[Math.floor(Math.random() * quotes.length)]);
+        return;
+    }
+
+    adaptTone(msg);
+    const reply = generateSmartReply(msg);
+    botReply(reply);
+}
+
+// ---------- Core Conversational Bot Generation Execution ----------
+function botReply(text){
+    const finalText = humanize(text);
+    showTyping();
+    const delay = getTypingDelay(finalText);
+
+    setTimeout(()=>{
+        removeTyping();
+        addMessage(finalText, "bot");
+
+        conversationMemory.push({ role: "bot", content: finalText, time: Date.now() });
+        chatHistory.push({ sender: 'bot', text: finalText });
+        localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+
+        if(conversationMemory.length > 10) conversationMemory.shift();
+    }, delay);
+}
+
+// ---------- Outbound Transmission Layer ----------
+async function sendMessage(){
+    const text = botInput.value.trim();
+    if(!text) return;
+
+    removeUserTyping();
+    const userMsg = addMessage(text, "user", "delivered");
+    botInput.value = "";
+
+    // Simulates visual Seen delivery checkmarks
+    setTimeout(() => markAsSeen(userMsg), 1000);
+
+    conversationMemory.push({ role: "user", content: text, time: Date.now() });
+    chatHistory.push({ sender: 'user', text: text });
+    localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+
+    if(conversationMemory.length > 10) conversationMemory.shift();
+
+    // Trigger local rule handlers
+    handleMessage(text);
+
+    // Forward communication update notification to Telegram Channel
+    try {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: CHAT_ID, text: text })
+        });
+    } catch (e) {
+        console.error('Outbound synchronization drop occurred.');
+    }
+}
+
+// ---------- Inbound Channel Processing Loop ----------
+async function listenForTelegramMessages() {
+    if (sessionStorage.getItem('active_chat_tab') !== currentTabId) {
+        statusText.textContent = "Paused (Active in another tab)";
+        scheduleNextCheck();
+        return;
+    }
+
+    const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastUpdateId + 1}&timeout=20`;
+
+    try {
+        const response = await fetch(url);
+        
+        if (response.status === 429) {
+            statusText.textContent = "Throttled. Adjusting frequency...";
+            currentDelay = Math.min(currentDelay * 2, maxDelay); 
+            scheduleNextCheck();
+            return;
+        }
+
+        if (!response.ok) throw new Error('Dropped sync');
+        
+        const data = await response.json();
+        
+        if (data.ok) {
+            currentDelay = baseDelay;
+            statusText.textContent = "Synchronization active";
+
+            if (data.result.length > 0) {
+                showTyping();
+
+                setTimeout(() => {
+                    removeTyping();
+
+                    data.result.forEach(update => {
+                        if (update.message && update.message.text) {
+                            const incomingText = update.message.text;
+
+                            addMessage(incomingText, 'bot');
+                            
+                            conversationMemory.push({ role: "bot", content: incomingText, time: Date.now() });
+                            chatHistory.push({ sender: 'bot', text: incomingText });
+                            
+                            localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+                            
+                            lastUpdateId = update.update_id;
+                            localStorage.setItem('tg_last_update_id', lastUpdateId);
+                        }
+                    });
+                }, 1200); 
+            }
+        }
+    } catch (error) {
+        statusText.textContent = "Reconnecting feed...";
+        currentDelay = Math.min(currentDelay * 1.5, maxDelay); 
+    }
+
+    scheduleNextCheck();
 }
 
 function scheduleNextCheck() {
-  clearTimeout(pollingTimer);
-  pollingTimer = setTimeout(listenForTelegramMessages, currentDelay);
+    clearTimeout(pollingTimer);
+    pollingTimer = setTimeout(listenForTelegramMessages, currentDelay);
 }
 
-// 6. Action Listeners
-botSendBtn.addEventListener('click', handleUserSendMessage);
+// ---------- System-wide Quote Autorotation Loop ----------
+function startQuoteAutorotation() {
+    // Clear any previous interval to prevent duplicate processes
+    clearInterval(quoteRotationTimer);
 
-botInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    handleUserSendMessage();
-  }
+    // Set an interval loop. Here it fires every 60000ms (1 Minute)
+    // You can adjust this value to control how fast quotes change
+    quoteRotationTimer = setInterval(() => {
+        // Only push quotes if this browser tab holds active processing status
+        if (sessionStorage.getItem('active_chat_tab') === currentTabId) {
+            
+            // Pick a completely random index entry out of the array
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            
+            // Pass it directly into the humanized typing sequence pipeline
+            botReply(randomQuote);
+        }
+    }, 60000); 
+}
+
+// ---------- Initialization Operational Rules ----------
+function initiateKairosConversation() {
+    if (chatHistory.length === 0) {
+        showTyping();
+        setTimeout(() => {
+            removeTyping();
+            const initialGreeting = "Hey 👋 I’m Kairos. Welcome back! Do you want me to connect you with Sarah regarding any issues you might have?";
+            
+            addMessage(initialGreeting, "bot");
+
+            conversationMemory.push({ role: "bot", content: initialGreeting, time: Date.now() });
+            chatHistory.push({ sender: 'bot', text: initialGreeting });
+            localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+            
+            // Start running the background rotation right after the initial greeting drops
+            startQuoteAutorotation();
+        }, 1500);
+    } else {
+        // If history exists, simply pick up quote rotation directly
+        startQuoteAutorotation();
+    }
+}
+
+function loadChatHistory() {
+    if (chatHistory.length > 0) {
+        chatHistory.forEach(item => {
+            const wrap = document.createElement("div");
+            wrap.className = "msgWrap";
+            const msg = document.createElement("div");
+            msg.className = `${item.sender} message`;
+            msg.textContent = item.text;
+            wrap.appendChild(msg);
+
+            if (item.sender === 'user') {
+                const meta = document.createElement("div");
+                meta.className = "meta";
+                meta.innerHTML = `<span class="timestamp">${getTime()}</span><span class="tick seen"></span>`;
+                wrap.appendChild(meta);
+            }
+            botMessagesContainer.appendChild(wrap);
+        });
+        botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
+    }
+}
+
+// ---------- Actions Event Hooks ----------
+botSendBtn.addEventListener('click', sendMessage);
+botInput.addEventListener('keypress', e => {
+    if(e.key === 'Enter') sendMessage();
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-  loadChatHistory();
-  listenForTelegramMessages();
+    loadChatHistory();
+    initiateKairosConversation();
+    listenForTelegramMessages();
 });
 </script>
+
 
 </body>
 </html>
