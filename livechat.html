@@ -578,20 +578,42 @@ function handleMessage(msg){
     botReply(reply);
 }
 
+// ---------- OPTIMIZED BOT EXECUTION ENGINE ----------
+
 function botReply(text){
+    // Humanize adds conversational filler prefixes like "Alright…", "Okay, so"
     const finalText = humanize(text);
     showTyping();
     const delay = getTypingDelay(finalText);
 
-    setTimeout(()=>{
+    setTimeout(() => {
         removeTyping();
+        
+        // CRITICAL FIX: Explicitly forcing standard "bot" bubble styling and "text" type
         addMessage(finalText, "bot", "delivered", "text");
 
+        // Commit cleanly to persistence layers
         conversationMemory.push({ role: "bot", content: finalText, type: "text", time: Date.now() });
         chatHistory.push({ sender: 'bot', text: finalText, type: 'text' });
         localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
     }, delay);
 }
+
+// ---------- FIXED AUTOMATIC QUOTE ROTATION LOOP ----------
+
+function startQuoteAutorotation() {
+    clearInterval(quoteRotationTimer);
+    quoteRotationTimer = setInterval(() => {
+        // Only run if the tab is active and the live agent (Sarah) hasn't taken over
+        if (sessionStorage.getItem('active_chat_tab') === currentTabId && !isSarahActive) {
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            
+            // Re-routed through botReply to guarantee message bubble container generation
+            botReply(randomQuote);
+        }
+    }, 60000); // Fires systematically every 60 seconds
+}
+
 
 // ---------- Outbound Transmission Handling ----------
 async function sendMessage(){
