@@ -1088,19 +1088,22 @@ function generateSmartReply(msg){
         return "Alright, let me know what you need help with instead.";
     }
 
-    // 🏃‍♂️💨 THE "RUN AWAY" FAILSAFE TRIGGER
-    // If the message doesn't match any system balances or quick phrases, Kairos Pro immediately flees to Sarah
-    setTimeout(transitionToSarah, 1000);
-
-    // Dynamic Escalation Alert: Quietly ping Sarah's channel that an unhandled question forced a takeover
-    setTimeout(() => {
-        forwardUserMessageToTelegram(`⚠️ [KAIROS ESCALATION]: Automated assistant could not parse last query. Handoff triggered for question: "${msg}"`, "text");
-    }, 500);
-
-    return "That requires priority authorization. Hold on a moment while I connect your session directly with Sarah from our support team... ⚡";
-}
-
+    // 1. We quietly look for an FAQ match first behind the scenes...
     const faq = findFAQByIntent(msg);
+
+    // 2. 🏃‍♂️💨 THE "RUN AWAY" FAILSAFE TRIGGER
+    // We only return this if no FAQ was found!
+    if (!faq) {
+        setTimeout(transitionToSarah, 1000);
+
+        setTimeout(() => {
+            forwardUserMessageToTelegram(`⚠️ [KAIROS ESCALATION]: Automated assistant could not parse last query. Handoff triggered for question: "${msg}"`, "text");
+        }, 500);
+
+        return "That requires priority authorization. Hold on a moment while I connect your session directly with Sarah from our support team... ⚡";
+    }
+
+    
     if(faq){
         personality.lastIntent = "faq";
         return faq.a;
