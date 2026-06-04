@@ -629,9 +629,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // ---------- Configuration Constants ----------
 const BOT_TOKEN = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
 const CHAT_ID = '-1003913850436';
+const KAIROS_TITLE = "Kairos Assistant"; // Custom Title Synchronization Constant
 
 // ---------- State & Personality Configuration ----------
-const personality = { tone: "neutral", lastIntent: null, userMood: "unknown", awaitingSarahConfirm: false };
+const personality = { tone: "neutral", lastIntent: null, userMood: "unknown", awaitingSarahConfirm: false, awaitingTimeoutRetry: false };
 let isSarahActive = false; 
 
 // ---------- Kairos Bot / FAQ Elements ----------
@@ -642,7 +643,6 @@ const botFileInput = document.getElementById('botFileInput');
 const statusText = document.getElementById('status-text'); 
 
 let conversationMemory = [];
-// BUG FIX 2: Bind lastUpdateId globally to avoid duplicate processing loops across single sessions
 let lastUpdateId = parseInt(localStorage.getItem('tg_last_update_id')) || 0;
 let chatHistory = JSON.parse(localStorage.getItem('tg_chat_history_v3')) || [];
 
@@ -757,9 +757,35 @@ tags:["why custom","avalonflow custom","benefits","high value","security","fast 
 }
 ];
 
-// ---------- NLP & Utility Engines ----------
+// ---------- NLP, Similarity, & Fallback Engines ----------
 function normalize(text){
     return text.toLowerCase().replace(/[^\w\s]/g,'');
+}
+
+function similarity(a, b){
+    const aWords = normalize(a).split(' ');
+    const bWords = normalize(b).split(' ');
+    const important = ['password','ticket','support','billing','plan','rewards'];
+    let score = 0;
+    aWords.forEach(w=>{
+        if(bWords.includes(w)){
+            score += important.includes(w) ? 2 : 1;
+        }
+    });
+    return score / bWords.length;
+}
+
+function findBestFAQ(input) {
+    let best = null;
+    let maxSim = 0;
+    for (const f of faqs) {
+        const simQ = similarity(input, f.q);
+        if (simQ > maxSim) {
+            maxSim = simQ;
+            best = f;
+        }
+    }
+    return maxSim > 0.25 ? best : null;
 }
 
 function findFAQByIntent(input){
@@ -778,7 +804,7 @@ function findFAQByIntent(input){
             best = f;
         }
     }
-    return bestScore > 1 ? best : null;
+    return bestScore > 1 ? best : findBestFAQ(input);
 }
 
 function getTime(){
@@ -839,7 +865,6 @@ if (photoInput && profilePhoto) {
 }
 
 // ---------- OPTIMIZED INTEGRATED MESSAGE RENDERER ----------
-// BUG FIX 1 & 3: Refactored logic completely. Explicitly uses 'overrideSender' parameter saved in local history payload
 function addMessage(content, sender="bot", status="delivered", type="text", overrideSender = null){
     const wrap = document.createElement("div");
     wrap.className = `msgWrap ${sender}-wrap`; 
@@ -851,7 +876,6 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
         const savedUserPhoto = localStorage.getItem('profilePhoto');
         avatarImg.src = savedUserPhoto ? savedUserPhoto : DEFAULT_AVATAR;
     } else {
-        // Enforce avatar assignment completely derived from active routing flags or saved historic sender overrides
         if (overrideSender === "sarah" || (isSarahActive && overrideSender !== "kairos")) {
             avatarImg.src = SARAH_AVATAR;
         } else {
@@ -862,7 +886,6 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
     const msg = document.createElement("div");
     msg.className = `${sender} message`;
 
-    // BUG FIX 3 & 4: Upgraded Media Renderer to support fallback parsing elements and base64 parsing safe hooks
     if (type === "photo") {
         const img = document.createElement("img");
         img.src = content;
@@ -892,19 +915,18 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
         docBox.style.display = "flex";
         docBox.style.alignItems = "center";
         docBox.style.gap = "8px";
-        
+
         const docIcon = document.createElement("span");
         docIcon.textContent = "📄";
         docIcon.style.fontSize = "20px";
-        
+
         const docLink = document.createElement("a");
         docLink.href = content;
         docLink.target = "_blank";
         docLink.style.color = "#a29bfe";
         docLink.style.textDecoration = "underline";
-        // If content is local data URL or system path, optimize presentation text
         docLink.textContent = content.startsWith("data:") ? "Downloaded Document File" : "View Verified Document";
-        
+
         docBox.appendChild(docIcon);
         docBox.appendChild(docLink);
         msg.appendChild(docBox);
@@ -963,6 +985,7 @@ function showTyping(){
     botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
 }
 
+// ---------- Humanized Ambient Prefixes ----------
 function removeTyping(){
     const t = document.getElementById("typingIndicator");
     if(t) t.remove();
@@ -972,6 +995,7 @@ function getTypingDelay(text){
     return Math.min(300 + text.length * 20, 2500); 
 }
 
+// ---------- ACTIVE INTERACTIVE UI NOTIFICATIONS & TYPING ----------
 let typingTimeout;
 let typingIndicatorEl = null;
 
@@ -988,12 +1012,51 @@ if (botInput) {
             if(typingIndicatorEl) { typingIndicatorEl.remove(); typingIndicatorEl = null; }
         }, 1200);
     });
+
+    botInput.addEventListener('input', e=>{
+        const msg=e.target.value.toLowerCase();
+        const autoSuggest=[
+            {keywords:['ticket','issue'], suggestion:"You can say 'generate ticket'."},
+            {keywords:['faq','question'], suggestion:"Ask your question directly to check database."},
+            {keywords:['quote','motivation'], suggestion:"Type 'quote' for motivation."}
+        ];
+        const found=autoSuggest.find(s=>s.keywords.some(k=>msg.includes(k)));
+        if(found && typeof notify === "function") notify(`💡 ${found.suggestion}`);
+    });
+}
+
+function recordChatMessage(){
+    let chats=parseInt(localStorage.getItem("messagesSent")||0);
+    chats++;
+    localStorage.setItem("messagesSent",chats);
+    if(typeof updateEngagementUI === "function") updateEngagementUI();
 }
 
 // ---------- HUMANIZE AGENT SUPPORT PIPELINE ----------
+function revertToKairos(customMessage = null) {
+    isSarahActive = false;
+    personality.awaitingTimeoutRetry = false;
+    localStorage.removeItem('sarah_takeover_timestamp');
+
+    const botHeader = document.getElementById('botHeader');
+    if (botHeader) {
+        botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
+        botHeader.textContent = KAIROS_TITLE; // Fixed alignment
+    }
+
+    startQuoteAutorotation();
+
+    const fallbackText = customMessage || "I am Kairos, your automated assistant, and I am back online. How can I assist you with another issue?";
+    addMessage(fallbackText, "bot", "delivered", "text", "kairos");
+
+    chatHistory.push({ sender: 'bot', text: fallbackText, type: 'text', actualSender: 'kairos' });
+    localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+}
+
 function transitionToSarah() {
     if(isSarahActive) return;
     isSarahActive = true; 
+    personality.awaitingTimeoutRetry = false;
 
     clearInterval(quoteRotationTimer);
     quoteRotationTimer = null; 
@@ -1003,18 +1066,17 @@ function transitionToSarah() {
     setTimeout(() => {
         removeTyping();
         const handoffMessage = "Sorry for the delay. Connecting you with Sarah in a bit...";
-        // explicitly tag handoff as system / kairos generated profile
         addMessage(handoffMessage, "bot", "delivered", "text", "kairos");
 
         conversationMemory.push({ role: "bot", content: handoffMessage, type: "text", time: Date.now() });
         showTyping();
 
-        // 🧠 BEHAVIORAL REALISM: Calculate a random connection window between 45 seconds (45000ms) and 5 minutes (300000ms)
         const minDelay = 45000; 
         const maxDelay = 300000; 
         const dynamicHandoffDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
 
         setTimeout(() => {
+            if(!isSarahActive) return; 
             removeTyping();
             const botHeader = document.getElementById('botHeader');
             if (botHeader) {
@@ -1040,7 +1102,6 @@ function transitionToSarah() {
             chatHistory.push({ sender: 'bot', text: sarahEntryMessage, type: 'text', actualSender: 'sarah' });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
-            // 🛡️ SECURITY TIMEOUT PROTOCOL: Initialize the precise timestamp when Sarah takes over the session
             localStorage.setItem('sarah_takeover_timestamp', Date.now().toString());
 
         }, dynamicHandoffDelay);
@@ -1059,12 +1120,46 @@ function detectIntent(msg){
     return {type:'chat'};
 }
 
+// ---------- VAGUE RESPONSE MATRIX CRUNCHER ----------
+function generateFollowUp(msg){
+    const text = msg.toLowerCase();
+    if(text.length < 5){
+        return "Can you tell me a bit more about what you need?";
+    }
+    if(/help|issue|problem|error|not working/.test(text)){
+        return "Got you. Is this about a payment, account access, or something else?";
+    }
+    if(text.includes("?")){
+        return "Are you asking about support, rewards, or your account panel?";
+    }
+    if(/money|earn|profit|balance/.test(text)){
+        return "Do you want to check your reward progress or understand how bonds settle?";
+    }
+    if(/how|where|what/.test(text)){
+        return "I can guide you step-by-step—what exactly are you trying to setup?";
+    }
+    return "What would you like help with—support, rewards, or dashboard settings?";
+}
+
+// ---------- CORE SMART ENGINE UPDATED WITH LITE FEATURES ----------
 function generateSmartReply(msg){
     const text = msg.toLowerCase();
-    const isYes = /^(yes|yeah|sure|ok|please)\b/.test(text);
-    const isNo = /^(no|not really|nah)\b/.test(text);
+    const isYes = /^(yes|yeah|sure|ok|please|retry)\b/.test(text);
+    const isNo = /^(no|not really|nah|stop|end)\b/.test(text);
+    const shortReply = msg.trim().split(" ").length <= 2;
 
-    // Explicit manual support requests
+    if (personality.awaitingTimeoutRetry) {
+        if (isYes) {
+            revertToKairos("Restarting connection protocol... Hold tight while I signal Sarah's desk again. ⚡");
+            setTimeout(transitionToSarah, 1500);
+            return null; 
+        }
+        if (isNo) {
+            revertToKairos();
+            return null;
+        }
+    }
+
     if (/support|live chat|representative|human|agent|help|issue/.test(text) || personality.lastIntent === "support") {
         if(/email/.test(text)){
             personality.lastIntent = null;
@@ -1079,7 +1174,6 @@ function generateSmartReply(msg){
         return "Do you prefer to email support or live chat with Sarah?";
     }
 
-    // Direct onboarding confirmations
     if (personality.awaitingSarahConfirm && isYes) {
         personality.awaitingSarahConfirm = false;
         setTimeout(transitionToSarah, 600);
@@ -1090,7 +1184,6 @@ function generateSmartReply(msg){
         return "Alright, let me know what you need help with instead.";
     }
 
-    // Checking account progress / dynamic balance checks
     if(/reward balance|progress|earnings balance|cashback/.test(text)){
         let unlocked = JSON.parse(localStorage.getItem('unlockedPlans')) || {};
         let unlockTimes = JSON.parse(localStorage.getItem('unlockTimes')) || {};
@@ -1108,26 +1201,30 @@ function generateSmartReply(msg){
         return res;
     }
 
-    // 1. We quietly look for an FAQ match first behind the scenes...
-    const faq = findFAQByIntent(msg);
-
-    // 2. 🏃‍♂️💨 THE "RUN AWAY" FAILSAFE TRIGGER
-    // We only return this if no FAQ was found!
-    if (!faq) {
-        setTimeout(transitionToSarah, 1000);
-
-        setTimeout(() => {
-            forwardUserMessageToTelegram(`⚠️ [KAIROS ESCALATION]: Automated assistant could not parse last query. Handoff triggered for question: "${msg}"`, "text");
-        }, 500);
-
-        return "That requires priority authorization. Hold on a moment while I connect your session directly with Sarah from our support team... ⚡";
+    if (personality.lastIntent === "faq" && shortReply) {
+        personality.lastIntent = null;
+        return "Want me to break that specific resolution down step-by-step?";
     }
 
-    // 3. Perfect FAQ Found: Set tracking state and return the precise answer string smoothly
-    personality.lastIntent = "faq";
-    return faq.a;
-}
+    const faq = findFAQByIntent(msg);
+    if (faq) {
+        personality.lastIntent = "faq";
+        const variations = [
+            faq.a,
+            `${faq.a} Let me know if you want me to walk you through it.`,
+            `Here’s what you need: ${faq.a}`,
+            `${faq.a} — want help doing it now?`
+        ];
+        return variations[Math.floor(Math.random() * variations.length)];
+    }
 
+    setTimeout(transitionToSarah, 1000);
+    setTimeout(() => {
+        forwardUserMessageToTelegram(`⚠️ [KAIROS ESCALATION]: Automated assistant could not parse last query. Handoff triggered for question: "${msg}"`, "text");
+    }, 500);
+
+    return "That requires priority authorization. Hold on a moment while I connect your session directly with Sarah from our support team... ⚡";
+}
 
 function adaptTone(msg){
     const text = msg.toLowerCase();
@@ -1143,9 +1240,13 @@ function adaptTone(msg){
 }
 
 function humanize(text){
-    if(personality.tone === "calm") return "I get how that can be frustrating. " + text;
-    if(personality.tone === "friendly") return text + " 👍";
-    return text;
+    if(!text) return "";
+    const fillers = ["", "", "Alright… ", "Okay, so ", "Got it. ", "Hmm, ", "Let me see… ", "Right, ", "Makes sense. "];
+    let prefix = fillers[Math.floor(Math.random()*fillers.length)];
+
+    if(personality.tone === "calm") prefix = "I get how that can be frustrating. ";
+    if(personality.tone === "friendly") return prefix + text + " 👍";
+    return prefix + text;
 }
 
 // ---------- Message Output Processing ----------
@@ -1154,7 +1255,13 @@ function handleMessage(msg){
     const lower = msg.toLowerCase();
 
     if(/^(hi|hello|hey|yo)\b/.test(lower)){
-        botReply("Hey 👋 I’m Kairos. What do you need help with today?");
+        const greetings = [
+            "Hey 👋 I’m Kairos. What do you need help with today?",
+            "Hi there. I can help with support, tickets, rewards, or system settings.",
+            "Hey—what’s going on? Need help processing something?",
+            "Hello. Tell me what you're trying to execute, I’ll guide you smoothly."
+        ];
+        botReply(greetings[Math.floor(Math.random()*greetings.length)]);
         return;
     }
 
@@ -1178,10 +1285,10 @@ function handleMessage(msg){
 
     adaptTone(msg);
     const reply = generateSmartReply(msg);
-    botReply(reply);
+    if(reply) botReply(reply);
 }
 
-// ---------- OPTIMIZED BOT EXECUTION ENGINE ----------
+// ---------- BOT EXECUTION ENGINE ----------
 function botReply(text){
     const finalText = humanize(text);
     showTyping();
@@ -1197,7 +1304,7 @@ function botReply(text){
     }, delay);
 }
 
-// ---------- FIXED AUTOMATIC BACKGROUND QUOTE ROTATION ----------
+// ---------- FIXED BACKGROUND QUOTE ROTATION ----------
 function startQuoteAutorotation() {
     clearInterval(quoteRotationTimer);
     quoteRotationTimer = setInterval(() => {
@@ -1215,6 +1322,8 @@ async function sendMessage(){
     const text = botInput.value.trim();
     if(!text) return;
 
+    recordChatMessage();
+
     let type = "text";
     if (/\.(jpeg|jpg|gif|png)$/i.test(text)) type = "photo";
     if (/\.(mp4|webm|ogg|mov)$/i.test(text)) type = "video";
@@ -1228,8 +1337,16 @@ async function sendMessage(){
     chatHistory.push({ sender: 'user', text: text, type: type });
     localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
-    // FORWARDING TO TELEGRAM FEED FOR SARAH
     forwardUserMessageToTelegram(text, type);
+
+    const takeoverTime = parseInt(localStorage.getItem('sarah_takeover_timestamp')) || 0;
+    if (isSarahActive && takeoverTime > 0 && (Date.now() - takeoverTime > 900000)) {
+        isSarahActive = false;
+        personality.awaitingTimeoutRetry = true;
+        const timeoutFallback = "Sorry, I can't connect with Sarah right now. Do you want me to retry connection again or help you out with another task?";
+        botReply(timeoutFallback);
+        return;
+    }
 
     if (type === "text") {
         handleMessage(text);
@@ -1256,7 +1373,6 @@ async function sendMessage(){
 }
 
 // ---------- File Inputs Attachment Hook ----------
-// BUG FIX 3: Persistent conversion of multi-type raw file uploads using explicit base64 local storage encoding
 if (botFileInput) {
     botFileInput.addEventListener('change', async () => {
         const file = botFileInput.files[0];
@@ -1268,8 +1384,8 @@ if (botFileInput) {
 
         const reader = new FileReader();
         reader.onload = async function(e) {
-            const persistentFileUrl = e.target.result; // This generates an immutable base64 string
-            
+            const persistentFileUrl = e.target.result; 
+
             const userMsg = addMessage(persistentFileUrl, "user", "delivered", msgType);
             botFileInput.value = ""; 
 
@@ -1315,7 +1431,6 @@ async function getTelegramFileUrl(fileId) {
 }
 
 async function listenForTelegramMessages() {
-    // BUG FIX 2: Check active chat tab globally inside session context to avoid thread interception errors
     if (sessionStorage.getItem('active_chat_tab') !== currentTabId) {
         scheduleNextCheck();
         return;
@@ -1323,37 +1438,32 @@ async function listenForTelegramMessages() {
 
     const urlParams = new URLSearchParams(window.location.search);
     const thisTabUser = urlParams.get('user');
-    
-    // BUG FIX 2: Critical Multi-User Isolation Protocol. If no explicit user param is present, default completely out.
+
     if(!thisTabUser) {
         scheduleNextCheck();
         return;
     }
 
-    // ⏳ 15-MINUTE AUTOMATED TIMEOUT PROTOCOL
     if (isSarahActive) {
         const takeoverTime = parseInt(localStorage.getItem('sarah_takeover_timestamp')) || 0;
-        
-        // If the chat goes completely silent with zero processed responses for 15 minutes (900,000ms)
         if (takeoverTime > 0 && (Date.now() - takeoverTime > 900000)) { 
             isSarahActive = false;
-            localStorage.removeItem('sarah_takeover_timestamp');
+            personality.awaitingTimeoutRetry = true;
 
-            // Restore pristine Kairos branding to the header container
             const botHeader = document.getElementById('botHeader');
             if (botHeader) {
                 botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
-                botHeader.textContent = "Kairos Bot System";
+                botHeader.textContent = KAIROS_TITLE; // Fixed alignment
             }
 
             startQuoteAutorotation();
 
-            const timeoutFallback = "Sorry, I can't connect with Sarah right now. Do you want me to retry again after some minutes or help you out with another task?";
+            const timeoutFallback = "Sorry, I can't connect with Sarah right now. Do you want me to retry connection again or help you out with another task?";
             addMessage(timeoutFallback, "bot", "delivered", "text", "kairos");
 
             chatHistory.push({ sender: 'bot', text: timeoutFallback, type: 'text', actualSender: 'kairos' });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
-            
+
             scheduleNextCheck();
             return;
         }
@@ -1384,23 +1494,19 @@ async function listenForTelegramMessages() {
                     let msgType = "text";
                     let isTargetedToMe = false;
 
-                    // CHECK ROUTING MATRIX
                     if (update.message.reply_to_message) {
                         const originalMsgText = update.message.reply_to_message.text || "";
-
                         if (originalMsgText.includes(userSearchString) || originalMsgText.includes(expectedLabel)) {
                             isTargetedToMe = true;
                         }
                     }
 
-                    // BUG FIX 2: Universal Global Catch-All Filter
                     if (!isTargetedToMe) {
                         lastUpdateId = update.update_id;
                         localStorage.setItem('tg_last_update_id', lastUpdateId);
                         continue; 
                     }
 
-                    // BUG FIX 4: Extended media extraction logic to handle incoming photos, videos, and files sent by Sarah
                     if (update.message.photo) {
                         const fileId = update.message.photo[update.message.photo.length - 1].file_id;
                         msgContent = await getTelegramFileUrl(fileId);
@@ -1419,7 +1525,6 @@ async function listenForTelegramMessages() {
                     }
 
                     if (msgContent) {
-                        // --- SILENT AGENT COMMAND INTERCEPTOR ---
                         if (msgType === "text") {
                             const lowerContent = msgContent.toLowerCase();
 
@@ -1431,7 +1536,7 @@ async function listenForTelegramMessages() {
                                 const botHeader = document.getElementById('botHeader');
                                 if (botHeader) {
                                     botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
-                                    botHeader.textContent = "Kairos Bot System";
+                                    botHeader.textContent = KAIROS_TITLE; // Fixed alignment
                                 }
 
                                 startQuoteAutorotation();
@@ -1469,7 +1574,6 @@ async function listenForTelegramMessages() {
                         setTimeout(() => { showTyping(); }, chainDelay);
                         chainDelay += 800; 
 
-                        // BUG FIX 1: Enforced explicit hard-coded actualSender flags into persistent database stack arrays
                         const currentSenderIdentity = (isSarahActive && !msgContent.includes("Sarah has left the chat")) ? "sarah" : "kairos";
 
                         setTimeout(() => {
@@ -1480,7 +1584,6 @@ async function listenForTelegramMessages() {
                             chatHistory.push({ sender: 'bot', text: msgContent, type: msgType, actualSender: currentSenderIdentity });
                             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
-                            // 🔄 THE LIFELINE DYNAMIC RESET: Push timeout window back another 15 minutes if Sarah replies
                             if (currentSenderIdentity === "sarah") {
                                 localStorage.setItem('sarah_takeover_timestamp', Date.now().toString());
                             }
@@ -1510,17 +1613,22 @@ function initiateKairosConversation() {
         setTimeout(() => {
             removeTyping();
             personality.awaitingSarahConfirm = true;
-            const initialGreeting = "Hey 👋 I’m Kairos. Welcome back! Do you want me to connect you with Sarah regarding any issues you might have?";
-            addMessage(initialGreeting, "bot", "delivered", "text", "kairos");
+            const greetings = [
+                "Hey 👋 I’m Kairos. Welcome back! Do you want me to connect you with Sarah regarding any issues you might have?",
+                "Hi there. Kairos online. Would you like me to ping Sarah from the support team to take a look at your account right now?",
+                "Hello! Welcome to the secure interface portal. Do you prefer to initiate automated assistance or step into live chat with Sarah?",
+                "Hey—Kairos here. I can handle routine questions, but do you want me to transfer your current session directly over to Sarah?"
+            ];
+            const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+            addMessage(randomGreeting, "bot", "delivered", "text", "kairos");
 
-            conversationMemory.push({ role: "bot", content: initialGreeting, type: "text", time: Date.now() });
-            chatHistory.push({ sender: 'bot', text: initialGreeting, type: 'text', actualSender: 'kairos' });
+            conversationMemory.push({ role: "bot", content: randomGreeting, type: "text", time: Date.now() });
+            chatHistory.push({ sender: 'bot', text: randomGreeting, type: 'text', actualSender: 'kairos' });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
             startQuoteAutorotation();
         }, 1000);
     } else {
-        // BUG FIX 1: Evaluate state safely by analyzing structural actualSender elements inside storage matrices
         let lastSarahIndex = -1;
         let lastEndIndex = -1;
 
@@ -1531,7 +1639,19 @@ function initiateKairosConversation() {
             }
         });
 
-        if (lastSarahIndex > -1 && lastSarahIndex > lastEndIndex) {
+        const takeoverTime = parseInt(localStorage.getItem('sarah_takeover_timestamp')) || 0;
+        if (lastSarahIndex > -1 && lastSarahIndex > lastEndIndex && takeoverTime > 0 && (Date.now() - takeoverTime > 900000)) {
+            isSarahActive = false;
+            personality.awaitingTimeoutRetry = true;
+            localStorage.removeItem('sarah_takeover_timestamp');
+            
+            const botHeader = document.getElementById('botHeader');
+            if (botHeader) {
+                botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
+                botHeader.textContent = KAIROS_TITLE; // Fixed alignment
+            }
+            startQuoteAutorotation();
+        } else if (lastSarahIndex > -1 && lastSarahIndex > lastEndIndex) {
             isSarahActive = true; 
             const botHeader = document.getElementById('botHeader');
             if (botHeader) {
@@ -1541,6 +1661,11 @@ function initiateKairosConversation() {
             if (statusText) statusText.textContent = sarahProfile.statusText;
         } else {
             isSarahActive = false;
+            const botHeader = document.getElementById('botHeader');
+            if (botHeader) {
+                botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
+                botHeader.textContent = KAIROS_TITLE; // Fixed alignment
+            }
             startQuoteAutorotation();
         }
     }
