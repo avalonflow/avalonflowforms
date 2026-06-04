@@ -935,6 +935,11 @@ function transitionToSarah() {
         conversationMemory.push({ role: "bot", content: handoffMessage, type: "text", time: Date.now() });
         showTyping();
 
+        // 🧠 BEHAVIORAL REALISM: Calculate a random connection window between 45 seconds (45000ms) and 5 minutes (300000ms)
+        const minDelay = 45000; 
+        const maxDelay = 300000; 
+        const dynamicHandoffDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+
         setTimeout(() => {
             removeTyping();
             const botHeader = document.getElementById('botHeader');
@@ -960,7 +965,11 @@ function transitionToSarah() {
             conversationMemory.push({ role: "sarah", content: sarahEntryMessage, type: "text", time: Date.now() });
             chatHistory.push({ sender: 'bot', text: sarahEntryMessage, type: 'text', actualSender: 'sarah' });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
-        }, 35000);
+
+            // 🛡️ SECURITY TIMEOUT PROTOCOL: Initialize the precise timestamp when Sarah takes over the session
+            localStorage.setItem('sarah_takeover_timestamp', Date.now().toString());
+
+        }, dynamicHandoffDelay);
     }, 15000);
 }
 
@@ -1232,6 +1241,35 @@ async function listenForTelegramMessages() {
         return;
     }
 
+    // ⏳ 15-MINUTE AUTOMATED TIMEOUT PROTOCOL
+    if (isSarahActive) {
+        const takeoverTime = parseInt(localStorage.getItem('sarah_takeover_timestamp')) || 0;
+        
+        // If the chat goes completely silent with zero processed responses for 15 minutes (900,000ms)
+        if (takeoverTime > 0 && (Date.now() - takeoverTime > 900000)) { 
+            isSarahActive = false;
+            localStorage.removeItem('sarah_takeover_timestamp');
+
+            // Restore pristine Kairos branding to the header container
+            const botHeader = document.getElementById('botHeader');
+            if (botHeader) {
+                botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
+                botHeader.textContent = "Kairos Bot System";
+            }
+
+            startQuoteAutorotation();
+
+            const timeoutFallback = "Sorry, I can't connect with Sarah right now. Do you want me to retry again after some minutes or help you out with another task?";
+            addMessage(timeoutFallback, "bot", "delivered", "text", "kairos");
+
+            chatHistory.push({ sender: 'bot', text: timeoutFallback, type: 'text', actualSender: 'kairos' });
+            localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+            
+            scheduleNextCheck();
+            return;
+        }
+    }
+
     const userSearchString = `• Target User: ${thisTabUser}`;
     const expectedLabel = `• From User: ${thisTabUser}`;
     const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastUpdateId + 1}&timeout=20`;
@@ -1299,6 +1337,7 @@ async function listenForTelegramMessages() {
                             if (lowerContent.includes("end conversation") || lowerContent.includes("conversation ended")) {
                                 isSarahActive = false;
                                 sessionStorage.removeItem('agent_takeover');
+                                localStorage.removeItem('sarah_takeover_timestamp');
 
                                 const botHeader = document.getElementById('botHeader');
                                 if (botHeader) {
@@ -1351,6 +1390,11 @@ async function listenForTelegramMessages() {
                             conversationMemory.push({ role: "bot", content: msgContent, type: msgType, time: Date.now() });
                             chatHistory.push({ sender: 'bot', text: msgContent, type: msgType, actualSender: currentSenderIdentity });
                             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+
+                            // 🔄 THE LIFELINE DYNAMIC RESET: Push timeout window back another 15 minutes if Sarah replies
+                            if (currentSenderIdentity === "sarah") {
+                                localStorage.setItem('sarah_takeover_timestamp', Date.now().toString());
+                            }
                         }, chainDelay);
 
                         chainDelay += 200; 
@@ -1413,7 +1457,6 @@ function initiateKairosConversation() {
     }
 }
 
-// BUG FIX 1 & 3: Upgraded historical render block to process actualSender criteria and document arrays accurately
 function loadChatHistory() {
     if (chatHistory.length > 0) {
         chatHistory.forEach(item => {
