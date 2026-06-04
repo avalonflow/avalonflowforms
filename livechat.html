@@ -1064,6 +1064,7 @@ function generateSmartReply(msg){
     const isYes = /^(yes|yeah|sure|ok|please)\b/.test(text);
     const isNo = /^(no|not really|nah)\b/.test(text);
 
+    // Explicit manual support requests
     if (/support|live chat|representative|human|agent|help|issue/.test(text) || personality.lastIntent === "support") {
         if(/email/.test(text)){
             personality.lastIntent = null;
@@ -1078,6 +1079,7 @@ function generateSmartReply(msg){
         return "Do you prefer to email support or live chat with Sarah?";
     }
 
+    // Direct onboarding confirmations
     if (personality.awaitingSarahConfirm && isYes) {
         personality.awaitingSarahConfirm = false;
         setTimeout(transitionToSarah, 600);
@@ -1088,24 +1090,7 @@ function generateSmartReply(msg){
         return "Alright, let me know what you need help with instead.";
     }
 
-    // 1. We quietly look for an FAQ match first behind the scenes...
-    const faq = findFAQByIntent(msg);
-
-    // 2. 🏃‍♂️💨 THE "RUN AWAY" FAILSAFE TRIGGER
-    // We only return this if no FAQ was found!
-    if (!faq) {
-        setTimeout(transitionToSarah, 1000);
-
-        setTimeout(() => {
-            forwardUserMessageToTelegram(`⚠️ [KAIROS ESCALATION]: Automated assistant could not parse last query. Handoff triggered for question: "${msg}"`, "text");
-        }, 500);
-
-        return "That requires priority authorization. Hold on a moment while I connect your session directly with Sarah from our support team... ⚡";
-    }
-        personality.lastIntent = "faq";
-        return faq.a;
-    }
-
+    // Checking account progress / dynamic balance checks
     if(/reward balance|progress|earnings balance|cashback/.test(text)){
         let unlocked = JSON.parse(localStorage.getItem('unlockedPlans')) || {};
         let unlockTimes = JSON.parse(localStorage.getItem('unlockTimes')) || {};
@@ -1123,8 +1108,26 @@ function generateSmartReply(msg){
         return res;
     }
 
-    return "What would you like help with—support, tickets, rewards, or settings?";
+    // 1. We quietly look for an FAQ match first behind the scenes...
+    const faq = findFAQByIntent(msg);
+
+    // 2. 🏃‍♂️💨 THE "RUN AWAY" FAILSAFE TRIGGER
+    // We only return this if no FAQ was found!
+    if (!faq) {
+        setTimeout(transitionToSarah, 1000);
+
+        setTimeout(() => {
+            forwardUserMessageToTelegram(`⚠️ [KAIROS ESCALATION]: Automated assistant could not parse last query. Handoff triggered for question: "${msg}"`, "text");
+        }, 500);
+
+        return "That requires priority authorization. Hold on a moment while I connect your session directly with Sarah from our support team... ⚡";
+    }
+
+    // 3. Perfect FAQ Found: Set tracking state and return the precise answer string smoothly
+    personality.lastIntent = "faq";
+    return faq.a;
 }
+
 
 function adaptTone(msg){
     const text = msg.toLowerCase();
