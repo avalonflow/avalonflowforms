@@ -190,6 +190,7 @@
   border-radius: 24px;
   padding: 4px 8px;
   margin-top: 12px;
+  position: relative;
 }
 
 /* Base structural alignment for buttons */
@@ -204,11 +205,13 @@
   color: #284B87;
   border-radius: 50%;
   transition: all 0.2s ease;
+  outline: none;
+  position: relative;
+  box-sizing: border-box;
 }
 
 .icon-btn:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  background-color: rgba(40, 75, 135, 0.08); /* Unified hover color scheme */
 }
 
 /* Main Input Text Field Box Customization */
@@ -220,10 +223,63 @@
   color: #284B87;
   outline: none;
   font-size: 14px;
+  margin: 0 8px;
 }
 
 #botInput::placeholder {
   color: rgba(40, 75, 135, 0.75);
+}
+
+/* Shared media grouping wrapper for right side elements */
+.media-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Dedicated Microphone Action Profile overrides */
+.mic-btn {
+    width: 36px;
+    height: 36px;
+}
+
+.mic-icon {
+    width: 18px;
+    height: 18px;
+    fill: #284B87; /* Seamlessly matches your existing icon colors */
+    transition: fill 0.2s ease;
+}
+
+/* Active Voice Recording States */
+.mic-btn.recording {
+    background: rgba(219, 68, 85, 0.15) !important;
+}
+
+.mic-btn.recording .mic-icon {
+    fill: #db4437; /* Vibrant warning red shift while running live */
+}
+
+/* Pulse Animation Ring */
+.recording-pulse {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid #db4437;
+    opacity: 0;
+    pointer-events: none;
+    box-sizing: border-box;
+    top: 0;
+    left: 0;
+}
+
+.mic-btn.recording .recording-pulse {
+    animation: micPulse 1.5s infinite linear;
+}
+
+@keyframes micPulse {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.4); opacity: 0; }
 }
 
 /* Send Button Layout Profile Override */
@@ -237,6 +293,7 @@
 #botSendBtn:hover {
   transform: scale(1.02);
   background: linear-gradient(135deg, rgba(117,54,226,1), rgba(165,99,192,1));
+  color: #fff;
 }
 
 #botHeader {
@@ -268,9 +325,9 @@
   animation: fadeSlideIn 0.25s ease forwards;
   opacity: 0;
   font-size: 13px;
-  padding: 6px 10px;
+  padding: 8px 12px; /* Slightly adjusted to match your avatar standards */
   display: inline-block;
-  max-width: 85%;
+  max-width: 75%; /* Slightly trimmed to leave comfortable room for the avatar */
 }
 
 .bot {
@@ -286,8 +343,6 @@
   background: rgba(155,89,182,0.3);
   border-radius: 10px 10px 4px 10px;
 }
-
-/* Wrap */
 
 
 /* Animation */
@@ -316,7 +371,6 @@
     box-sizing: border-box !important;
     padding: 6px !important;
 }
-
 
 .typing span {
   width: 6px;
@@ -365,7 +419,7 @@
   color: #6c8cff;
 }
 
-/* Ambient Status Styling - Matches Video 1 Look precisely */
+/* Ambient Status Styling */
 .ambient {
   text-align: center;
   color: rgba(255, 255, 255, 0.4); /* Clean, soft gray text */
@@ -406,15 +460,6 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Adjust initial message boundaries to factor avatar space */
-.message {
-  animation: fadeSlideIn 0.25s ease forwards;
-  opacity: 0;
-  font-size: 13px;
-  padding: 8px 12px;
-  display: inline-block;
-  max-width: 75%; /* Slightly trimmed to leave comfortable room for the avatar */
-}
 
 /* ==========================================================================
    DESKTOP OVERRIDES: Force edges to touch screen margins with ROUNDED CORNERS
@@ -465,6 +510,8 @@
     }
 }
 
+
+
     </style>
 </head>
 <body>
@@ -489,19 +536,28 @@
     </div>
 
     <div class="input-area">
-        <input type="file" id="botFileInput" style="display: none;"> 
+    <input type="file" id="botFileInput" style="display: none;"> 
 
-        <button type="button" id="botAttachBtn" class="icon-btn" onclick="document.getElementById('botFileInput').click()">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    <button type="button" id="botAttachBtn" class="icon-btn action-btn" onclick="document.getElementById('botFileInput').click()">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    </button>
+
+    <input type="text" id="botInput" placeholder="Ask Kairos..." autocomplete="off">
+
+    <div class="media-actions">
+        <button type="button" class="icon-btn action-btn mic-btn" id="micBtn" title="Record Voice Note">
+            <svg viewBox="0 0 24 24" class="mic-icon">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
+            </svg>
+            <span class="recording-pulse"></span>
         </button>
-
-        <input type="text" id="botInput" placeholder="Ask Kairos..." autocomplete="off">
 
         <button type="button" id="botSendBtn" class="icon-btn send-btn">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
         </button>
     </div>
 </div>
+
 
 
 <!-- Sticky Footer -->
