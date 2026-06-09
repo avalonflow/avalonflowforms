@@ -465,38 +465,61 @@
     }
 }
 
-/* ---------- Integrated Microphone Media Alignment ---------- */
+.chat-input-container {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 6px 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    position: relative;
+}
+
+.input-wrapper {
+    flex: 1;
+    margin: 0 8px;
+}
 
 .media-actions {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.action-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     position: relative;
+    outline: none;
 }
 
 .mic-btn {
-    width: 36px;
-    height: 36px;
-    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    transition: background 0.2s ease, fill 0.2s ease;
 }
 
 .mic-icon {
-    width: 18px;
-    height: 18px;
-    fill: #284B87; /* Seamlessly matches your existing icon colors */
-    transition: fill 0.2s ease;
+    width: 22px;
+    height: 22px;
+    fill: #5f6368; /* Default clean gray */
 }
 
-/* Active Audio Recording Interactions */
+/* Active Recording State Styling */
 .mic-btn.recording {
-    background: rgba(219, 68, 85, 0.15) !important;
+    background: rgba(219, 68, 85, 0.15);
 }
 
 .mic-btn.recording .mic-icon {
-    fill: #db4437; /* Shifts beautifully to red when live recording */
+    fill: #db4437; /* Shifts to warning-alert red when live */
 }
 
-/* Voice Wave Pulse Aura Animation */
+/* Pulse Animation Ring */
 .recording-pulse {
     position: absolute;
     width: 100%;
@@ -506,8 +529,6 @@
     opacity: 0;
     pointer-events: none;
     box-sizing: border-box;
-    top: 0;
-    left: 0;
 }
 
 .mic-btn.recording .recording-pulse {
@@ -516,8 +537,21 @@
 
 @keyframes micPulse {
     0% { transform: scale(1); opacity: 0.6; }
-    100% { transform: scale(1.4); opacity: 0; }
+    100% { transform: scale(1.5); opacity: 0; }
 }
+
+/* ---------- Added Theme Color Match Logic (No Deletions Above) ---------- */
+
+/* Forces template gray elements to adopt your main interface colors inside the bar */
+.input-area .media-actions .mic-icon {
+    fill: #284B87;
+}
+
+/* Ensures layout hover parameters behave exactly like the text box buttons */
+.input-area .media-actions .mic-btn:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
 
     </style>
 </head>
