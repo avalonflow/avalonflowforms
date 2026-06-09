@@ -67,14 +67,14 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  
+
   /* Reduced top padding dramatically so it sits near the top edge */
   padding: 10px 0 10px 0; 
-  
+
   /* Optional: Ensures it stays firmly at the absolute top of the page layout */
   width: 100%;
   margin-top: -70px; 
-  
+
   background: transparent !important;
 }
 
@@ -83,24 +83,14 @@
   width: 180px;
   height: 180px;
   overflow: hidden;
-  background: transparent !important;
 
-  -webkit-mask-image: linear-gradient(
-    -75deg, 
-    rgba(0, 0, 0, 1) 35%, 
-    rgba(0, 0, 0, 0.3) 50%, 
-    rgba(0, 0, 0, 1) 65%
-  );
-  mask-image: linear-gradient(
-    -75deg, 
-    rgba(0, 0, 0, 1) 35%, 
-    rgba(0, 0, 0, 0.3) 50%, 
-    rgba(0, 0, 0, 1) 65%
-  );
-
-  -webkit-mask-size: 400% 100%;
-  mask-size: 400% 100%;
-  animation: dynamicLightPass 4s infinite ease-in-out;
+  /* ---------- GLASSMORPHISM LAYERED IN ---------- */
+  background: rgba(255, 255, 255, 0.12) !important; /* Semi-transparent white backing */
+  backdrop-filter: blur(12px);                      /* Blurs the floating particles underneath */
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 24px;                              /* Smooth frosted glass card corners */
+  border: 1px solid rgba(255, 255, 255, 0.25);      /* Subtle glossy edge reflection */
+  /* ---------------------------------------------- */
 }
 
 .avalon-logo-img {
@@ -122,21 +112,6 @@
   outline: none !important;
 }
 
-/* The Glare Animation Keyframes */
-@keyframes dynamicLightPass {
-  0% {
-    -webkit-mask-position: 0% 0%;
-    mask-position: 0% 0%;
-  }
-  65% {
-    -webkit-mask-position: 100% 0%;
-    mask-position: 100% 0%;
-  }
-  100% {
-    -webkit-mask-position: 100% 0%;
-    mask-position: 100% 0%;
-  }
-}
 
 
 
