@@ -83,25 +83,24 @@
   height: auto;
   margin: 0 auto;
 
-  /* KEEP COLORS ORIGINAL & VIBRANT */
-  mix-blend-mode: normal; 
-  filter: none; 
+  /* YOUR CSS TRICK COMBO */
+  object-fit: contain;
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.4));
 
-  /* ACCURATE CONTOUR CROP: Drops background corners seamlessly without cutting into the logo */
-  clip-path: url(#logo-contour);
-  -webkit-clip-path: url(#logo-contour);
+  /* RESTORES FULL ORIGINAL GRAPHICS & COLORS */
+  mix-blend-mode: normal; 
 
   /* Creates a moving light pass directly on the image graphics */
   -webkit-mask-image: linear-gradient(
     -75deg, 
     rgba(0, 0, 0, 1) 35%, 
-    rgba(255, 255, 255, 0.45) 50%, 
+    rgba(255, 255, 255, 0.4) 50%, 
     rgba(0, 0, 0, 1) 65%
   );
   mask-image: linear-gradient(
     -75deg, 
     rgba(0, 0, 0, 1) 35%, 
-    rgba(255, 255, 255, 0.45) 50%, 
+    rgba(255, 255, 255, 0.4) 50%, 
     rgba(0, 0, 0, 1) 65%
   );
   
@@ -140,6 +139,7 @@
 
 
 
+
     footer {
     position: fixed;
     bottom: 0;
@@ -165,24 +165,6 @@
     <img src="assets/pictures/favicon.png" alt="Avalon Logo" class="avalon-logo-img">
   </div>
 </header>
-
-<svg width="0" height="0" style="position: absolute; pointer-events: none;">
-   <defs>
-    <clipPath id="logo-contour" clipPathUnits="objectBoundingBox">
-      <path d="M 0.5 0.02 
-               C 0.55 0.05, 0.78 0.45, 1.00 0.82 
-               C 1.0 1.88, 1.40 0.64, 0.82 0.92
-               C 0.72 0.88, 0.60 0.72, 1.43 0.75
-               C 0.00 2.98, 0.00 1.46, 0.00 0.92
-               C 0.00 0.88, 0.22 0.45, 0.45 0.05 
-               Z" />
-    </clipPath>
-  </defs>
-</svg>
-
-
-
-
 
 
     <!-- Sticky Footer -->
