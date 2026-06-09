@@ -195,6 +195,39 @@ header .logo-card img {
   }
 }
 
+/* ================= Custom Audio Player UI ================= */
+.message audio {
+    width: 100%;
+    max-width: 240px;
+    height: 40px;
+    outline: none;
+    border-radius: 30px;
+    margin: 4px 0;
+    /* Subtle neon ambient shading instead of flat gray */
+    box-shadow: 0 4px 15px rgba(107, 44, 216, 0.2);
+}
+
+/* Customizing the internal player elements for WebKit browsers (Chrome/Safari/Android) */
+.message audio::-webkit-media-controls-enclosure {
+    background-color: rgba(255, 255, 255, 0.12) !important; /* Frosted translucent backing */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.message audio::-webkit-media-controls-panel {
+    background: transparent !important;
+}
+
+/* Making the play buttons and text crisp and readable over the dark theme background */
+.message audio::-webkit-media-controls-play-button,
+.message audio::-webkit-media-controls-mute-button,
+.message audio::-webkit-media-controls-current-time-display,
+.message audio::-webkit-media-controls-time-remaining-display {
+    filter: invert(1) brightness(1.5); /* Flips default dark icons to bright, clean white */
+}
+
+
     footer {
     position: fixed;
     bottom: 0;
