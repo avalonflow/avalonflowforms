@@ -83,14 +83,7 @@
   width: 180px;
   height: 180px;
   overflow: hidden;
-
-  /* ---------- GLASSMORPHISM LAYERED IN ---------- */
-  background: rgba(255, 255, 255, 0.12) !important; /* Semi-transparent white backing */
-  backdrop-filter: blur(12px);                      /* Blurs the floating particles underneath */
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 24px;                              /* Smooth frosted glass card corners */
-  border: 1px solid rgba(255, 255, 255, 0.25);      /* Subtle glossy edge reflection */
-  /* ---------------------------------------------- */
+  background: transparent !important; /* Kept perfectly transparent, no card background */
 }
 
 .avalon-logo-img {
@@ -105,12 +98,20 @@
   transform: scale(0.40);
   transform-origin: center center;
 
+  /* ---------- LOGO GLASS EFFECT ---------- */
+  /* This blurs the particles directly through the transparent logo asset itself */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0.9; 
+  /* -------------------------------------- */
+
   filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.05));
   mix-blend-mode: multiply; 
   background:  transparent !important;
   border: none !important;            
   outline: none !important;
 }
+
 
 
 
