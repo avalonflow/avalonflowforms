@@ -102,17 +102,19 @@
   /* This blurs the particles directly through the transparent logo asset itself */
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  opacity: 0.9; 
+  opacity: 0.95; 
   /* -------------------------------------- */
 
-  /* UPDATED: Normal blend mode keeps the native color from staining blue, paired with a soft ambient shadow */
-  mix-blend-mode: normal; 
-  filter: drop-shadow(0 4px 12px rgba(160, 180, 220, 0.25));
+  /* UPDATED: plus-lighter lets light and particles pass through like real glass 
+     without the heavy dark blue staining that multiply caused */
+  mix-blend-mode: plus-lighter; 
+  filter: drop-shadow(0 4px 14px rgba(142, 197, 255, 0.3));
   
   background:  transparent !important;
   border: none !important;            
   outline: none !important;
 }
+
 
 
 
