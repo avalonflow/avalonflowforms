@@ -81,11 +81,21 @@
 
 .avalon-logo-img {
   display: block;
-  width: 85px;
+  width: 110px; /* Slight size increase since we are cropping the edges inward */
   height: auto;
-  
-  /* Optional: keeps your shimmer animation running smoothly underneath the crop */
+  margin: 0 auto;
+
+  /* The Inset Crop: (Top, Right, Bottom, Left)
+    This cuts 12% off the top/bottom and 10% off the left/right.
+    Adjust these percentages slightly if you still see a sliver of background!
+  */
+  clip-path: inset(12% 10% 12% 10%);
+  -webkit-clip-path: inset(12% 10% 12% 10%);
+
+  /* Keeps your premium light-sweep animation running smoothly inside the crop */
   animation: dynamicLightPass 4s infinite ease-in-out;
+
+
 
   
   /* Creates a moving light pass directly on the image graphics */
