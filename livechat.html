@@ -539,20 +539,6 @@
     0% { transform: scale(1); opacity: 0.6; }
     100% { transform: scale(1.5); opacity: 0; }
 }
-
-/* ---------- Added Theme Color Match Logic (No Deletions Above) ---------- */
-
-/* Forces template gray elements to adopt your main interface colors inside the bar */
-.input-area .media-actions .mic-icon {
-    fill: #284B87;
-}
-
-/* Ensures layout hover parameters behave exactly like the text box buttons */
-.input-area .media-actions .mic-btn:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-}
-
-
     </style>
 </head>
 <body>
@@ -577,21 +563,13 @@
     </div>
 
     <div class="input-area">
-    <input type="file" id="botFileInput" style="display: none;"> 
+        <input type="file" id="botFileInput" style="display: none;"> 
 
-    <button type="button" id="botAttachBtn" class="icon-btn action-btn" onclick="document.getElementById('botFileInput').click()">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-    </button>
-
-    <input type="text" id="botInput" placeholder="Ask Kairos..." autocomplete="off">
-
-    <div class="media-actions">
-        <button type="button" class="icon-btn action-btn mic-btn" id="micBtn" title="Record Voice Note">
-            <svg viewBox="0 0 24 24" class="mic-icon">
-                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
-            </svg>
-            <span class="recording-pulse"></span>
+        <button type="button" id="botAttachBtn" class="icon-btn" onclick="document.getElementById('botFileInput').click()">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </button>
+
+        <input type="text" id="botInput" placeholder="Ask Kairos..." autocomplete="off">
 
         <button type="button" id="botSendBtn" class="icon-btn send-btn">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
@@ -1092,104 +1070,7 @@ function markAsSeen(wrap){
     }
 }
 
-let mediaRecorder;
-let audioChunks = [];
-let isRecording = false;
-let currentStream = null; // Track stream globally to close lines cleanly across closures
 
-const micBtn = document.getElementById('micBtn');
-const botInput = document.getElementById('botInput'); // Dynamic update to match your HTML text box ID
-
-micBtn.addEventListener('click', async () => {
-    if (!isRecording) {
-        try {
-            // 1. Request user microphone clearance
-            currentStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(currentStream);
-            audioChunks = [];
-
-            // 2. Cache incoming raw audio fragments in real-time
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    audioChunks.push(event.data);
-                }
-            };
-
-            // 3. Process data packages entirely upon termination press
-            mediaRecorder.onstop = () => {
-                // Bundle fragments into a cohesive audio file
-                const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                const finalFileName = "Voice_Note.mp3";
-                
-                // Create local temporary browser URL for instant client-side playback
-                const localAudioUrl = URL.createObjectURL(audioBlob);
-                
-                // Render the premium dark-themed pill audio player on the right side instantly
-                const userMsg = addMessage(localAudioUrl, "user", "delivered", "audio");
-                
-                // Manage visual ticks workflow
-                setTimeout(() => {
-                    if (typeof markAsSeen === "function") markAsSeen(userMsg);
-                }, 800);
-
-                // Commit to local storage timeline arrays so the clip survives page updates
-                if (typeof chatHistory !== 'undefined') {
-                    chatHistory.push({ sender: 'user', text: localAudioUrl, type: 'audio' });
-                    localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
-                }
-
-                // Push tracking meta over to monitoring desks
-                if (typeof forwardUserMessageToTelegram === "function") {
-                    forwardUserMessageToTelegram(finalFileName, "audio");
-                }
-
-                // Fire off Kairos's instant text confirmation script
-                const confirmationText = `Received file: ${finalFileName}. Saved directly to secure logs.`;
-                if (typeof botReply === "function") {
-                    botReply(confirmationText);
-                }
-
-                // Package raw file metrics securely and push raw audio straight to Telegram Channel
-                try {
-                    const formData = new FormData();
-                    formData.append("chat_id", CHAT_ID);
-                    formData.append("audio", audioBlob, finalFileName);
-                    
-                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendAudio`, { 
-                        method: 'POST', 
-                        body: formData 
-                    });
-                } catch (err) {
-                    console.error('Multi-part voice note transmission drop:', err);
-                }
-
-                // Shut off hardware input stream immediately to toggle device recording indicators off
-                if (currentStream) {
-                    currentStream.getTracks().forEach(track => track.stop());
-                }
-            };
-
-            // 4. Update UI visuals instantly to reflect active listening window
-            isRecording = true;
-            micBtn.classList.add('recording');
-            botInput.placeholder = "Listening... Speak clearly...";
-            mediaRecorder.start();
-
-        } catch (err) {
-            console.error("Microphone hardware block or denied permissions: ", err);
-            alert("Could not access your microphone. Please verify application permissions.");
-        }
-    } else {
-        // 5. Toggle trigger: Second click safely winds down hardware components
-        isRecording = false;
-        micBtn.classList.remove('recording');
-        botInput.placeholder = "Ask Kairos...";
-        
-        if (mediaRecorder && mediaRecorder.state !== "inactive") {
-            mediaRecorder.stop();
-        }
-    }
-});
 
 // ---------- Typing Feedbacks ----------
 function showTyping(){
