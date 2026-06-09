@@ -75,10 +75,29 @@
   position: relative;
   width: 180px;
   height: 180px;
-  /* Removed border-radius to keep the shimmer math unclipped, 
-     as the transparent PNG will handle the shape naturally */
   overflow: hidden;
-  background: transparent; /* Ensures no background box shows */
+  background: transparent; 
+
+  /* 1. MOVING THE MASK HERE: Applying the mask to the wrapper 
+     ensures the animation doesn't clip at the image's scaled boundaries */
+  -webkit-mask-image: linear-gradient(
+    -75deg, 
+    rgba(0, 0, 0, 1) 35%, 
+    rgba(0, 0, 0, 0.4) 50%, /* Changed from white to alpha black to maintain alpha channel transparency */
+    rgba(0, 0, 0, 1) 65-deg
+  );
+  mask-image: linear-gradient(
+    -75deg, 
+    rgba(0, 0, 0, 1) 35%, 
+    rgba(0, 0, 0, 0.3) 50%, 
+    rgba(0, 0, 0, 1) 65%
+  );
+
+  -webkit-mask-size: 400% 100%;
+  mask-size: 400% 100%;
+  
+  /* Animates the premium glare pass smoothly across the graphic */
+  animation: dynamicLightPass 4s infinite ease-in-out;
 }
 
 .avalon-logo-img {
@@ -93,46 +112,44 @@
   transform: scale(0.40);
   transform-origin: center center;
 
-  /* FIX 1: Use multiply or darken blend mode if the image asset has an imperfect white background boundary */
+  /* 2. THE FIX: Changed drop-shadow to match the background environment.
+     A white/light shadow on a light background creates a fake "halo/box" outline.
+     Using a very soft dark tint or removing it makes the asset blend naturally. */
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.05));
+
+  /* 3. Ensures the asset ignores any accidental underlying colors */
   mix-blend-mode: multiply; 
 
-  /* FIX 2: Restructured mask gradient. Using alpha channel (0) for hidden areas instead of solid black (1). 
-     This ensures the browser truncates everything outside the actual graphic perfectly. */
-  -webkit-mask-image: linear-gradient(
-    -75deg, 
-    rgba(0, 0, 0, 0.3) 30%, 
-    rgba(0, 0, 0, 1) 50%, 
-    rgba(0, 0, 0, 0.3) 70*
-  );
-  mask-image: linear-gradient(
-    -75deg, 
-    rgba(0, 0, 0, 0.3) 30%, 
-    rgba(0, 0, 0, 1) 50%, 
-    rgba(0, 0, 0, 0.3) 70%
-  );
-
-  -webkit-mask-size: 250% 100%;
-  mask-size: 250% 100%;
-
-  /* Animates the premium glare pass smoothly across the graphic */
-  animation: dynamicLightPass 4s infinite ease-in-out;
-  
-  /* Reset outline behaviors */
-  outline: none;
-  border: 0;
+  background: transparent !important; 
+  border: none !important;            
+  outline: none !important;
 }
 
-/* FIX 3: Adjusted keyframes to shift from completely off-screen left to off-screen right */
+/* The Glare Animation Keyframes */
 @keyframes dynamicLightPass {
   0% {
-    -webkit-mask-position: 150% 0%;
-    mask-position: 150% 0%;
+    -webkit-mask-position: 0% 0%;
+    mask-position: 0% 0%;
+  }
+  65% {
+    -webkit-mask-position: 100% 0%;
+    mask-position: 100% 0%;
   }
   100% {
-    -webkit-mask-position: -50% 0%;
-    mask-position: -50% 0%;
+    -webkit-mask-position: 100% 0%;
+    mask-position: 100% 0%;
   }
 }
+
+
+
+  
+     
+  
+
+  
+
+
 
 
 
