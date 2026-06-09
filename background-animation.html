@@ -72,20 +72,16 @@
 }
 
 /* THE CIRCULAR WINDOW:
-   This defines the 180px bounding circle.
+   Turns the outer container into a perfect circle and masks out 
+   anything pushing past its round edges.
 */
 .logo-shimmer-wrapper {
   position: relative;
   display: inline-block;
-  width: 180px;          
+  width: 180px;          /* Clean, uniform size for the circular mask */
   height: 180px;         
-  border-radius: 50%;   /* Turns the container wrapper into a perfect circle */
-  overflow: hidden;     /* Keeps the shimmer pass inside the circle boundaries */
+  border-radius: 50%;   /* Forces the frame into a perfect circle */
   
-  /* TRICK: If your design needs a background fill behind the logo inside the circle, 
-    add it here (e.g., background: #120224;). Otherwise, leave it transparent.
-  */
-  background: transparent; 
 }
 
 .avalon-logo-img {
@@ -97,17 +93,15 @@
   object-fit: contain;
   filter: drop-shadow(0 0 4px rgba(0,0,0,0.4));
 
-  /* THE UNZOOMED APPROACH:
-    We apply the border-radius directly to the image element itself. 
-    This ensures that even when shrunk down to 0.40, the image's own 
-    dark square corners are forced into a perfect circle shape.
+  /* THE ZOOM TRICK: 
+     Scales up the graphic inside the circular window. 
+     Increase the 1.40 (140%) to pull the 'A' closer and push corners further out.
   */
-  transform: scale(0.30); 
-  border-radius: 50%;     /* Snaps the shrunk square asset into a crisp circle */
+  transform: scale(0.40); 
   
-  /* Centers the scaled graphic perfectly inside your 180px frame */
+  /* Centers the zoomed graphic perfectly inside your new circular frame */
   position: absolute;
-  top: 0; 
+  top: -1px; 
   left: 0;
 
   /* RESTORES FULL ORIGINAL GRAPHICS & COLORS */
