@@ -75,8 +75,10 @@
   position: relative;
   width: 180px;
   height: 180px;
+  /* Removed border-radius to keep the shimmer math unclipped, 
+     as the transparent PNG will handle the shape naturally */
   overflow: hidden;
-  background: transparent;
+  background: transparent; /* Ensures no background box shows */
 }
 
 .avalon-logo-img {
@@ -91,20 +93,14 @@
   transform: scale(0.40);
   transform-origin: center center;
 
-  /* CRITICAL FIX 1: Blends the image box perfectly into light backgrounds.
-    'multiply' drops out the light/white container box completely, 
-    leaving only the dark and rich purple logo elements visible.
-  */
-  mix-blend-mode: multiply; 
+  /* Premium soft shadow instead of a harsh edge */
+  filter: drop-shadow(0 4px 14px rgba(238, 244, 255, 0.85));
 
-  background: transparent; 
-  border: none;            
-  outline: none;
+  /* Fallback in case image has slight white edges */
+  mix-blend-mode: normal; 
 
-  /* CRITICAL FIX 2: Removed the old drop-shadow filter. 
-    Because the image asset has a box shape, drop-shadow was drawing 
-    a shadow around the square box, creating those faint side lines.
-  */
+  background: transparent; /* Forces the element background to be clear */
+  border: none;            /* Strips any accidental browser borders */
 
   /* Moving light pass shimmer overlay setup */
   -webkit-mask-image: linear-gradient(
@@ -144,6 +140,7 @@
     mask-position: 100% 0%;
   }
 }
+
 
 
 
