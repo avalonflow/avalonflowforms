@@ -71,35 +71,41 @@
   background: transparent;
 }
 
+/* The Frame: This acts as a strict window that only shows the center "A" */
 .logo-shimmer-wrapper {
   position: relative;
   display: inline-block;
+  width: 76px;          /* Width of just the "A" inside your image */
+  height: 74px;         /* Height of just the "A" inside your image */
+  overflow: hidden;     /* Physically clips off the dark background square */
 }
 
+/* Your Original Logo Graphic */
 .avalon-logo-img {
   display: block;
-  width: 95px; /* Perfect intentional sizing */
+  width: 100px;         /* Scaled up slightly so the background sits outside the frame */
   height: auto;
-  margin: 0 auto;
+  
+  /* Positions the image perfectly so only the "A" fills the frame window */
+  position: absolute;
+  top: -12px;
+  left: -12px;
 
-  /* THE FIXED APPROACH: 
-     Instead of slicing the image, this targets the dark purple tones 
-     and blends them perfectly into your light background, leaving the shape intact.
-  */
-  mix-blend-mode: screen;
-  filter: contrast(1.1) brightness(1.02);
+  /* Restores your natural vibrant colors perfectly (No more vanishing colors!) */
+  mix-blend-mode: normal;
+  filter: none;
 
-  /* The smooth light pass overlay setup */
+  /* The smooth light pass overlay setup running cleanly over your original asset */
   -webkit-mask-image: linear-gradient(
     -75deg, 
     rgba(0, 0, 0, 1) 35%, 
-    rgba(255, 255, 255, 0.4) 50%, 
+    rgba(255, 255, 255, 0.5) 50%, 
     rgba(0, 0, 0, 1) 65%
   );
   mask-image: linear-gradient(
     -75deg, 
     rgba(0, 0, 0, 1) 35%, 
-    rgba(255, 255, 255, 0.4) 50%, 
+    rgba(255, 255, 255, 0.5) 50%, 
     rgba(0, 0, 0, 1) 65%
   );
   
@@ -126,6 +132,7 @@
     mask-position: 100% 0%;
   }
 }
+
 
 
 
