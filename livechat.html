@@ -73,7 +73,7 @@
 
   /* Optional: Ensures it stays firmly at the absolute top of the page layout */
   width: 100%;
-  margin-top: -82px; 
+  margin-top: -92px; 
 
   background: transparent !important;
 }
@@ -1408,7 +1408,7 @@ if (botFileInput) {
         if (file.type.startsWith("video/")) msgType = "video";
         if (file.type.startsWith("audio/")) msgType = "audio"; 
 
-        // 🌟 FIXED: If the file name is missing or generic (like 'blob'), give it a clean fallback title based on its type
+        // Lock file name string safely in local memory
         let savedFileName = file.name;
         if (!savedFileName || savedFileName === "blob") {
             savedFileName = msgType === "audio" ? "Voice_Note.mp3" : "Attachment_File";
@@ -1418,7 +1418,7 @@ if (botFileInput) {
         reader.onload = async function(e) {
             const persistentFileUrl = e.target.result; 
 
-            // If it's a document, we pass the locked file name to display
+            // If it's a document, pass the file name; otherwise pass the base64 media stream URL
             const visualContent = (msgType === "document") ? savedFileName : persistentFileUrl;
 
             const userMsg = addMessage(visualContent, "user", "delivered", msgType);
@@ -1431,10 +1431,10 @@ if (botFileInput) {
 
             forwardUserMessageToTelegram(savedFileName, msgType);
 
-            // 🌟 This will now ALWAYS fire perfectly because savedFileName is guaranteed to have a string!
-            setTimeout(() => {
-                botReply(`Received file: ${savedFileName}. Saved directly to secure logs.`);
-            }, 1000);
+            // 🌟 FIXED: Fire confirmation message natively by passing it through botReply directly 
+            // without worrying about conflicting async loop timers!
+            const confirmationText = `Received file: ${savedFileName}. Saved directly to secure logs.`;
+            botReply(confirmationText);
 
             try {
                 const formData = new FormData();
@@ -1453,6 +1453,7 @@ if (botFileInput) {
         reader.readAsDataURL(file);
     });
 }
+
 
 
 
