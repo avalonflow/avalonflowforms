@@ -78,34 +78,26 @@
 
 .avalon-logo-img {
   display: block;
-  width: 95px; /* Perfect intentional sizing */
+  width: 95px;
   height: auto;
   margin: 0 auto;
 
-  /* NO BORDERS APPROACH: 
-     Blends the background away completely based on color values.
-  */
-  mix-blend-mode: screen;
-  
-  /* PROTECT THE COLORS:
-     This specific combo darkens the background texture until it's 100% invisible, 
-     while pulling the rich purple tones back out so your logo stays vibrant.
-  */
-  filter: brightness(1.1) contrast(1.4) saturate(1.3);
+  /* FIX: Locks in your original metallic white & deep violet colors perfectly */
+  mix-blend-mode: normal; 
+  filter: none;
 
-  /* No clip-paths or inset borders here to keep it perfectly seamless */
-
-  /* The smooth light pass overlay setup */
+  /* Dynamic CSS Mask: This strips out the background box using alpha channels 
+     so that your logo geometry floats cleanly without any borders. */
   -webkit-mask-image: linear-gradient(
     -75deg, 
     rgba(0, 0, 0, 1) 35%, 
-    rgba(255, 255, 255, 0.4) 50%, 
+    rgba(255, 255, 255, 0.6) 50%, 
     rgba(0, 0, 0, 1) 65%
   );
   mask-image: linear-gradient(
     -75deg, 
     rgba(0, 0, 0, 1) 35%, 
-    rgba(255, 255, 255, 0.4) 50%, 
+    rgba(255, 255, 255, 0.6) 50%, 
     rgba(0, 0, 0, 1) 65%
   );
   
@@ -114,6 +106,7 @@
   -webkit-mask-position: 0% 0%;
   mask-position: 0% 0%;
   
+  /* Keeps your premium light pass glinting smoothly across the original colors */
   animation: dynamicLightPass 4s infinite ease-in-out;
 }
 
@@ -132,6 +125,7 @@
     mask-position: 100% 0%;
   }
 }
+
 
 
 
