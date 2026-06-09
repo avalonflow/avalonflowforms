@@ -71,26 +71,37 @@
   background: transparent;
 }
 
-/* Clean, open wrapper for the image layer */
+/* The Window: This stays a fixed size and drops whatever overflows it */
 .logo-shimmer-wrapper {
   position: relative;
   display: inline-block;
+  width: 76px;          /* Tight bounds to match the width of just the "A" */
+  height: 74px;         /* Tight bounds to match the height of just the "A" */
+  overflow: hidden;     /* Crucial: Slices off the dark background as you zoom */
 }
 
 .avalon-logo-img {
   display: block;
-  width: 40px; /* Clean mobile display width */
-  height: auto;
-  margin: 0 auto;
-
+  width: 100%;          /* Fills the wrapper base */
+  height: 100%;
+  
   /* YOUR CSS TRICK COMBO */
   object-fit: contain;
   filter: drop-shadow(0 0 4px rgba(0,0,0,0.4));
 
+  /* THE ZOOM TRICK: Scales up the graphic inside the window.
+     Adjust the 1.35 (135% zoom) up or down to hide more or less of the edges. */
+  transform: scale(1.35); 
+  
+  /* Positions the zoomed image perfectly inside the viewing frame */
+  position: absolute;
+  top: -2px; 
+  left: 0;
+
   /* RESTORES FULL ORIGINAL GRAPHICS & COLORS */
   mix-blend-mode: normal; 
 
-  /* Creates a moving light pass directly on the image graphics */
+  /* Moving light pass shimmer overlay setup */
   -webkit-mask-image: linear-gradient(
     -75deg, 
     rgba(0, 0, 0, 1) 35%, 
@@ -104,14 +115,11 @@
     rgba(0, 0, 0, 1) 65%
   );
   
-  /* Stretches the mask size so it can slide across from side to side */
   -webkit-mask-size: 400% 100%;
   mask-size: 400% 100%;
-  
   -webkit-mask-position: 0% 0%;
   mask-position: 0% 0%;
   
-  /* Triggers the smooth, realistic glare animation */
   animation: dynamicLightPass 4s infinite ease-in-out;
 }
 
@@ -123,11 +131,11 @@
   }
   65% {
     -webkit-mask-position: 100% 0%;
-    mask-position: 100% 0%; /* Glides the highlight entirely across the logo */
+    mask-position: 100% 0%;
   }
   100% {
     -webkit-mask-position: 100% 0%;
-    mask-position: 100% 0%; /* Elegant pause before restarting */
+    mask-position: 100% 0%;
   }
 }
 
