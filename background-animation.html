@@ -71,39 +71,35 @@
   background: transparent;
 }
 
-/* THE CIRCULAR WINDOW:
-   This element exclusively owns and controls the circle shape.
-*/
 .logo-shimmer-wrapper {
   position: relative;
-  display: flex;             /* Uses flex to center the scaled image effortlessly */
-  justify-content: center;
-  align-items: center;
-  width: 180px;          
-  height: 180px;         
-  border-radius: 50%;        /* Locks the container into a perfect circle */
-  overflow: hidden;          /* Explicitly slices off the square image corners */
-  
-  /* Optional: Add a background color here if you want to see the 180px circle fill */
-  background: transparent; 
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: transparent;
 }
 
 .avalon-logo-img {
-  display: block;
-  
-  /* THE INDEPENDENT SCALE:
-     Instead of using transform: scale(), changing these percentages scales the 
-     logo size up or down smoothly inside the 180px circle frame. 
-     Change 40% to 50%, 60%, etc., to make the logo larger or smaller inside the circle.
-  */
-  width: 40px;  /* 40% size relative to the 180px wrapper */
-  height: 40px;
-  
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 100%;
   object-fit: contain;
+
+  /* Scales only the image */
+  transform: scale(0.40);
+  transform-origin: center center;
+
+  /* Keep your shadow */
   filter: drop-shadow(0 0 4px rgba(0,0,0,0.4));
 
-  /* RESTORES FULL ORIGINAL GRAPHICS & COLORS */
-  mix-blend-mode: normal; 
+  /* Remove this since the wrapper owns the circle */
+  /* border-radius: 50%; */
+
+  mix-blend-mode: normal;
 
   /* Moving light pass shimmer overlay setup */
   -webkit-mask-image: linear-gradient(
