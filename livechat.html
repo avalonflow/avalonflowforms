@@ -1366,11 +1366,18 @@ function humanize(text){
     return prefix + text;
 }
 
-// 🌟 THE MUSIC INTENT INTERCEPTOR (DYNAMIC VERSION)
-if (lower.startsWith("play ") || lower.includes("play me") || rodWaveTracks.some(file => lower.includes(file.toLowerCase().replace(/[^a-z0-9]/g, "").trim()))) {
-    handleMusicIntent(lower);
-    return; // Stops the function here so it doesn't trigger greetings or FAQs
-}
+// =================================================================
+// 🌟 CORRECT ROUTING BLOCK SETUP
+// =================================================================
+function handleMessage(msg) {
+    if (isSarahActive) return;
+    const lower = msg.toLowerCase();
+
+    // 🌟 THE MUSIC INTENT INTERCEPTOR (SITTING SAFELY INSIDE THE HANDLING FUNCTION)
+    if (lower.startsWith("play ") || lower.includes("play me") || rodWaveTracks.some(file => lower.includes(file.toLowerCase().replace(/[^a-z0-9]/g, "").trim()))) {
+        handleMusicIntent(lower);
+        return; 
+    }
 
 
     if(/^(hi|hello|hey|yo|wassup|good morning|good afternoon|good evening|goodday|sup|ski)\b/.test(lower)){
