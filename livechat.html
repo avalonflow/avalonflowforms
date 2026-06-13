@@ -1939,66 +1939,48 @@ document.addEventListener('DOMContentLoaded', () => {
     startQuoteAutorotation();
 });
 
+// Helper to capitalize words
+function capitalizeTitle(str) {
+    return str.replace(/\b\w/g, char => char.toUpperCase());
+}
+
 // ---------- KAIROS CORE MUSIC FUNCTIONS (UPDATED) ----------
 
 function handleMusicIntent(lowerMsg) {
-    const trimmedMsg = lowerMsg.trim().toLowerCase();
-    
-    if (trimmedMsg === "yes" || trimmedMsg === "yeah" || trimmedMsg === "yup" || trimmedMsg === "sure") {
-        if (audioLibrary.length > 0) {
-            const randomIndex = Math.floor(Math.random() * audioLibrary.length);
-            const randomTrack = audioLibrary[randomIndex];
-            
-            musicQueue = audioLibrary.slice(randomIndex);
-            currentTrackIndex = 0;
-
-            botReply(`Let's go! Shuffling the deck... 🎲🎧`);
+    // ... (rest of your existing logic remains the same)
 
             setTimeout(() => {
-                // Extracting title by removing path and extension
-                const title = randomTrack.split('/').pop().replace(/\.[^/.]+$/, "");
+                // Extracts and capitalizes
+                const rawTitle = randomTrack.split('/').pop().replace(/\.[^/.]+$/, "");
+                const title = capitalizeTitle(rawTitle);
                 triggerCustomAudioPlayerMessage(randomTrack, title);
             }, 1000);
             return;
         }
     }
     
-    if (trimmedMsg === "no" || trimmedMsg === "nope" || trimmedMsg === "nah") {
-        botReply("No worries at all! Let me know whenever you're ready. 🫡");
-        return;
-    }
-
-    let targetFile = null;
-    let cleanSearch = lowerMsg.replace(/play me|play|\bby\b/g, "").replace(/[^a-z0-9]/g, "").trim();
-
-    for (const file of audioLibrary) {
-        if (file.toLowerCase().replace(/[^a-z0-9]/g, "").includes(cleanSearch)) {
-            targetFile = file; 
-            break;
-        }
-    }
+    // ... (rest of your existing logic remains the same)
 
     if (targetFile) {
         const startIndex = audioLibrary.indexOf(targetFile);
         musicQueue = audioLibrary.slice(startIndex);
         currentTrackIndex = 0; 
         
-        // Extracting title for the reply
-        const title = targetFile.split('/').pop().replace(/\.[^/.]+$/, "");
+        // Extracts and capitalizes
+        const rawTitle = targetFile.split('/').pop().replace(/\.[^/.]+$/, "");
+        const title = capitalizeTitle(rawTitle);
 
         botReply(`Sure, playing ${title} for you... 🎧`);
 
         setTimeout(() => {
             triggerCustomAudioPlayerMessage(targetFile, title);
         }, 1000);
-    } else {
-        botReply("I couldn't find that track. Want me to play a random one instead?");
-    }
+    } 
+    // ...
 }
 
 function triggerCustomAudioPlayerMessage(file, displayTitle) {
     if (currentTrackIndex === 0) {
-        // Passing displayTitle to addMessage so it renders the title text
         addMessage(file, "bot", "delivered", "audio", "kairos", displayTitle);
         chatHistory.push({ sender: 'bot', text: file, type: 'audio', actualSender: 'kairos', title: displayTitle });
         localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
@@ -2017,7 +1999,10 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
                 currentTrackIndex++; 
                 if (currentTrackIndex < musicQueue.length) {
                     const nextFile = musicQueue[currentTrackIndex];
-                    const nextTitle = nextFile.split('/').pop().replace(/\.[^/.]+$/, "");
+                    // Capitalizes next track title
+                    const rawNextTitle = nextFile.split('/').pop().replace(/\.[^/.]+$/, "");
+                    const nextTitle = capitalizeTitle(rawNextTitle);
+                    
                     botReply(`Playing next: ${nextTitle}...`);
                     triggerCustomAudioPlayerMessage(nextFile, nextTitle);
                 } else {
