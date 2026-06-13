@@ -1939,12 +1939,11 @@ document.addEventListener('DOMContentLoaded', () => {
     startQuoteAutorotation();
 });
 
-// ---------- KAIROS CORE MUSIC FUNCTIONS (CLEAN) ----------
+// ---------- KAIROS CORE MUSIC FUNCTIONS (UPDATED) ----------
 
 function handleMusicIntent(lowerMsg) {
     const trimmedMsg = lowerMsg.trim().toLowerCase();
     
-    // 1. Intercept simple affirmative answers
     if (trimmedMsg === "yes" || trimmedMsg === "yeah" || trimmedMsg === "yup" || trimmedMsg === "sure") {
         if (audioLibrary.length > 0) {
             const randomIndex = Math.floor(Math.random() * audioLibrary.length);
@@ -1956,7 +1955,9 @@ function handleMusicIntent(lowerMsg) {
             botReply(`Let's go! Shuffling the deck... 🎲🎧`);
 
             setTimeout(() => {
-                triggerCustomAudioPlayerMessage(randomTrack, "");
+                // Extracting title by removing path and extension
+                const title = randomTrack.split('/').pop().replace(/\.[^/.]+$/, "");
+                triggerCustomAudioPlayerMessage(randomTrack, title);
             }, 1000);
             return;
         }
@@ -1981,11 +1982,14 @@ function handleMusicIntent(lowerMsg) {
         const startIndex = audioLibrary.indexOf(targetFile);
         musicQueue = audioLibrary.slice(startIndex);
         currentTrackIndex = 0; 
+        
+        // Extracting title for the reply
+        const title = targetFile.split('/').pop().replace(/\.[^/.]+$/, "");
 
-        botReply(`Sure, playing that for you... 🎧`);
+        botReply(`Sure, playing ${title} for you... 🎧`);
 
         setTimeout(() => {
-            triggerCustomAudioPlayerMessage(targetFile, "");
+            triggerCustomAudioPlayerMessage(targetFile, title);
         }, 1000);
     } else {
         botReply("I couldn't find that track. Want me to play a random one instead?");
@@ -1993,10 +1997,10 @@ function handleMusicIntent(lowerMsg) {
 }
 
 function triggerCustomAudioPlayerMessage(file, displayTitle) {
-    // Only create a new bubble for the first track in a sequence
     if (currentTrackIndex === 0) {
-        addMessage(file, "bot", "delivered", "audio", "kairos");
-        chatHistory.push({ sender: 'bot', text: file, type: 'audio', actualSender: 'kairos' });
+        // Passing displayTitle to addMessage so it renders the title text
+        addMessage(file, "bot", "delivered", "audio", "kairos", displayTitle);
+        chatHistory.push({ sender: 'bot', text: file, type: 'audio', actualSender: 'kairos', title: displayTitle });
         localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
     }
 
@@ -2005,7 +2009,6 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
         const latestAudio = audioElements[audioElements.length - 1];
 
         if (latestAudio) {
-            // NO DECODING. JUST THE PATH.
             latestAudio.src = file; 
             latestAudio.load();
             latestAudio.play().catch(err => console.log("Waiting for interaction:", err));
@@ -2014,8 +2017,9 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
                 currentTrackIndex++; 
                 if (currentTrackIndex < musicQueue.length) {
                     const nextFile = musicQueue[currentTrackIndex];
-                    botReply(`Playing next...`);
-                    triggerCustomAudioPlayerMessage(nextFile, "");
+                    const nextTitle = nextFile.split('/').pop().replace(/\.[^/.]+$/, "");
+                    botReply(`Playing next: ${nextTitle}...`);
+                    triggerCustomAudioPlayerMessage(nextFile, nextTitle);
                 } else {
                     botReply("Queue finished. What next? 🫡");
                 }
