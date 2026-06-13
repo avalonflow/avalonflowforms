@@ -2024,53 +2024,47 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
 }
 
 function formatTrackTitle(filePath) {
-    // 1. Get raw name and immediately strip out all common "clutter" tags
+    // 1. Initial cleanup: remove parentheses, RodWave tag, and extra spaces
     let name = filePath.split('/').pop().replace('.mp3', '').trim();
-    name = name.replace(/\(.*?\)/g, '').replace(/RodWave/gi, '').replace(/-/g, '-').replace(/\s+/g, ' ').trim();
+    name = name.replace(/\(.*?\)/g, '').replace(/RodWave/gi, '').replace(/\s+/g, ' ').trim();
     
+    // Helper: Capitalize every word
+    const toTitleCase = (str) => str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
+    const knownArtists = [
+        "Adele", "Asake", "Central Cee", "Charlie Puth", "Ed Sheeran", 
+        "Fridayy", "Future", "Gracie Abrams", "Gunna", "Justin Bieber", 
+        "Kate Bush", "Kodak Black", "Lil Durk", "Migos", "Post Malone", 
+        "Quavo", "Rod Wave", "Rylo Rodriguez", "SZA", "Tee Grizzley", 
+        "Whitney Houston", "Wiz Khalifa", "Young Thug", "YoungBoy Never Broke Again"
+    ];
+
     // 2. Handle "ft" or "feat" cases
     if (name.toLowerCase().includes(' ft ') || name.toLowerCase().includes(' feat ')) {
-        // Splitting at the 'ft' or 'feat' indicator
-        let splitPart = name.toLowerCase().split(/ ft | feat /i);
-        let titleAndMain = splitPart[0].trim();
-        let featuredArtist = splitPart[1].trim();
+        let parts = name.split(/-| ft | feat /i);
+        let title = toTitleCase(parts[0].trim());
+        let featuredArtist = toTitleCase(parts[1].trim());
+        let leadArtist = parts[2] ? toTitleCase(parts[2].trim()) : "Rod Wave";
         
-        // Extracting Lead Artist if it's in the title string (like "Already Won - Rod Wave")
-        let leadArtist = "Rod Wave"; // Default
-        let title = titleAndMain;
-        
-        // If the title still contains a dash, clean it
-        if (title.includes('-')) {
-            let subParts = title.split('-');
-            title = subParts[0].trim();
-            leadArtist = subParts[1].trim();
-        }
-        
-        return `${title} by ${leadArtist} ft ${featuredArtist}`;
+        return `${title} by ${leadArtist} Ft ${featuredArtist}`;
     }
 
-    // 3. Standard format for non-featured tracks
-    const knownArtists = [
-    "Adele", "Asake", "Central Cee", "Charlie Puth", "Ed Sheeran", 
-    "Fridayy", "Future", "Gracie Abrams", "Gunna", "Justin Bieber", 
-    "Kate Bush", "Kodak Black", "Lil Durk", "Migos", "Post Malone", 
-    "Quavo", "Rod Wave", "Rylo Rodriguez", "SZA", "Tee Grizzley", 
-    "Whitney Houston", "Wiz Khalifa", "Young Thug", "YoungBoy Never Broke Again"
-];
-
-
+    // 3. Standard format
     if (name.includes('-')) {
         let parts = name.split('-');
         let part1 = parts[0].trim();
         let part2 = parts[1] ? parts[1].trim() : "";
         
-        let isPart1Artist = knownArtists.some(a => part1.toLowerCase().includes(a.toLowerCase()));
-        return isPart1Artist ? `${part2} by ${part1}` : `${part1} by ${part2}`;
+        let artist = knownArtists.find(a => part1.toLowerCase().includes(a.toLowerCase()) || part2.toLowerCase().includes(a.toLowerCase()));
+        
+        if (artist) {
+            let title = (part1.toLowerCase().includes(artist.toLowerCase())) ? part2 : part1;
+            return `${toTitleCase(title)} by ${toTitleCase(artist)}`;
+        }
     }
 
-    return name;
+    return toTitleCase(name);
 }
-
 </script>
 
 </body>
