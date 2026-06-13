@@ -1942,23 +1942,23 @@ document.addEventListener('DOMContentLoaded', () => {
     startQuoteAutorotation();
 });
 
-// ---------- KAIROS CORE MUSIC FUNCTIONS (ULTRA-CLEAN MATCHING) ----------
+// ---------- KAIROS CORE MUSIC FUNCTIONS (DYNAMIC SOURCE LOADING) ----------
 
 function handleMusicIntent(lowerMsg) {
     const trimmedMsg = lowerMsg.trim();
     
-    // 1. Intercept simple affirmative answers to pick a random track from your library
+    // 1. Intercept simple affirmative answers
     if (trimmedMsg === "yes" || trimmedMsg === "yeah" || trimmedMsg === "yup") {
         if (rodWaveTracks.length > 0) {
             const randomIndex = Math.floor(Math.random() * rodWaveTracks.length);
             const randomTrack = rodWaveTracks[randomIndex];
             
+            // Set the global queue and point index to 0
             musicQueue = rodWaveTracks.slice(randomIndex);
             currentTrackIndex = 0;
 
-            // Format the display title text for the UI interface view
             let displayTitle = randomTrack
-                .replace(/^assets\/audio\//i, "") // Strip folder path out of display title
+                .replace(/^assets\/audio\//i, "") 
                 .replace(/^Rod Wave\s*-\s*/i, "")
                 .replace(/\s*-?\s*RodWave/i, "")
                 .replace(/\s*\([^)]+\)/g, "")
@@ -1986,7 +1986,6 @@ function handleMusicIntent(lowerMsg) {
 
     let targetFile = null;
 
-    // 2. Isolate core search terms by removing intent words and all spaces for comparison
     let cleanSearch = lowerMsg
         .replace(/play me/g, "")
         .replace(/play/g, "")
@@ -1999,12 +1998,11 @@ function handleMusicIntent(lowerMsg) {
         return;
     }
 
-    // Scan the tracks comparing compressed alphanumeric characters
     for (const file of rodWaveTracks) {
         const cleanFile = file.toLowerCase().replace(/[^a-z0-9]/g, ""); 
 
         if (cleanFile.includes(cleanSearch) || cleanSearch.includes(cleanFile)) {
-            targetFile = file; // Keeps the exact array string intact!
+            targetFile = file; 
             break;
         }
     }
@@ -2012,18 +2010,16 @@ function handleMusicIntent(lowerMsg) {
     if (targetFile) {
         const startIndex = rodWaveTracks.indexOf(targetFile);
         musicQueue = rodWaveTracks.slice(startIndex);
-        currentTrackIndex = 0;
+        currentTrackIndex = 0; // Pointing to the beginning of our sliced queue
 
-        // Clean up the display title text for the UI card bubbles
         let displayTitle = targetFile
-            .replace(/^assets\/audio\//i, "") // Strip folder path out of display title
+            .replace(/^assets\/audio\//i, "") 
             .replace(/^Rod Wave\s*-\s*/i, "")
             .replace(/\s*-?\s*RodWave/i, "")
             .replace(/\s*\([^)]+\)/g, "")
             .replace(/\.mp3$/i, "")
             .trim();
 
-        // Capitalize words cleanly for the interface view
         displayTitle = displayTitle.split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
         botReply(`Sure, putting on ${displayTitle} for you... 🎧`);
@@ -2037,42 +2033,60 @@ function handleMusicIntent(lowerMsg) {
 }
 
 function triggerCustomAudioPlayerMessage(file, displayTitle) {
-    // 🌟 NO STRING BUILDING: Uses the direct layout exactly as written in your array
     const fullAssetUrl = file; 
 
-    addMessage(fullAssetUrl, "bot", "delivered", "audio", "kairos");
+    // ONLY create a new bubble structure if it's the start of a request session
+    if (currentTrackIndex === 0) {
+        addMessage(fullAssetUrl, "bot", "delivered", "audio", "kairos");
 
-    chatHistory.push({ sender: 'bot', text: fullAssetUrl, type: 'audio', actualSender: 'kairos' });
-    localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
-
-    const audioElements = botMessagesContainer.querySelectorAll('audio');
-    const latestAudio = audioElements[audioElements.length - 1];
-
-    if (latestAudio) {
-        latestAudio.play().catch(() => console.log("Waiting for user tap..."));
-
-        latestAudio.onended = () => {
-            currentTrackIndex++;
-            if (currentTrackIndex < musicQueue.length) {
-                const nextFile = musicQueue[currentTrackIndex];
-
-                let nextDisplayTitle = nextFile
-                    .replace(/^assets\/audio\//i, "") // Strip folder path out of display title
-                    .replace(/^Rod Wave\s*-\s*/i, "")
-                    .replace(/\s*-?\s*RodWave/i, "")
-                    .replace(/\s*\([^)]+\)/g, "")
-                    .replace(/\.mp3$/i, "")
-                    .trim();
-
-                botReply(`Playing next from the queue: ${nextDisplayTitle}...`);
-                setTimeout(() => {
-                    triggerCustomAudioPlayerMessage(nextFile, nextDisplayTitle);
-                }, 2000);
-            } else {
-                botReply("The queue has finished playing. What should we stream next? 🫡");
-            }
-        };
+        chatHistory.push({ sender: 'bot', text: fullAssetUrl, type: 'audio', actualSender: 'kairos' });
+        localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
     }
+
+    // Small delay ensures DOM node extraction is accurate across slow frame paints
+    setTimeout(() => {
+        const audioElements = botMessagesContainer.querySelectorAll('audio');
+        const latestAudio = audioElements[audioElements.length - 1];
+
+        if (latestAudio) {
+            // Swap source dynamically instead of dropping multiple components into view
+            if (!latestAudio.src.includes(file)) {
+                latestAudio.src = file;
+                latestAudio.load(); 
+            }
+
+            latestAudio.play().catch((err) => {
+                console.log("Autoplay blocked or waiting for user tap...", err);
+            });
+
+            latestAudio.onended = () => {
+                currentTrackIndex++; 
+                
+                if (currentTrackIndex < musicQueue.length) {
+                    const nextFile = musicQueue[currentTrackIndex];
+
+                    let nextDisplayTitle = nextFile
+                        .replace(/^assets\/audio\//i, "") 
+                        .replace(/^Rod Wave\s*-\s*/i, "")
+                        .replace(/\s*-?\s*RodWave/i, "")
+                        .replace(/\s*\([^)]+\)/g, "")
+                        .replace(/\.mp3$/i, "")
+                        .trim();
+
+                    nextDisplayTitle = nextDisplayTitle.split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+                    botReply(`Playing next from the queue: ${nextDisplayTitle}...`);
+                    
+                    setTimeout(() => {
+                        // Progress seamlessly using the modified runtime scope index
+                        triggerCustomAudioPlayerMessage(nextFile, nextDisplayTitle);
+                    }, 2000);
+                } else {
+                    botReply("The queue has finished playing. What should we stream next? 🫡");
+                }
+            };
+        }
+    }, 80); 
 }
 </script>
 
