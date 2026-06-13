@@ -1016,7 +1016,8 @@ if (photoInput && profilePhoto) {
 }
 
 // ---------- OPTIMIZED INTEGRATED MESSAGE RENDERER (YOUR ORIGINAL VERSION) ----------
-function addMessage(content, sender="bot", status="delivered", type="text", overrideSender = null, displayTitle = null){ // FIX 1: Added displayTitle = null
+function addMessage(content, sender="bot", status="delivered", type="text", overrideSender = null, displayTitle = null){
+
     const wrap = document.createElement("div");
     wrap.className = `msgWrap ${sender}-wrap`; 
 
