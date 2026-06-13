@@ -1,3 +1,5 @@
+You can see how I defined it
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -793,7 +795,7 @@ const audioLibrary = [
   "assets/audio/Rod Wave - 25 (Official Video) - RodWave.mp3",
   "assets/audio/Straightenin - Migos.mp3",
   "assets/audio/Fck Fame - Rod Wave.mp3",
-  "assets/audio/photograph   ed sheeran.mp3",
+  "assets/audio/photograph ed sheeran.mp3",
   "assets/audio/Rod Wave - Even Love Official Audio.mp3",
   "assets/audio/Rod Wave - Call Your Friends (Official Video) - RodWave.mp3",
   "assets/audio/Already Won ft Lil Durk (Official Video) - RodWave.mp3"
@@ -1015,9 +1017,8 @@ if (photoInput && profilePhoto) {
     });
 }
 
-// ---------- OPTIMIZED INTEGRATED MESSAGE RENDERER (YOUR ORIGINAL VERSION) ----------
-function addMessage(content, sender="bot", status="delivered", type="text", overrideSender = null, displayTitle = null){
-
+// ---------- OPTIMIZED INTEGRATED MESSAGE RENDERER ----------
+function addMessage(content, sender="bot", status="delivered", type="text", overrideSender = null){
     const wrap = document.createElement("div");
     wrap.className = `msgWrap ${sender}-wrap`; 
 
@@ -1038,7 +1039,7 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
     const msg = document.createElement("div");
     msg.className = `${sender} message`;
 
-    if (type === "photo") {
+        if (type === "photo") {
         const img = document.createElement("img");
         img.src = content;
         img.style.maxWidth = "200px";
@@ -1062,16 +1063,7 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
         vid.style.borderRadius = "8px";
         vid.style.display = "block";
         msg.appendChild(vid);
-    } else if (type === "audio") { 
-        // FIX 2: Added this block to render the title above your original audio deck
-        if (displayTitle) {
-            const titleEl = document.createElement("div");
-            titleEl.style.fontWeight = "bold";
-            titleEl.style.fontSize = "12px";
-            titleEl.style.marginBottom = "4px";
-            titleEl.textContent = displayTitle;
-            msg.appendChild(titleEl);
-        }
+    } else if (type === "audio") { // 🌟 FIXED: Renders a premium HTML5 audio playback deck
         const aud = document.createElement("audio");
         aud.src = content;
         aud.controls = true;
@@ -1079,7 +1071,7 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
         aud.style.borderRadius = "4px";
         aud.style.display = "block";
         msg.appendChild(aud);
-    } else if (type === "document") { 
+        } else if (type === "document") { // 🌟 FIXED: Cleans up document views with an elegant download button
         const docBox = document.createElement("div");
         docBox.style.display = "flex";
         docBox.style.alignItems = "center";
@@ -1099,10 +1091,13 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
         docLink.style.fontWeight = "600";
         docLink.style.textDecoration = "none";
         
+        // 🌟 FIX: Forces the browser to download/save the file locally instead of opening a web link page
         const isBase64 = content.startsWith("data:");
         docLink.setAttribute("download", isBase64 ? "AvalonFlow_Document" : content.split('/').pop());
         
+        // Clean up the URL file path text or display the uploaded filename nicely
         if (isBase64) {
+            // Checks if 'content' looks like a file name passed from our updated file handler hook
             if (content.includes(".") && !content.includes(";base64")) {
                 docLink.textContent = content.length > 25 ? content.substring(0, 22) + "..." : content;
             } else {
@@ -1119,6 +1114,8 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
     } else {
         msg.textContent = content;
     }
+
+
 
     if (sender === "user") {
         wrap.appendChild(msg);
@@ -1150,8 +1147,6 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
 
     return wrap;
 }
-
-
 
 function markAsSeen(wrap){
     if (!wrap) return;
@@ -1946,50 +1941,64 @@ document.addEventListener('DOMContentLoaded', () => {
     startQuoteAutorotation();
 });
 
-// Helper to capitalize words
-function capitalizeTitle(str) {
-    return str.replace(/\b\w/g, char => char.toUpperCase());
-}
-
-// ---------- KAIROS CORE MUSIC FUNCTIONS (UPDATED) ----------
+// ---------- KAIROS CORE MUSIC FUNCTIONS (CLEAN) ----------
 
 function handleMusicIntent(lowerMsg) {
-    // ... (rest of your existing logic remains the same)
+    const trimmedMsg = lowerMsg.trim().toLowerCase();
+    
+    // 1. Intercept simple affirmative answers
+    if (trimmedMsg === "yes" || trimmedMsg === "yeah" || trimmedMsg === "yup" || trimmedMsg === "sure") {
+        if (audioLibrary.length > 0) {
+            const randomIndex = Math.floor(Math.random() * audioLibrary.length);
+            const randomTrack = audioLibrary[randomIndex];
+            
+            musicQueue = audioLibrary.slice(randomIndex);
+            currentTrackIndex = 0;
+
+            botReply(`Let's go! Shuffling the deck... 🎲🎧`);
 
             setTimeout(() => {
-                // Extracts and capitalizes
-                const rawTitle = randomTrack.split('/').pop().replace(/\.[^/.]+$/, "");
-                const title = capitalizeTitle(rawTitle);
-                triggerCustomAudioPlayerMessage(randomTrack, title);
+                triggerCustomAudioPlayerMessage(randomTrack, "");
             }, 1000);
             return;
         }
     }
     
-    // ... (rest of your existing logic remains the same)
+    if (trimmedMsg === "no" || trimmedMsg === "nope" || trimmedMsg === "nah") {
+        botReply("No worries at all! Let me know whenever you're ready. 🫡");
+        return;
+    }
+
+    let targetFile = null;
+    let cleanSearch = lowerMsg.replace(/play me|play|\bby\b/g, "").replace(/[^a-z0-9]/g, "").trim();
+
+    for (const file of audioLibrary) {
+        if (file.toLowerCase().replace(/[^a-z0-9]/g, "").includes(cleanSearch)) {
+            targetFile = file; 
+            break;
+        }
+    }
 
     if (targetFile) {
         const startIndex = audioLibrary.indexOf(targetFile);
         musicQueue = audioLibrary.slice(startIndex);
         currentTrackIndex = 0; 
-        
-        // Extracts and capitalizes
-        const rawTitle = targetFile.split('/').pop().replace(/\.[^/.]+$/, "");
-        const title = capitalizeTitle(rawTitle);
 
-        botReply(`Sure, playing ${title} for you... 🎧`);
+        botReply(`Sure, playing that for you... 🎧`);
 
         setTimeout(() => {
-            triggerCustomAudioPlayerMessage(targetFile, title);
+            triggerCustomAudioPlayerMessage(targetFile, "");
         }, 1000);
-    } 
-    // ...
+    } else {
+        botReply("I couldn't find that track. Want me to play a random one instead?");
+    }
 }
 
 function triggerCustomAudioPlayerMessage(file, displayTitle) {
+    // Only create a new bubble for the first track in a sequence
     if (currentTrackIndex === 0) {
-        addMessage(file, "bot", "delivered", "audio", "kairos", displayTitle);
-        chatHistory.push({ sender: 'bot', text: file, type: 'audio', actualSender: 'kairos', title: displayTitle });
+        addMessage(file, "bot", "delivered", "audio", "kairos");
+        chatHistory.push({ sender: 'bot', text: file, type: 'audio', actualSender: 'kairos' });
         localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
     }
 
@@ -1998,6 +2007,7 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
         const latestAudio = audioElements[audioElements.length - 1];
 
         if (latestAudio) {
+            // NO DECODING. JUST THE PATH.
             latestAudio.src = file; 
             latestAudio.load();
             latestAudio.play().catch(err => console.log("Waiting for interaction:", err));
@@ -2006,12 +2016,8 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
                 currentTrackIndex++; 
                 if (currentTrackIndex < musicQueue.length) {
                     const nextFile = musicQueue[currentTrackIndex];
-                    // Capitalizes next track title
-                    const rawNextTitle = nextFile.split('/').pop().replace(/\.[^/.]+$/, "");
-                    const nextTitle = capitalizeTitle(rawNextTitle);
-                    
-                    botReply(`Playing next: ${nextTitle}...`);
-                    triggerCustomAudioPlayerMessage(nextFile, nextTitle);
+                    botReply(`Playing next...`);
+                    triggerCustomAudioPlayerMessage(nextFile, "");
                 } else {
                     botReply("Queue finished. What next? 🫡");
                 }
