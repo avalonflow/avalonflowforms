@@ -765,32 +765,33 @@ const rodWaveTracks = [
   "Angel With An Attitude - Rod Wave.mp3",
   "Westside Connection - Rod Wave.mp3",
   "Nobody Gets Me - SZA.mp3",
-  "Greatness - Quavo.mp3",
-  "time reveals, be careful what you wish for - Gunna.mp3",
-  "Deep Depression - Lil Durk.mp3",
-  "Cold World (OG) - WyoRecords.mp3",
-  "Ghost - Justin Bieber.mp3",
-  "Better - Rod Wave.mp3",
-  "Old Days - Lil Durk.mp3",
-  "See You Again (feat. Charlie Puth) - Wiz Khalifa.mp3",
-  "Headtaps - Lil Durk.mp3",
-  "Feed the Streets - Rod Wave.mp3",
-  "Truth In The Lies - Central Cee.mp3",
-  "I Love You, I'm Sorry - Gracie Abrams.mp3",
-  "Codeine Crazy - Future.mp3",
-  "Below Zero - Fridayy.mp3",
-  "Don't You Remember - Adele.mp3",
-  "Voicemail (feat. Rod Wave) - Tee Grizzley.mp3",
-  "Time To Be Free - Kodak Black.mp3",
-  "Rod Wave - Passport Junkie (Official Video) - RodWave.mp3",
-  "Rod Wave - Leavin (Official Music Video) - RodWave.mp3",
-  "Rod Wave - 25 (Official Video) - RodWave.mp3",
-  "Straightenin - Migos.mp3",
-  "Fck Fame - Rod Wave.mp3",
-  "photograph - ed sheeran.mp3",
-  "Rod Wave - Even Love Official Audio.mp3",
-  "Rod Wave - Call Your Friends (Official Video) - RodWave.mp3",
-  "Rod Wave - Already Won ft Lil Durk (Official Video) - RodWave.mp3"
+" Greatness - Quavo.mp3",
+" time reveals, be careful what you wish for - Gunna.mp3",
+" Deep Depression - Lil Durk.mp3",
+" Cold World (OG) - WyoRecords.mp3",
+" Ghost - Justin Bieber.mp3",
+"Better - Rod Wave.mp3",
+" Old Days - Lil Durk.mp3",
+" See You Again (feat. Charlie Puth) - Wiz Khalifa.mp3",
+" Headtaps - Lil Durk.mp3",
+" Feed the Streets - Rod Wave.mp3",
+" Truth In The Lies - Central Cee.mp3",
+" I Love You, I'm Sorry - Gracie Abrams.mp3",
+" Better - Rod Wave.mp3",
+" Codeine Crazy - Future.mp3",
+" Below Zero - Fridayy.mp3",
+" Don't You Remember - Adele.mp3",
+" Voicemail (feat. Rod Wave) - Tee Grizzley.mp3",
+" Time To Be Free - Kodak Black.mp3",
+" Rod Wave - Passport Junkie (Official Video) - RodWave.mp3",
+" Rod Wave - Leavin (Official Music Video) - RodWave.mp3",
+" Rod Wave - 25 (Official Video) - RodWave.mp3",
+" Straightenin - Migos.mp3",
+" Fck Fame - Rod Wave.mp3",
+" photograph   ed sheeran.mp3",
+" Rod Wave - Even Love Official Audio.mp3",
+" Rod Wave - Call Your Friends (Official Video) - RodWave.mp3",
+" Rod Wave - Already Won ft Lil Durk (Official Video) - RodWave.mp3"
 ];
 
 let musicQueue = [];
@@ -1940,59 +1941,40 @@ document.addEventListener('DOMContentLoaded', () => {
     startQuoteAutorotation();
 });
 
-// ---------- KAIROS CORE MUSIC FUNCTIONS ----------
-
-// ---------- KAIROS CORE MUSIC FUNCTIONS (FULLY BULLETPROOFED) ----------
+// ---------- KAIROS CORE MUSIC FUNCTIONS (ULTRA-CLEAN MATCHING) ----------
 
 function handleMusicIntent(lowerMsg) {
     let targetFile = null;
 
-    // 1. Clean out intent flags to isolate the pure search query
+    // Isolate core search terms by removing intent words and all spaces for comparison
     let cleanSearch = lowerMsg
         .replace(/play me/g, "")
         .replace(/play/g, "")
-        .replace(/\bby\b/g, "") // Strips out the word "by" so it doesn't break string matches
-        .replace(/[^a-z0-9\s]/g, "")
+        .replace(/\bby\b/g, "")
+        .replace(/[^a-z0-9]/g, "") 
         .trim();
 
-    // Split search words to allow matching multi-word titles (e.g., "Ed", "Sheeran", "Photograph")
-    const searchWords = cleanSearch.split(/\s+/).filter(w => w.length > 1);
+    if (!cleanSearch) {
+        botReply("What track would you like me to pull up from the library? 🎧");
+        return;
+    }
 
-    // 2. Loop through your 66 tracks to find the best match
+    // Scan the tracks comparing compressed alphanumeric characters
     for (const file of rodWaveTracks) {
-        const cleanFile = file.toLowerCase().replace(/[^a-z0-9\s]/g, "");
+        const cleanFile = file.toLowerCase().replace(/[^a-z0-9]/g, ""); 
 
-        // Route A: Direct phrase match (e.g. "photograph ed sheeran" matches "photograph ed sheeran")
         if (cleanFile.includes(cleanSearch) || cleanSearch.includes(cleanFile)) {
-            targetFile = file;
+            targetFile = file; // Keeps the exact array string intact, leading spaces included!
             break;
         }
-
-        // Route B: Keyword overlap check (Checks if major words match up)
-        if (searchWords.length > 0) {
-            const matchesAllWords = searchWords.every(word => cleanFile.includes(word));
-            if (matchesAllWords) {
-                targetFile = file;
-                break;
-            }
-        }
     }
 
-    // 3. Absolute safety fallback—if keywords still completely missed, find ANY word overlap
-    if (!targetFile && searchWords.length > 0) {
-        targetFile = rodWaveTracks.find(file => {
-            const cleanFile = file.toLowerCase();
-            return searchWords.some(word => cleanFile.includes(word));
-        });
-    }
-
-    // 4. If targetFile was matched successfully, queue it up!
     if (targetFile) {
         const startIndex = rodWaveTracks.indexOf(targetFile);
         musicQueue = rodWaveTracks.slice(startIndex);
         currentTrackIndex = 0;
 
-        // Clean up the filename elegantly for the chat bubble UI
+        // Clean up the display title text for the UI card bubbles
         let displayTitle = targetFile
             .replace(/^Rod Wave\s*-\s*/i, "")
             .replace(/\s*-?\s*RodWave/i, "")
@@ -2000,8 +1982,8 @@ function handleMusicIntent(lowerMsg) {
             .replace(/\.mp3$/i, "")
             .trim();
 
-        // Capitalize words nicely for the chat interface display
-        displayTitle = displayTitle.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        // Capitalize words cleanly for the interface view
+        displayTitle = displayTitle.split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
         botReply(`Sure, putting on ${displayTitle} for you... 🎧`);
 
@@ -2009,17 +1991,16 @@ function handleMusicIntent(lowerMsg) {
             triggerCustomAudioPlayerMessage(targetFile, displayTitle);
         }, 1500);
     } else {
-        // Safe UX response instead of dropping back to track 0
-        botReply("I found that track index sequence, but the audio file isn't physically present in my directory list.");
+        botReply("I couldn't find that track in our local directory vault. Want to queue something else up?");
     }
 }
 
-
 function triggerCustomAudioPlayerMessage(file, displayTitle) {
+    // 🌟 USES THE RAW STRING: No trim here, preserving the exact spacing your server expects
     const fullAssetUrl = `assets/audio/${file}`;
 
     addMessage(fullAssetUrl, "bot", "delivered", "audio", "kairos");
-    
+
     chatHistory.push({ sender: 'bot', text: fullAssetUrl, type: 'audio', actualSender: 'kairos' });
     localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
@@ -2033,7 +2014,7 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
             currentTrackIndex++;
             if (currentTrackIndex < musicQueue.length) {
                 const nextFile = musicQueue[currentTrackIndex];
-                
+
                 let nextDisplayTitle = nextFile
                     .replace(/^Rod Wave\s*-\s*/i, "")
                     .replace(/\s*-?\s*RodWave/i, "")
