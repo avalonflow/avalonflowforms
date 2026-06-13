@@ -2024,45 +2024,37 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
 }
 
 function formatTrackTitle(filePath) {
-    // 1. Clean the filename
     let name = filePath.split('/').pop().replace('.mp3', '').trim();
     
-    // List of artists in your library to ensure multi-word names are caught
-    const knownArtists = [
-        "Rod Wave", "Lil Durk", "Young Thug", "Future", "Gunna", "Asake", 
-        "Post Malone", "Charlie Puth", "Wiz Khalifa", "Kate Bush", "Whitney Houston", 
-        "Quavo", "Justin Bieber", "Central Cee", "Gracie Abrams", "Fridayy", 
-        "Adele", "Tee Grizzley", "Kodak Black", "Migos", "Rylo Rodriguez", 
-        "YoungBoy Never Broke Again", "SZA", "Ed Sheeran"
-    ];
-
-    // 2. Handle the " - " separator
-    if (name.includes(' - ')) {
-        let parts = name.split(' - ');
-        let part1 = parts[0].replace(/\(.*?\)/g, '').trim();
-        let part2 = parts[1] ? parts[1].replace(/\(.*?\)/g, '').replace(/RodWave/gi, '').trim() : "";
-
-        // Heuristic: If the first part is a known artist, or if the second part is short, order accordingly
-        let isPart1Artist = knownArtists.some(a => part1.toLowerCase().includes(a.toLowerCase()));
-        if (isPart1Artist) return `${part2} by ${part1}`;
+    // 1. Handle "ft" or "feat" cases
+    if (name.toLowerCase().includes('ft') || name.toLowerCase().includes('feat')) {
+        // Regex to separate: [Title] [ft/feat] [Featured Artist] [Lead Artist]
+        // This is tailored for your list: "Already Won ft Lil Durk... - RodWave"
+        let parts = name.split('-');
+        let mainPart = parts[0].trim(); // "Already Won ft Lil Durk"
         
-        return (part1.length > 20) ? `${part1} by ${part2}` : `${part2} by ${part1}`;
+        // Find the lead artist (Rod Wave) and the featured artist (Lil Durk)
+        let leadArtist = "Rod Wave"; 
+        let featuredArtist = mainPart.split(/ft|feat/i)[1].trim();
+        let title = mainPart.split(/ft|feat/i)[0].trim();
+        
+        return `${title} by ${leadArtist} ft ${featuredArtist}`;
     }
 
-    // 3. Fallback for files without " - " 
-    for (let artist of knownArtists) {
-        if (name.toLowerCase().includes(artist.toLowerCase())) {
-            let title = name.replace(new RegExp(artist, 'gi'), '').replace(/\s+/g, ' ').trim();
-            // Clean up any remaining junk characters
-            title = title.replace(/-/g, '').trim();
-            return `${title} by ${artist}`;
-        }
+    // 2. Standard format for non-featured tracks
+    // (Existing logic for "Title by Artist")
+    const knownArtists = ["Rod Wave", "Lil Durk", "Young Thug", "Future", "Gunna", "Asake", "Post Malone", "Charlie Puth", "Wiz Khalifa", "Kate Bush", "Whitney Houston", "Quavo", "Justin Bieber", "Central Cee", "Gracie Abrams", "Fridayy", "Adele", "Tee Grizzley", "Kodak Black", "Migos", "Rylo Rodriguez", "YoungBoy Never Broke Again", "SZA", "Ed Sheeran"];
+
+    if (name.includes(' - ')) {
+        let parts = name.split(' - ');
+        let part1 = parts[0].trim();
+        let part2 = parts[1] ? parts[1].replace(/\(.*?\)/g, '').replace(/RodWave/gi, '').trim() : "";
+        let isPart1Artist = knownArtists.some(a => part1.toLowerCase().includes(a.toLowerCase()));
+        return isPart1Artist ? `${part2} by ${part1}` : `${part1} by ${part2}`;
     }
 
     return name;
 }
-
-
 </script>
 
 </body>
