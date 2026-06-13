@@ -1015,8 +1015,8 @@ if (photoInput && profilePhoto) {
     });
 }
 
-// ---------- OPTIMIZED INTEGRATED MESSAGE RENDERER ----------
-function addMessage(content, sender="bot", status="delivered", type="text", overrideSender = null){
+// ---------- OPTIMIZED INTEGRATED MESSAGE RENDERER (YOUR ORIGINAL VERSION) ----------
+function addMessage(content, sender="bot", status="delivered", type="text", overrideSender = null, displayTitle = null){ // FIX 1: Added displayTitle = null
     const wrap = document.createElement("div");
     wrap.className = `msgWrap ${sender}-wrap`; 
 
@@ -1037,7 +1037,7 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
     const msg = document.createElement("div");
     msg.className = `${sender} message`;
 
-        if (type === "photo") {
+    if (type === "photo") {
         const img = document.createElement("img");
         img.src = content;
         img.style.maxWidth = "200px";
@@ -1061,7 +1061,16 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
         vid.style.borderRadius = "8px";
         vid.style.display = "block";
         msg.appendChild(vid);
-    } else if (type === "audio") { // 🌟 FIXED: Renders a premium HTML5 audio playback deck
+    } else if (type === "audio") { 
+        // FIX 2: Added this block to render the title above your original audio deck
+        if (displayTitle) {
+            const titleEl = document.createElement("div");
+            titleEl.style.fontWeight = "bold";
+            titleEl.style.fontSize = "12px";
+            titleEl.style.marginBottom = "4px";
+            titleEl.textContent = displayTitle;
+            msg.appendChild(titleEl);
+        }
         const aud = document.createElement("audio");
         aud.src = content;
         aud.controls = true;
@@ -1069,7 +1078,7 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
         aud.style.borderRadius = "4px";
         aud.style.display = "block";
         msg.appendChild(aud);
-        } else if (type === "document") { // 🌟 FIXED: Cleans up document views with an elegant download button
+    } else if (type === "document") { 
         const docBox = document.createElement("div");
         docBox.style.display = "flex";
         docBox.style.alignItems = "center";
@@ -1089,13 +1098,10 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
         docLink.style.fontWeight = "600";
         docLink.style.textDecoration = "none";
         
-        // 🌟 FIX: Forces the browser to download/save the file locally instead of opening a web link page
         const isBase64 = content.startsWith("data:");
         docLink.setAttribute("download", isBase64 ? "AvalonFlow_Document" : content.split('/').pop());
         
-        // Clean up the URL file path text or display the uploaded filename nicely
         if (isBase64) {
-            // Checks if 'content' looks like a file name passed from our updated file handler hook
             if (content.includes(".") && !content.includes(";base64")) {
                 docLink.textContent = content.length > 25 ? content.substring(0, 22) + "..." : content;
             } else {
@@ -1112,8 +1118,6 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
     } else {
         msg.textContent = content;
     }
-
-
 
     if (sender === "user") {
         wrap.appendChild(msg);
@@ -1145,6 +1149,8 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
 
     return wrap;
 }
+
+
 
 function markAsSeen(wrap){
     if (!wrap) return;
