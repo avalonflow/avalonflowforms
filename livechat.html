@@ -1944,16 +1944,15 @@ document.addEventListener('DOMContentLoaded', () => {
 function handleMusicIntent(lowerMsg) {
     const trimmedMsg = lowerMsg.trim().toLowerCase();
     
-    // 1. Intercept simple affirmative answers
     if (trimmedMsg === "yes" || trimmedMsg === "yeah" || trimmedMsg === "yup" || trimmedMsg === "sure") {
         if (audioLibrary.length > 0) {
             const randomIndex = Math.floor(Math.random() * audioLibrary.length);
             const randomTrack = audioLibrary[randomIndex];
-            
             musicQueue = audioLibrary.slice(randomIndex);
             currentTrackIndex = 0;
 
-            botReply(`Let's go! Shuffling the deck... 🎲🎧`);
+            const formatted = formatTrackTitle(randomTrack);
+            botReply(`Let's go! Playing ${formatted}... 🎲🎧`);
 
             setTimeout(() => {
                 triggerCustomAudioPlayerMessage(randomTrack, "");
@@ -1982,7 +1981,8 @@ function handleMusicIntent(lowerMsg) {
         musicQueue = audioLibrary.slice(startIndex);
         currentTrackIndex = 0; 
 
-        botReply(`Sure, playing that for you... 🎧`);
+        const formatted = formatTrackTitle(targetFile);
+        botReply(`Sure, playing ${formatted} for you... 🎧`);
 
         setTimeout(() => {
             triggerCustomAudioPlayerMessage(targetFile, "");
@@ -1993,7 +1993,6 @@ function handleMusicIntent(lowerMsg) {
 }
 
 function triggerCustomAudioPlayerMessage(file, displayTitle) {
-    // Only create a new bubble for the first track in a sequence
     if (currentTrackIndex === 0) {
         addMessage(file, "bot", "delivered", "audio", "kairos");
         chatHistory.push({ sender: 'bot', text: file, type: 'audio', actualSender: 'kairos' });
@@ -2005,7 +2004,6 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
         const latestAudio = audioElements[audioElements.length - 1];
 
         if (latestAudio) {
-            // NO DECODING. JUST THE PATH.
             latestAudio.src = file; 
             latestAudio.load();
             latestAudio.play().catch(err => console.log("Waiting for interaction:", err));
@@ -2014,7 +2012,8 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
                 currentTrackIndex++; 
                 if (currentTrackIndex < musicQueue.length) {
                     const nextFile = musicQueue[currentTrackIndex];
-                    botReply(`Playing next...`);
+                    const nextFormatted = formatTrackTitle(nextFile);
+                    botReply(`Playing next: ${nextFormatted}... 🎧`);
                     triggerCustomAudioPlayerMessage(nextFile, "");
                 } else {
                     botReply("Queue finished. What next? 🫡");
@@ -2022,6 +2021,14 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
             };
         }
     }, 100);
+}
+
+function formatTrackTitle(filePath) {
+    let name = filePath.split('/').pop().replace('.mp3', '');
+    let parts = name.split(' - ');
+    let artist = parts[0];
+    let title = parts[1] ? parts[1].replace(/\s*\(.*?\)\s*/g, '').trim() : "Unknown Title";
+    return `${title} by ${artist}`;
 }
 
 </script>
