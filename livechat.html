@@ -2050,7 +2050,14 @@ function formatTrackTitle(filePath) {
     }
 
     // 3. Standard format for non-featured tracks
-    const knownArtists = ["Rod Wave", "Lil Durk", "Young Thug", "Future", "Gunna", "Asake", "Post Malone", "Charlie Puth", "Wiz Khalifa", "Kate Bush", "Whitney Houston", "Quavo", "Justin Bieber", "Central Cee", "Gracie Abrams", "Fridayy", "Adele", "Tee Grizzley", "Kodak Black", "Migos", "Rylo Rodriguez", "YoungBoy Never Broke Again", "SZA", "Ed Sheeran"];
+    const knownArtists = [
+    "Adele", "Asake", "Central Cee", "Charlie Puth", "Ed Sheeran", 
+    "Fridayy", "Future", "Gracie Abrams", "Gunna", "Justin Bieber", 
+    "Kate Bush", "Kodak Black", "Lil Durk", "Migos", "Post Malone", 
+    "Quavo", "Rod Wave", "Rylo Rodriguez", "SZA", "Tee Grizzley", 
+    "Whitney Houston", "Wiz Khalifa", "Young Thug", "YoungBoy Never Broke Again"
+];
+
 
     if (name.includes('-')) {
         let parts = name.split('-');
