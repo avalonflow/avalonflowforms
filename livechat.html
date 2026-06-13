@@ -1952,7 +1952,7 @@ function handleMusicIntent(lowerMsg) {
             currentTrackIndex = 0;
 
             const formatted = formatTrackTitle(randomTrack);
-            botReply(`Let's go! Playing ${formatted}... 🎲🎧`);
+            botReply(`Playing ${formatted}... 🎲🎧`);
 
             setTimeout(() => {
                 triggerCustomAudioPlayerMessage(randomTrack, "");
@@ -1982,7 +1982,7 @@ function handleMusicIntent(lowerMsg) {
         currentTrackIndex = 0; 
 
         const formatted = formatTrackTitle(targetFile);
-        botReply(`Sure, playing ${formatted} for you... 🎧`);
+        botReply(`Playing ${formatted} for you... 🎧`);
 
         setTimeout(() => {
             triggerCustomAudioPlayerMessage(targetFile, "");
