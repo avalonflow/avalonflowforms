@@ -1944,19 +1944,16 @@ document.addEventListener('DOMContentLoaded', () => {
 function handleMusicIntent(lowerMsg) {
     const trimmedMsg = lowerMsg.trim().toLowerCase();
     
+    // Logic for handling "Yes/No" intent remains the same, but calls the player
     if (trimmedMsg === "yes" || trimmedMsg === "yeah" || trimmedMsg === "yup" || trimmedMsg === "sure") {
         if (audioLibrary.length > 0) {
             const randomIndex = Math.floor(Math.random() * audioLibrary.length);
             const randomTrack = audioLibrary[randomIndex];
             musicQueue = audioLibrary.slice(randomIndex);
             currentTrackIndex = 0;
-
-            const formatted = formatTrackTitle(randomTrack);
-            botReply(`Playing ${formatted}... 🎲🎧`);
-
-            setTimeout(() => {
-                triggerCustomAudioPlayerMessage(randomTrack, "");
-            }, 1000);
+            
+            // Call the function directly (the function now handles its own reply)
+            triggerCustomAudioPlayerMessage(randomTrack);
             return;
         }
     }
@@ -1980,24 +1977,35 @@ function handleMusicIntent(lowerMsg) {
         const startIndex = audioLibrary.indexOf(targetFile);
         musicQueue = audioLibrary.slice(startIndex);
         currentTrackIndex = 0; 
-
-        const formatted = formatTrackTitle(targetFile);
-        botReply(`Playing ${formatted} for you... 🎧`);
-
-        setTimeout(() => {
-            triggerCustomAudioPlayerMessage(targetFile, "");
-        }, 1000);
+        
+        triggerCustomAudioPlayerMessage(targetFile);
     } else {
         botReply("I couldn't find that track. Want me to play a random one instead?");
     }
 }
 
-function triggerCustomAudioPlayerMessage(file, displayTitle) {
+function triggerCustomAudioPlayerMessage(file) {
+    const formatted = formatTrackTitle(file);
+    
+    // 1. Reply First (Order fixed)
     if (currentTrackIndex === 0) {
-        addMessage(file, "bot", "delivered", "audio", "kairos");
-        chatHistory.push({ sender: 'bot', text: file, type: 'audio', actualSender: 'kairos' });
-        localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+        botReply(`Playing ${formatted} for you... 🎧`);
+    } else {
+        // --- SELF-CLEANING FIX ---
+        // Before playing next, find and remove the previous "Playing next" notification
+        const messages = botMessagesContainer.querySelectorAll('.bot-message');
+        messages.forEach(msg => {
+            if (msg.innerText.includes("Playing next:")) {
+                msg.remove();
+            }
+        });
+        botReply(`Playing next: ${formatted}... 🎧`);
     }
+
+    // 2. Add the player second
+    addMessage(file, "bot", "delivered", "audio", "kairos");
+    chatHistory.push({ sender: 'bot', text: file, type: 'audio', actualSender: 'kairos' });
+    localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
     setTimeout(() => {
         const audioElements = botMessagesContainer.querySelectorAll('audio');
@@ -2012,22 +2020,7 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
                 currentTrackIndex++; 
                 if (currentTrackIndex < musicQueue.length) {
                     const nextFile = musicQueue[currentTrackIndex];
-                    const nextFormatted = formatTrackTitle(nextFile);
-                    
-                    // --- SELF-CLEANING FIX START ---
-                    // Target the last message in the container
-                    const allMessages = botMessagesContainer.querySelectorAll('.bot-message'); 
-                    if (allMessages.length > 0) {
-                        const lastMsg = allMessages[allMessages.length - 1];
-                        // Only remove if it's a "Playing next" notification
-                        if (lastMsg.innerText.includes("Playing next:")) {
-                            lastMsg.remove();
-                        }
-                    }
-                    // --- SELF-CLEANING FIX END ---
-
-                    botReply(`Playing next: ${nextFormatted}... 🎧`);
-                    triggerCustomAudioPlayerMessage(nextFile, "");
+                    triggerCustomAudioPlayerMessage(nextFile);
                 } else {
                     botReply("Queue finished. What next? 🫡");
                 }
@@ -2035,7 +2028,6 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
         }
     }, 100);
 }
-
 
 function formatTrackTitle(filePath) {
     // 1. Initial cleanup: remove parentheses, RodWave tag, and extra spaces
