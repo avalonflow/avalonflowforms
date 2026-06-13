@@ -2024,37 +2024,46 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
 }
 
 function formatTrackTitle(filePath) {
+    // 1. Get raw name and immediately strip out all common "clutter" tags
     let name = filePath.split('/').pop().replace('.mp3', '').trim();
+    name = name.replace(/\(.*?\)/g, '').replace(/RodWave/gi, '').replace(/-/g, '-').replace(/\s+/g, ' ').trim();
     
-    // 1. Handle "ft" or "feat" cases
-    if (name.toLowerCase().includes('ft') || name.toLowerCase().includes('feat')) {
-        // Regex to separate: [Title] [ft/feat] [Featured Artist] [Lead Artist]
-        // This is tailored for your list: "Already Won ft Lil Durk... - RodWave"
-        let parts = name.split('-');
-        let mainPart = parts[0].trim(); // "Already Won ft Lil Durk"
+    // 2. Handle "ft" or "feat" cases
+    if (name.toLowerCase().includes(' ft ') || name.toLowerCase().includes(' feat ')) {
+        // Splitting at the 'ft' or 'feat' indicator
+        let splitPart = name.toLowerCase().split(/ ft | feat /i);
+        let titleAndMain = splitPart[0].trim();
+        let featuredArtist = splitPart[1].trim();
         
-        // Find the lead artist (Rod Wave) and the featured artist (Lil Durk)
-        let leadArtist = "Rod Wave"; 
-        let featuredArtist = mainPart.split(/ft|feat/i)[1].trim();
-        let title = mainPart.split(/ft|feat/i)[0].trim();
+        // Extracting Lead Artist if it's in the title string (like "Already Won - Rod Wave")
+        let leadArtist = "Rod Wave"; // Default
+        let title = titleAndMain;
+        
+        // If the title still contains a dash, clean it
+        if (title.includes('-')) {
+            let subParts = title.split('-');
+            title = subParts[0].trim();
+            leadArtist = subParts[1].trim();
+        }
         
         return `${title} by ${leadArtist} ft ${featuredArtist}`;
     }
 
-    // 2. Standard format for non-featured tracks
-    // (Existing logic for "Title by Artist")
+    // 3. Standard format for non-featured tracks
     const knownArtists = ["Rod Wave", "Lil Durk", "Young Thug", "Future", "Gunna", "Asake", "Post Malone", "Charlie Puth", "Wiz Khalifa", "Kate Bush", "Whitney Houston", "Quavo", "Justin Bieber", "Central Cee", "Gracie Abrams", "Fridayy", "Adele", "Tee Grizzley", "Kodak Black", "Migos", "Rylo Rodriguez", "YoungBoy Never Broke Again", "SZA", "Ed Sheeran"];
 
-    if (name.includes(' - ')) {
-        let parts = name.split(' - ');
+    if (name.includes('-')) {
+        let parts = name.split('-');
         let part1 = parts[0].trim();
-        let part2 = parts[1] ? parts[1].replace(/\(.*?\)/g, '').replace(/RodWave/gi, '').trim() : "";
+        let part2 = parts[1] ? parts[1].trim() : "";
+        
         let isPart1Artist = knownArtists.some(a => part1.toLowerCase().includes(a.toLowerCase()));
         return isPart1Artist ? `${part2} by ${part1}` : `${part1} by ${part2}`;
     }
 
     return name;
 }
+
 </script>
 
 </body>
