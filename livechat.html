@@ -1982,17 +1982,10 @@ function handleMusicIntent(lowerMsg) {
         currentTrackIndex = 0; 
 
         const formatted = formatTrackTitle(targetFile);
-        botReply(`Sure, playing ${formatted} for you... 🎧`);
+        botReply(`Playing ${formatted} for you... 🎧`);
 
         setTimeout(() => {
-            triggerCustomAudioPlayerMessage(targetFile, "");
-        }, 1000);
-    } else {
-        botReply("I couldn't find that track. Want me to play a random one instead?");
-    }
-}
-
-function triggerCustomAudioPlayerMessage(file, displayTitle) {
+            function triggerCustomAudioPlayerMessage(file, displayTitle) {
     if (currentTrackIndex === 0) {
         addMessage(file, "bot", "delivered", "audio", "kairos");
         chatHistory.push({ sender: 'bot', text: file, type: 'audio', actualSender: 'kairos' });
@@ -2013,6 +2006,19 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
                 if (currentTrackIndex < musicQueue.length) {
                     const nextFile = musicQueue[currentTrackIndex];
                     const nextFormatted = formatTrackTitle(nextFile);
+                    
+                    // --- SELF-CLEANING FIX START ---
+                    // Target the last message in the container
+                    const allMessages = botMessagesContainer.querySelectorAll('.bot-message'); 
+                    if (allMessages.length > 0) {
+                        const lastMsg = allMessages[allMessages.length - 1];
+                        // Only remove if it's a "Playing next" notification
+                        if (lastMsg.innerText.includes("Playing next:")) {
+                            lastMsg.remove();
+                        }
+                    }
+                    // --- SELF-CLEANING FIX END ---
+
                     botReply(`Playing next: ${nextFormatted}... 🎧`);
                     triggerCustomAudioPlayerMessage(nextFile, "");
                 } else {
@@ -2022,6 +2028,7 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
         }
     }, 100);
 }
+
 
 function formatTrackTitle(filePath) {
     // 1. Initial cleanup: remove parentheses, RodWave tag, and extra spaces
