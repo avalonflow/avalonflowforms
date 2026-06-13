@@ -721,7 +721,9 @@ let quoteRotationTimer = null;
 const currentTabId = Math.random().toString();
 sessionStorage.setItem('active_chat_tab', currentTabId);
 
-// ---------- Music Library Configuration (Pure File Names) ----------
+// =================================================================
+// POSITION 1: TOP OF FILE (Global Configurations & States)
+// =================================================================
 const rodWaveTracks = [
   "Rod Wave - 2019 (Official Audio) - RodWave.mp3",
   "Rod Wave - Don't Forget (Official Audio) - RodWave.mp3",
@@ -732,12 +734,68 @@ const rodWaveTracks = [
   "Rod Wave - PTSD (Official Music Video) - RodWave.mp3",
   "Rod Wave - Tru Story (Official Music Video) Prod. Gloden.Tae - RodWave.mp3",
   "Rod Wave - Cold December (Official Video) - RodWave.mp3",
-  "Rod Wave - The Best (Official Audio) - RodWave.mp3"
-  // 🌟 You can easily drop the remaining 56 filenames right here!
+  "Rod Wave - The Best (Official Audio) - RodWave.mp3",
+  "Rod Wave - Jersey Numbers Ft. Rylo Rodriguez (Official Audio) - RodWave.mp3",
+  "Rod Wave - Just Sing (Official Audio) - RodWave.mp3",
+  "Rod Wave - Jupiter's Diary (Official Audio) - RodWave.mp3",
+  "Rod Wave - MJ Story (Official Audio) - RodWave.mp3",
+  "SoulFly - Rod Wave.mp3",
+  "Never Get Over Me - Rod Wave.mp3",
+  "Went Thru It - Young Thug.mp3",
+  "Last Name - Future.mp3",
+  "Long Journey - Rod Wave.mp3",
+  "Spaceship - Rod Wave.mp3",
+  "End of the Road - Rylo Rodriguez.mp3",
+  "alright - Gunna.mp3",
+  "Keep It G - Rod Wave.mp3",
+  "What Happened To Virgil - Lil Durk.mp3",
+  "Great Gatsby - Rod Wave.mp3",
+  "Psycho - Post Malone.mp3",
+  "Nzaza - Asake.mp3",
+  "They Want To Be You - Lil Durk.mp3",
+  "Love Songs 4 The Streets - Lil Durk.mp3",
+  "Hot (feat. Gunna) - Young Thug.mp3",
+  "Better Than Ever - YoungBoy Never Broke Again.mp3",
+  "Running Up That Hill (A Deal With God) - Kate Bush.mp3",
+  "I Look to You - Whitney Houston.mp3",
+  "Wonderin' Again - Lil Durk.mp3",
+  "Waited 2 Late - Rod Wave.mp3",
+  "Project Baby Young Thug - Release.mp3",
+  "Circles - Post Malone.mp3",
+  "Angel With An Attitude - Rod Wave.mp3",
+  "Westside Connection - Rod Wave.mp3",
+  "Nobody Gets Me - SZA.mp3",
+  "Greatness - Quavo.mp3",
+  "time reveals, be careful what you wish for - Gunna.mp3",
+  "Deep Depression - Lil Durk.mp3",
+  "Cold World (OG) - WyoRecords.mp3",
+  "Ghost - Justin Bieber.mp3",
+  "Better - Rod Wave.mp3",
+  "Old Days - Lil Durk.mp3",
+  "See You Again (feat. Charlie Puth) - Wiz Khalifa.mp3",
+  "Headtaps - Lil Durk.mp3",
+  "Feed the Streets - Rod Wave.mp3",
+  "Truth In The Lies - Central Cee.mp3",
+  "I Love You, I'm Sorry - Gracie Abrams.mp3",
+  "Codeine Crazy - Future.mp3",
+  "Below Zero - Fridayy.mp3",
+  "Don't You Remember - Adele.mp3",
+  "Voicemail (feat. Rod Wave) - Tee Grizzley.mp3",
+  "Time To Be Free - Kodak Black.mp3",
+  "Rod Wave - Passport Junkie (Official Video) - RodWave.mp3",
+  "Rod Wave - Leavin (Official Music Video) - RodWave.mp3",
+  "Rod Wave - 25 (Official Video) - RodWave.mp3",
+  "Straightenin - Migos.mp3",
+  "Fck Fame - Rod Wave.mp3",
+  "photograph - ed sheeran.mp3",
+  "Rod Wave - Even Love Official Audio.mp3",
+  "Rod Wave - Call Your Friends (Official Video) - RodWave.mp3",
+  "Rod Wave - Already Won ft Lil Durk (Official Video) - RodWave.mp3"
 ];
 
 let musicQueue = [];
 let currentTrackIndex = -1;
+
 
 
 const sarahProfile = {
