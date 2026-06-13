@@ -2037,11 +2037,8 @@ function handleMusicIntent(lowerMsg) {
 }
 
 function triggerCustomAudioPlayerMessage(file, displayTitle) {
-    // Trim accidental spacing and properly encode characters like spaces or quotes for server matching
-    const cleanFile = encodeURIComponent(file.trim());
-    
-    // Direct, unmasked link targeting your public GitHub Pages CDN asset pipeline
-    const fullAssetUrl = `https://avalonflow.github.io/avalonflowforms/assets/audio/${cleanFile}`;
+    // 🌟 MAIN LINE RESTORED: Completely unencoded, utilizing your direct relative folder track setup
+    const fullAssetUrl = `assets/audio/${file}`;
 
     addMessage(fullAssetUrl, "bot", "delivered", "audio", "kairos");
 
@@ -2076,6 +2073,7 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
         };
     }
 }
+
 
 </script>
 
