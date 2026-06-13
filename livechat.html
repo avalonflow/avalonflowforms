@@ -2049,15 +2049,28 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
         const latestAudio = audioElements[audioElements.length - 1];
 
         if (latestAudio) {
-            // Swap source dynamically instead of dropping multiple components into view
-            if (!latestAudio.src.includes(file)) {
+            // FIX: Decode URI matching to prevent GitHub Pages path expansion errors breaking source validation
+            const currentSrcDecoded = decodeIdentityPath(latestAudio.src);
+            const targetFileDecoded = decodeIdentityPath(file);
+
+            if (!currentSrcDecoded.includes(targetFileDecoded)) {
                 latestAudio.src = file;
                 latestAudio.load(); 
             }
 
-            latestAudio.play().catch((err) => {
-                console.log("Autoplay blocked or waiting for user tap...", err);
-            });
+            // FIX: Wrap audio execution parameters in a standard promise tracker to monitor structural security failures
+            const playPromise = latestAudio.play();
+
+            if (playPromise !== undefined) {
+                playPromise.catch((err) => {
+                    console.log("Autoplay context interception triggered on live repository context:", err);
+                    
+                    // FALLBACK: If browser restricts background execution, force structural controls injection visibility 
+                    // so the user can easily tap play to clear up the system processing restrictions!
+                    latestAudio.controls = true;
+                    latestAudio.setAttribute('preload', 'auto');
+                });
+            }
 
             latestAudio.onended = () => {
                 currentTrackIndex++; 
@@ -2088,6 +2101,17 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
         }
     }, 80); 
 }
+
+// Simple internal helper utility to parse asset path values cleanly across global environments
+function decodeIdentityPath(pathString) {
+    if (!pathString) return "";
+    try {
+        return decodeURIComponent(pathString).toLowerCase();
+    } catch(e) {
+        return pathString.toLowerCase();
+    }
+}
+
 </script>
 
 </body>
