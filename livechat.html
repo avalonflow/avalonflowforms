@@ -1318,13 +1318,91 @@ function humanize(text){
 }
 
 // =================================================================
-// CORRECT ROUTING BLOCK SETUP
+// CORRECT ROUTING BLOCK SETUP (WITH BULLETPROOF MEDIA CONTROLS)
 // =================================================================
 function handleMessage(msg) {
     if (isSarahActive) return;
     const lower = msg.toLowerCase().trim();
 
-    // 1. MUSIC INTERCEPTOR (Priority 1: Always check this first)
+    // 1. CONVERSATIONAL MUSIC MEDIA CONTROLS (Pause, Resume, Next, Prev)
+    const deckA = document.getElementById('audioDeckA');
+    const deckB = document.getElementById('audioDeckB');
+    let currentLiveDeck = activeDeck;
+
+    // --- PAUSE DETECTOR ---
+    // Catches: pause, pause the music, stop playing, halt the track, put it on pause, etc.
+    if (
+        lower === "pause" || 
+        /\b(pause|stop|halt|freeze|hold)\b/.test(lower) && /\b(music|audio|song|track|playing|it)\b/.test(lower)
+    ) {
+        if (currentLiveDeck && !currentLiveDeck.paused) {
+            currentLiveDeck.pause();
+            botReply("Music paused. Let me know when you want to resume. ⏸️");
+        } else {
+            botReply("There is no music playing right now.");
+        }
+        return;
+    }
+
+    // --- RESUME DETECTOR ---
+    // Catches: resume, continue, play again, unpause, unpause it, start playing again, etc.
+    if (
+        lower === "resume" || lower === "continue" || lower === "unpause" ||
+        /\b(resume|continue|unpause)\b/.test(lower) ||
+        /\b(play|start)\b/.test(lower) && /\b(again|music|track|song|audio|it)\b/.test(lower)
+    ) {
+        if (currentLiveDeck && currentLiveDeck.paused && currentLiveDeck.src) {
+            currentLiveDeck.play().catch(err => console.log(err));
+            botReply("Resuming track... ▶️");
+        } else {
+            botReply("No paused track found in the session queue.");
+        }
+        return;
+    }
+
+    // --- NEXT DETECTOR ---
+    // Catches: next, skip, skip track, next music, play next song, change song, move forward, etc.
+    if (
+        lower === "next" || lower === "skip" ||
+        /\b(skip|next|change|forward)\b/.test(lower) && /\b(track|song|music|audio|this|one|it)\b/.test(lower) ||
+        lower.includes("play something else")
+    ) {
+        if (musicQueue.length > 0 && currentTrackIndex < musicQueue.length - 1) {
+            currentTrackIndex++;
+            const nextFile = musicQueue[currentTrackIndex];
+            deckA.ontimeupdate = null;
+            deckB.ontimeupdate = null;
+            triggerCustomAudioPlayerMessage(nextFile);
+        } else if (musicQueue.length > 0) {
+            botReply("You've reached the end of the current playlist stream.");
+        } else {
+            botReply("No active queue to skip forward.");
+        }
+        return;
+    }
+
+    // --- PREVIOUS DETECTOR ---
+    // Catches: prev, previous, go back, back track, previous song, play last one, etc.
+    if (
+        lower === "prev" || lower === "previous" || lower === "back" ||
+        /\b(prev|previous|back|last)\b/.test(lower) && /\b(track|song|music|audio|one|it)\b/.test(lower) ||
+        lower.includes("go back")
+    ) {
+        if (musicQueue.length > 0 && currentTrackIndex > 0) {
+            currentTrackIndex--;
+            const prevFile = musicQueue[currentTrackIndex];
+            deckA.ontimeupdate = null;
+            deckB.ontimeupdate = null;
+            triggerCustomAudioPlayerMessage(prevFile);
+        } else if (currentTrackIndex === 0) {
+            botReply("This is the very first track in the queue.");
+        } else {
+            botReply("No active queue history to step backward.");
+        }
+        return;
+    }
+
+    // 2. MUSIC INTERCEPTOR (Priority 2)
     if (expectingMusicResponse) {
         if (/^(yes|yeah|yup|sure|ok|please)\b/.test(lower)) {
             expectingMusicResponse = false;
@@ -1337,7 +1415,7 @@ function handleMessage(msg) {
         }
     }
 
-    // 2. PLAY COMMANDS (Priority 2)
+    // 3. PLAY COMMANDS (Priority 3)
     if (lower.startsWith("play ") || lower.includes("play me") || lower === "play") {
         const searchTarget = lower.replace("play me", "").replace("play", "").trim().replace(/[^a-z0-9]/g, "");
         
@@ -1350,12 +1428,12 @@ function handleMessage(msg) {
             handleMusicIntent(lower);
         } else {
             expectingMusicResponse = true;
-            botReply("I couldn't find that track. Want me to play a random one from the library instead?");
+            botReply("I couldn't find that track inside the vault directory. Want me to play a random one from the library instead?");
         }
         return;
     }
 
-    // 3. GREETINGS & SYSTEM COMMANDS (Priority 3)
+    // 4. GREETINGS & SYSTEM COMMANDS
     if(/^(hi|hello|hey|yo|wassup|sup|ski)\b/.test(lower)){
         const greetings = ["Sup 😊 I’m Kairos. What do you need help with?", "Hi there. Kairos online. How can I help?", "Hey, what's on your mind?"];
         botReply(greetings[Math.floor(Math.random() * greetings.length)]);
@@ -1368,7 +1446,7 @@ function handleMessage(msg) {
     if(intent.type==='logout'){ botReply("Logging you out..."); return; }
     if(intent.type==='quote'){ botReply(quotes[Math.floor(Math.random() * quotes.length)]); return; }
 
-    // 4. SMART REPLY FALLBACK
+    // 5. SMART REPLY FALLBACK
     adaptTone(msg);
     const reply = generateSmartReply(msg);
     if(reply) botReply(reply);
@@ -1720,7 +1798,6 @@ function botMusicReply(text, file) {
 
     setTimeout(() => {
         removeTyping();
-        // 1. Render the text description line bubble cleanly
         addMessage(finalText, "bot", "delivered", "text", "kairos");
         chatHistory.push({ sender: 'bot', text: finalText, type: 'text', actualSender: 'kairos' });
         localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
@@ -1729,7 +1806,6 @@ function botMusicReply(text, file) {
         const deckB = document.getElementById('audioDeckB');
         if (!deckA || !deckB) return;
 
-        // Toggle and track matching target channels
         let primaryDeck = activeDeck === deckA ? deckB : deckA;
         let secondaryDeck = activeDeck === deckA ? deckA : deckB;
 
@@ -1738,7 +1814,7 @@ function botMusicReply(text, file) {
             activeDeck.src = file;
             activeDeck.volume = 1;
             activeDeck.load();
-            activeDeck.play().catch(err => console.log("Playback engine waiting for interaction:", err));
+            activeDeck.play().catch(err => console.log("Playback interaction bypass:", err));
             setupTrackEndMonitor(activeDeck);
         } else {
             executeCrossfade(secondaryDeck, primaryDeck, file);
@@ -1750,7 +1826,7 @@ function executeCrossfade(currentDeck, nextDeck, nextFile) {
     nextDeck.src = nextFile;
     nextDeck.volume = 0;
     nextDeck.load();
-    nextDeck.play().catch(err => console.log("Crossfade sync buffer pending:", err));
+    nextDeck.play().catch(err => console.log("Crossfade buffer ready:", err));
     
     activeDeck = nextDeck;
 
@@ -1778,7 +1854,6 @@ function executeCrossfade(currentDeck, nextDeck, nextFile) {
 function setupTrackEndMonitor(deck) {
     deck.ontimeupdate = null; 
     deck.ontimeupdate = () => {
-        // Intercept exactly 10 seconds before track completion metrics hit the wall
         if (deck.duration && (deck.duration - deck.currentTime <= crossfadeDuration)) {
             deck.ontimeupdate = null; 
             currentTrackIndex++; 
@@ -1786,7 +1861,7 @@ function setupTrackEndMonitor(deck) {
                 const nextFile = musicQueue[currentTrackIndex];
                 triggerCustomAudioPlayerMessage(nextFile);
             } else {
-                botReply("Queue finished. What next? 🫡");
+                botReply("Audio sequence execution complete. 🫡");
             }
         }
     };
@@ -1798,16 +1873,12 @@ function triggerCustomAudioPlayerMessage(file) {
     if (currentTrackIndex === 0) {
         botMusicReply(`Playing ${formatted} for you... 🎧`, file);
     } else {
-        // Find existing message rows by searching for '.message'
         const messages = botMessagesContainer.querySelectorAll('.message');
         messages.forEach(msg => {
             if (msg.textContent.includes("Playing next:") || msg.textContent.includes("Playing ")) {
                 const parentRow = msg.closest('.msgWrap');
-                if (parentRow) {
-                    parentRow.remove();
-                } else {
-                    msg.remove();
-                }
+                if (parentRow) parentRow.remove();
+                else msg.remove();
             }
         });
         botMusicReply(`Playing next: ${formatted}... 🎧`, file);
@@ -1917,7 +1988,7 @@ function handleMusicIntent(lowerMsg) {
     }
     
     if (trimmedMsg === "no" || trimmedMsg === "nope" || trimmedMsg === "nah") {
-        botReply("No worries at all! Let me know whenever you're ready. 🫡");
+        botReply("Understood. Keeping it quiet. 🫡");
         return;
     }
 
@@ -1977,6 +2048,7 @@ function formatTrackTitle(filePath) {
 
     return toTitleCase(name);
 }
+
 </script>
 </body>
 </html>
