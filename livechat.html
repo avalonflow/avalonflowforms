@@ -1977,22 +1977,29 @@ function setupTrackEndMonitor(deck) {
 }
 
 function triggerCustomAudioPlayerMessage(file) {
-    const formatted = formatTrackTitle(file);
+    // 1. CLEAR OLD NOTIFICATIONS FIRST
+    // We target all messages and filter by specific text content patterns
+    const existingMessages = botMessagesContainer.querySelectorAll('.message');
     
-    if (currentTrackIndex === 0) {
-        botMusicReply(`Playing ${formatted} for you... 🎧`, file);
-    } else {
-        const messages = botMessagesContainer.querySelectorAll('.message');
-        messages.forEach(msg => {
-            if (msg.textContent.includes("Playing next:") || msg.textContent.includes("Playing ")) {
-                const parentRow = msg.closest('.msgWrap');
-                if (parentRow) parentRow.remove();
-                else msg.remove();
-            }
-        });
-        botMusicReply(`Playing next: ${formatted}... 🎧`, file);
-    }
+    existingMessages.forEach(msg => {
+        const text = msg.textContent;
+        // Strict match: ensures we only remove our specific status updates
+        const isPlayingNotification = text.includes("Playing next:") || 
+                                     (text.includes("Playing") && text.includes("for you"));
+        
+        if (isPlayingNotification) {
+            const wrap = msg.closest('.msgWrap');
+            if (wrap) wrap.remove();
+        }
+    });
+
+    // 2. NOW ADD THE NEW ONE
+    const formatted = formatTrackTitle(file);
+    const msgText = (currentTrackIndex === 0) ? `Playing ${formatted} for you... 🎧` : `Playing next: ${formatted}... 🎧`;
+    
+    botMusicReply(msgText, file);
 }
+
 
 function handleMusicIntent(lowerMsg) {
     const trimmedMsg = lowerMsg.trim().toLowerCase();
