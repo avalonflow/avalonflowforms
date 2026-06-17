@@ -770,7 +770,7 @@ background: linear-gradient(90deg,#6b2cd8,#b393ff,#6b2cd8);
 <input id="password" type="password" placeholder="Create password">
 
 <div id="strength-meter-password" style="margin-top:6px; display:flex; gap:4px; max-width:200px;"></div>
-<div id="strength-label-password" style="margin-top:6px; font-size:13px; font-weight:500;"></div>
+<div id="strength-label-password" style="margin-top:6px; font-size:13px; font-weight:500; color:#ff4d4d;"></div>
 
 <h3 class="lit-animation">Confirm Password</h3>
 <input id="confirmPassword" type="password" placeholder="Re-enter password">
@@ -930,7 +930,7 @@ window.addEventListener("DOMContentLoaded", () => {
         /* ---------- Notification ---------- */
     const notification = document.getElementById("planNotification");
     if (notification) {
-        notification.textContent = "Welcome! Let’s get started.";
+        notification.textContent = "Welcome! Let’s get started";
 
         setTimeout(() => notification.classList.add("show"), 300);
         setTimeout(() => notification.classList.remove("show"), 3300);
