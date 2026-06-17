@@ -33,28 +33,47 @@
     position: relative;
   }
 
-  #floating-bg {
+            /* ---------- Floating Background ---------- */
+#floating-bg {
     position: fixed;
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    background: radial-gradient(circle at bottom, #1a0d3a, #0d0d0d);
-    overflow: hidden;
-  }
 
-  .particle {
+    /* Soft white/blue futuristic background */
+    background: radial-gradient(circle at bottom, #cfe8ff, #ffffff);
+
+    overflow: hidden;
+}
+
+.particle {
     position: absolute;
     border-radius: 50%;
     opacity: 0.6;
-    animation: floatParticles linear infinite;
-    box-shadow: 0 0 10px #6b2cd8, 0 0 20px #6b2cd8;
-  }
 
-  @keyframes floatParticles {
-    0% { transform: translateY(100vh) scale(0.3); opacity: 0; }
-    50% { opacity: 1; }
-    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
-  }
+    animation: floatParticles linear infinite;
+
+    /* Soft futuristic glow */
+    background: rgba(120, 180, 255, 0.7);
+    box-shadow: 0 0 10px #8ec5ff, 0 0 20px #b7dcff;
+}
+
+@keyframes floatParticles {
+    0% {
+        transform: translateY(100vh) scale(0.3);
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-10vh) scale(1);
+        opacity: 0;
+    }
+}
+  
 
         /* ---------- Notification Bar ---------- */
         .notification-bar {
@@ -69,6 +88,7 @@
             padding: 12px 18px;
             border-radius: 12px;
             font-size: 14px;
+font-weight: bold;
             box-shadow: 0 6px 18px rgba(0,0,0,0.25);
             transition: top 0.5s ease, opacity 0.5s ease;
             z-index: 9999;
@@ -125,7 +145,7 @@
     cursor: pointer;
   }
 
-  footer {
+          footer {
     position: fixed;
     bottom: 0;
     left: 0;
@@ -133,12 +153,12 @@
     text-align: center;
     padding: 18px 0;
     font-size: 14px;
-    color: #aaa;
-    background: rgba(15,15,25,0.95);
+    color: #555;
+    background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(12px);
-    box-shadow: 0 -5px 20px rgba(0,0,0,0.4);
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.08);
     z-index: 6;
-  }
+}
 </style>
 </head>
 <body>
@@ -170,7 +190,7 @@
 
 <div class="glass-card">
   <h1>Welcome to AvalonFlow</h1>
-                This information is kept strictly confidential
+                This information is kept strictly confidential.
             </p>
         
   <a href="section2">Start Your Membership</a>
@@ -201,7 +221,7 @@
         /* ---------- Notification ---------- */
         window.addEventListener("load", () => {
             const notification = document.getElementById("planNotification");
-            notification.textContent = "Welcome! Let’s get started.";
+            notification.textContent = "Welcome! Let’s get started";
             setTimeout(() => notification.classList.add("show"), 300);
             setTimeout(() => notification.classList.remove("show"), 3300);
         });
