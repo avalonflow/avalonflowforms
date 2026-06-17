@@ -1,6 +1,6 @@
 {
-  "short_name": "AvalonFlow",
   "name": "AvalonFlow Platform",
+  "short_name": "AvalonFlow",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
@@ -14,7 +14,10 @@
     }
   ],
   "start_url": "/",
-  "background_color": "#ffffff",
+  "display": "standalone",
+  "background_color": "#0a0c10",
   "theme_color": "#6b2cd8",
-  "display": "standalone"
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  }
 }
