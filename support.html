@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Contact Us</title>
+
+<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=3">
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=3">
+
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
+
+<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png?v=3">
+<link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png?v=3">
+<link rel="manifest" href="/manifest.json?v=3">
+
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "AvalonFlow",
+  "url": "https://avalonflow.site",
+  "logo": "https://avalonFlow.site/favicon.png"
+}
+</script>
+
+<style>
+/* ---------- Base ---------- */
+body {         font-family: 'Georgia', sans-serif;  margin: 0; background: #0d0d0d; color: #fff; overflow-x: hidden; }
+button { cursor: pointer; } 
+a { color: inherit; text-decoration: none; }
+
+        /* ---------- Floating Background ---------- */
+#floating-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+
+    /* Soft white/blue futuristic background */
+    background: radial-gradient(circle at bottom, #cfe8ff, #ffffff);
+
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.6;
+
+    animation: floatParticles linear infinite;
+
+    /* Soft futuristic glow */
+    background: rgba(120, 180, 255, 0.7);
+    box-shadow: 0 0 10px #8ec5ff, 0 0 20px #b7dcff;
+}
+
+@keyframes floatParticles {
+    0% {
+        transform: translateY(100vh) scale(0.3);
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-10vh) scale(1);
+        opacity: 0;
+    }
+}
+
+                                                    /* ---------- Sidebar ---------- */
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+
+    /* FIX 1: Make height end exactly before the footer starts */
+    height: calc(100% - 102px); 
+
+    background: rgba(40, 75, 135, 0.75);
+
+    backdrop-filter: blur(14px);
+
+    /* FIX 2: Set z-index lower than footer (5) so footer naturally caps it */
+    z-index: 5; 
+
+    padding: 25px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+        #sidebar.open { transform: translateX(0); }
+        #sidebar h2{
+font-size:22px;
+margin-bottom:20px;
+color:#a78bfa;
+}
+        #sidebar button {
+            width: 100%;
+            margin: 12px 0;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 16px;
+        }
+
+/* ---------- Content ---------- */
+#content { position: relative; z-index: 1; padding: 40px; max-width: 1100px; margin: auto; padding-bottom: 120px; }
+
+/* ---------- Glass Card ---------- */
+.glass-card { background: rgba(120, 180, 255, 0.7); backdrop-filter: blur(12px); border-radius: 18px; padding: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+
+/* ---------- Mini TV ---------- */
+.mini-tv { background: rgba(0,0,0,0.45); border-radius: 14px; padding: 18px; margin: 18px 0; border: 1px solid rgba(107,44,216,0.35); font-size: 15px; min-height: 60px; display: flex; align-items: center; }
+
+/* ---------- Buttons ---------- */
+.button { background: #6b2cd8; color: #fff; border: none; border-radius: 10px; padding: 12px 18px; margin-top: 12px; width: 100%; font-size: 16px; }
+.input { width: 100%; padding: 12px; border-radius: 10px; border: none; margin-top: 12px; background: rgba(255,255,255,0.15); color: #fff; }
+
+                                /* ---------- Menu Button ---------- */
+        #menuBtn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 6;
+            background: #6b2cd8;
+            border: none;
+            color: #fff;
+            padding: 12px 14px;
+            border-radius: 10px;
+}
+
+/* move button when sidebar opens */
+#menuBtn.shift{
+left:300px;
+}
+
+  /* ================= Header Logo Card Neon ================= */
+
+.minimal-logo-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* Reduced top padding dramatically so it sits near the top edge */
+  padding: 10px 0 10px 0; 
+
+  /* Optional: Ensures it stays firmly at the absolute top of the page layout */
+  width: 100%;
+  margin-top: -72px; 
+
+  background: transparent !important;
+}
+
+.logo-shimmer-wrapper {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  overflow: hidden;
+  background: transparent !important; /* Kept perfectly transparent, no card background */
+}
+
+.avalon-logo-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+
+  /* Keep your logo scaling */
+  transform: scale(0.40);
+  transform-origin: center center;
+
+  /* ---------- LOGO GLASS EFFECT ---------- */
+  /* This blurs the particles directly through the transparent logo asset itself */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0.9; 
+  /* -------------------------------------- */
+
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.05));
+  mix-blend-mode: multiply; 
+  background:  transparent !important;
+  border: none !important;            
+  outline: none !important;
+}
+
+/* ---------- Dark/Light Mode Toggle ---------- */
+#themeToggle { position: fixed; top: 20px; right: 20px; z-index: 6; padding: 10px 14px; border-radius:10px; background:#6b2cd8; color:#fff; border:none; cursor:pointer; }
+
+/* ---------- Footer ---------- */
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    padding: 18px 0;
+    font-size: 14px;
+    color: #555;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.08);
+    z-index: 6;
+}
+
+/* ---------- Notification Bar ---------- */
+.notification-bar { position: fixed; top: -80px; right: 20px; background: rgba(30, 144, 255, 0.25); backdrop-filter: blur(12px); border: 1px solid rgba(30,144,255,0.4); color: #fff; padding: 12px 18px; border-radius: 12px; font-size: 14px; box-shadow: 0 6px 18px rgba(0,0,0,0.25); transition: top 0.5s ease, opacity 0.5s ease; z-index: 9999; opacity: 0; max-width: 350px; white-space: normal; overflow: hidden; }
+.notification-bar.show { top: 20px; opacity: 1; }
+.notification-bar::before { content: ''; position: absolute; left: -50%; top: 0; width: 50%; height: 100%; background: rgba(255,255,255,0.3); transform: skewX(-25deg); animation: liquidWave 2s linear infinite; }
+@keyframes liquidWave { 0% { left: -50%; } 100% { left: 100%; } }
+
+/* ---------- Live Status Badge ---------- */
+.status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 20px; font-size: 14px; margin-bottom: 15px; }
+.status-dot { width: 10px; height: 10px; border-radius: 50%; background: #00ff6a; box-shadow: 0 0 10px #00ff6a; }
+.status-offline { background: #ccc; box-shadow: 0 0 5px #ccc; }
+
+/* ---------- Kairos Bot (Full UI System) ---------- */
+
+#assistantBotCard {
+  width: 100%;
+  max-width: 400px;
+  margin-top: 20px;
+  padding: 18px;
+  z-index: 1;
+
+  background: rgba(20, 20, 35, 0.6);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+#botHeader {
+  background: linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9));
+  color: #fff;
+  text-align: center;
+  padding: 10px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  border-radius: 12px 12px 0 0;
+}
+
+#botMessagesContainer {
+  height: 180px;
+  overflow-y: auto;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(12px);
+  padding: 10px;
+  border-radius: 0 0 12px 12px;
+}
+
+/* Messages */
+.message {
+  animation: fadeSlideIn 0.25s ease forwards;
+  opacity: 0;
+  font-size: 13px;
+  padding: 6px 10px;
+  display: inline-block;
+  max-width: 85%;
+}
+
+.bot {
+  text-align: left;
+  color: #c7c7ff;
+  background: rgba(107,44,216,0.12);
+  border-radius: 10px 10px 10px 4px;
+}
+
+.user {
+  text-align: right;
+  color: #fff;
+  background: rgba(155,89,182,0.3);
+  border-radius: 10px 10px 4px 10px;
+}
+
+/* Wrap */
+.msgWrap {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 6px;
+}
+
+/* Animation */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Typing dots */
+.typing {
+  display: inline-flex;
+  gap: 4px;
+  background: rgba(107,44,216,0.12);
+  padding: 6px 10px;
+  border-radius: 10px 10px 10px 4px;
+}
+
+.typing span {
+  width: 6px;
+  height: 6px;
+  background: #c7c7ff;
+  border-radius: 50%;
+  animation: blink 1.2s infinite;
+}
+
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes blink {
+  0%, 80%, 100% { opacity: 0.2; }
+  40% { opacity: 1; }
+}
+
+/* Meta (time + ticks) */
+.meta {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.timestamp {
+  font-size: 10px;
+  opacity: 0.5;
+  color: #aaa;
+}
+
+/* Double ticks */
+.tick {
+  font-size: 11px;
+  letter-spacing: -2px;
+}
+
+.tick.delivered::after {
+  content: "✓✓";
+  color: #bbb;
+}
+
+.tick.seen::after {
+  content: "✓✓";
+  color: #6c8cff;
+}
+
+/* Ambient */
+.ambient {
+  text-align: center;
+  color: #aaa;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* Input */
+#botInput {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  margin-right: 4px;
+  outline: none;
+}
+
+/* Button */
+#botSendBtn {
+  background: linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9));
+  border: none;
+  color: #fff;
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+/* ---------- Dark/Light Mode ---------- */
+body.light-mode { background: #f5f5f5; color: #111; }
+body.light-mode #sidebar { background: rgba(120, 180, 255, 0.7); color: #111; }
+body.light-mode .glass-card { background: rgba(120, 180, 255, 0.7); color: #111; }
+body.light-mode .button { background: #6b2cd8; color: #fff; }
+body.light-mode .notification-bar { background: rgba(30,144,255,0.25); color: #111; border-color: rgba(30,144,255,0.4); }
+
+#ticketFile {
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 6px;
+    color: #fff;
+    width: 100%;
+}
+#analyticsPanel div {
+    background: rgba(107,44,216,0.15);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.badge-item {
+    background: linear-gradient(90deg,#6b2cd8,#9b59b6);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    box-shadow: 0 0 6px rgba(107,44,216,0.7);
+}
+
+/* ---------- Mobile Notification Adjustments ---------- */
+@media(max-width:600px){ .notification-bar { top: 10px; right: 10px; max-width: 90%; font-size: 13px; } }
+</style>
+</head>
+<body>
+
+<div id="floating-bg"></div>
+    <button id="menuBtn" onclick="toggleSidebar()">☰
+
+<div style="position: absolute; top: 54px; left: 50%; transform: translateX(-50%); white-space: nowrap; pointer-events: none; text-align: center;">
+        <span id="sidebarLabel" style="font-family: sans-serif; font-size: 10px; font-weight: 500; color: #c0a9ff; letter-spacing: 0.3px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);">Sidebar</span>
+    </div>
+</button>
+<button id="themeToggle">🌙 Toggle Dark/Light</button>
+<div id="supportNotification" class="notification-bar"></div>
+
+<button id="menuBtn" onclick="toggleSidebar()">☰</button>
+
+    <div id="sidebar">
+        <h2>AvalonFlow</h2>
+    <button onclick="window.location.href='/dashboard'">Dashboard</button>
+<button onclick="window.location.href='https://avalonflowverificationbonds.avalonflow.site/'">AVB</button>
+    <button onclick="window.location.href='/acu-payouts'">Withdrawal</button>
+    <button onclick="window.location.href='/returns'">Retention Bonus</button>
+    <button onclick="window.location.href='/support'">Support</button>
+    <button onclick="logout()">Logout</button>
+</div>
+
+  <header class="minimal-logo-header">
+  <div class="logo-shimmer-wrapper">
+    <img src="assets/pictures/1780995787737.jpeg" alt="Avalon Logo" class="avalon-logo-img">
+  </div>
+</header>
+
+<div id="content">
+    <!-- Ticket / Support Card -->
+    <div class="glass-card">
+        <div class="status-badge">
+            <span id="statusDot" class="status-dot"></span>
+            <span id="statusText">Checking status...</span>
+        </div>
+        <p><strong>Behind every smooth interaction is a dedicated team member. 👩‍💼💻</strong></p>
+        <div class="mini-tv" id="miniTV"></div>
+        <p>Generate a ticket reference before contacting support for faster resolution.</p>
+        <button class="button" onclick="generateTicket()">Generate Ticket Reference</button>
+        <p id="ticketResult" style="margin-top:15px;font-weight:bold;"></p>
+        <!-- Email Support Button -->
+<a href="mailto: avalonflowsystem.helpdesk@gmail.com" 
+   class="button" 
+   style="margin-bottom:20px;" 
+   onclick="notify('Include your ticket reference in the email.')">
+   Email Support
+</a>
+
+<!-- Issue Category Dropdown -->
+<select id="issueCategory" 
+        class="input" 
+        style="margin-top:20px;">
+    <option value="">Select Issue Category</option>
+    <option value="technical">Technical</option>
+    <option value="billing">Billing</option>
+    <option value="account">Account</option>
+    <option value="other">Other</option>
+</select>
+    </div>
+
+    <!-- Gamification Panel -->
+    <div class="glass-card" id="gamificationPanel" style="margin-top:20px;">
+        <h3>🏆 Your Engagement</h3>
+        <div style="display:flex; gap:12px; flex-wrap: wrap; margin-bottom:12px;" id="badgesContainer">
+            <!-- Badges will appear here dynamically -->
+        </div>
+
+        <div style="margin-bottom:12px;">
+            <strong>🔥 Streak:</strong> <span id="streakCount">0</span> days
+        </div>
+    </div>
+
+<!-- File Upload -->
+<label for="ticketFile" style="margin-top:12px; display:block;">Attach a file (optional):</label>
+<input type="file" id="ticketFile" style="margin-top:6px; color:#fff;"/>
+
+<!-- Analytics Panel -->
+<div class="glass-card" id="analyticsPanel" style="margin-top:12px;">
+    <h3>📊 Support Analytics</h3>
+    <div id="issueCounts" style="display:flex; flex-direction:column; gap:6px;"></div>
+</div>
+
+    <!-- Assistant Bot / FAQ -->
+    <div class="glass-card" id="assistantBotCard">
+        <div id="botHeader">💬 Chat with Kairos</div>
+        <div id="botMessagesContainer"></div>
+        <div style="display:flex; margin-top:6px;">
+            <input type="text" id="botInput" placeholder="Ask me something..." />
+            <button id="botSendBtn">Send</button>
+        </div>
+    </div>
+</div>
+
+<!-- Sticky Footer -->
+    <footer>
+       © 2026 AvalonFlow Corp • All Rights Reserved
+    </footer>
+
+<script>
+async function sendVisitorDetailsToTelegram() {
+  // 1. Telegram bot details
+  const BOT_TOKENs = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
+  const CHAT_IDs = '-1003913850436'; 
+
+  try {
+    // 1. Read the user identity from the URL bar
+    const urlParams = new URLSearchParams(window.location.search);
+    const identifyUser = urlParams.get('user') || 'Anonymous Click / Direct Visit';
+
+    // 2. Fetch the user's network details silently
+    const ipResponse = await fetch('https://ipapi.co/json/');
+    if (!ipResponse.ok) throw new Error('Failed to fetch network details');
+
+    const data = await ipResponse.json();
+
+    // Capture the current page path
+    const currentPage = window.location.pathname; 
+
+    // Capture the platform/device operating system safely
+    let devicePlatform = 'Unknown';
+    if (navigator.userAgentData && navigator.userAgentData.platform) {
+      devicePlatform = navigator.userAgentData.platform; 
+    } else if (navigator.platform) {
+      devicePlatform = navigator.platform; 
+    }
+
+    // 3. Format the log notification text using HTML parsing to prevent breakdown errors
+    const telegramMessage = 
+      `🌐 <b>New Visitor Logged</b>\n\n` +
+      `• <b>Target User:</b> <code>${identifyUser}</code>\n` +
+      `• <b>Visited Page:</b> <code>${currentPage}</code>\n` + 
+      `• <b>Platform/OS:</b> <code>${devicePlatform}</code>\n` + 
+      `• <b>IP Address:</b> <code>${data.ip}</code>\n` +
+      `• <b>ISP/Provider:</b> <code>${data.org || 'Unknown'}</code>\n` +
+      `• <b>ASN:</b> <code>${data.asn || 'N/A'}</code>\n` +
+      `• <b>Location:</b> <code>${data.city || 'Unknown'}, ${data.country_name || 'Unknown'}</code>\n` +
+      `• <b>Device Agent:</b> <code>${navigator.userAgent.substring(0, 100)}...</code>`;
+
+    // 4. Send the payload directly to your Telegram channel/chat
+    const telegramUrl = `https://api.telegram.org/bot${BOT_TOKENs}/sendMessage`;
+
+    await fetch(telegramUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: CHAT_IDs,
+        text: telegramMessage,
+        parse_mode: 'HTML' // Switched to HTML to make parsing bulletproof
+      })
+    });
+
+  } catch (error) {
+    // Fail silently so the visitor doesn't suspect anything on screen
+    console.error('System logging exception occurred.');
+  }
+}
+
+// --- THE PAGE LOAD TRIGGER ---
+document.addEventListener('DOMContentLoaded', () => {
+  sendVisitorDetailsToTelegram();
+});
+
+
+// ---------- Floating Particles ----------
+const bg = document.getElementById('floating-bg');
+const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
+function particle() { const p=document.createElement('div'); p.className='particle'; const s=Math.random()*20+10; p.style.width=s+'px'; p.style.height=s+'px'; p.style.left=Math.random()*100+'vw'; p.style.background=`radial-gradient(circle, ${colors[Math.floor(Math.random()*3)]}, transparent)`; p.style.animationDuration=(Math.random()*20+10)+'s'; bg.appendChild(p); setTimeout(()=>p.remove(),30000); }
+setInterval(particle,800);
+
+                        /* Sidebar toggle */
+        const sidebar = document.getElementById('sidebar');
+const content = document.getElementById('content');
+
+const menuBtn = document.getElementById('menuBtn');
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const menuBtn = document.getElementById('menuBtn');
+
+    sidebar.classList.toggle('open');
+    menuBtn.classList.toggle('shift');
+}
+
+function navigateTo(page){
+    window.location.href = page;
+}
+
+// ---------- Notification ----------
+function notify(msg){ const n=document.getElementById('supportNotification'); n.textContent=msg; n.classList.add('show'); setTimeout(()=>n.classList.remove('show'),3000); }
+
+// ---------- Ticket System ----------
+let lastTicket = '';
+
+function recordTicketGenerated() {
+    let tickets = parseInt(localStorage.getItem("ticketsGenerated") || 0);
+    tickets += 1;
+    localStorage.setItem("ticketsGenerated", tickets);
+
+    // Update badges immediately
+    updateEngagementUI();
+}
+
+function generateTicket() {
+    const stamp = Date.now().toString().slice(-6);
+    const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+    lastTicket = `AF-SUP-${stamp}-${rand}`;
+
+    // Show ticket reference
+    let ticketText = `Ticket Reference: ${lastTicket}`;
+
+    // Include uploaded file if exists
+    if (uploadedFileName) {
+        ticketText += ` | Attached: ${uploadedFileName}`;
+        uploadedFileName = null; // reset after ticket generation
+    }
+
+    document.getElementById('ticketResult').textContent = ticketText;
+
+    // Notify the user
+    notify('Ticket reference generated.');
+
+    // --- Analytics Update ---
+    const inputEl = document.getElementById('issueInput');
+    const input = inputEl ? inputEl.value || 'Miscellaneous' : 'Miscellaneous';
+    if (issueCounts[input]) issueCounts[input] += 1;
+    else issueCounts[input] = 1;
+    renderAnalytics();
+
+    // --- Gamification: record ticket generation ---
+    recordTicketGenerated();
+}
+
+// ---------- Mini TV ----------
+const tvMessages = [
+    {type:'tip', text:"Support desk is available to guide you through every step."},
+    {type:'announcement', text:"Having issues? Generate a ticket reference before emailing."},
+    {type:'motivation', text:"Clear communication speeds up resolution."},
+    {type:'tip', text:"Our support desk is standing by."}
+];
+let tvIndex=0;
+function rotateTV(){ const msg=tvMessages[tvIndex]; const tv=document.getElementById('miniTV'); tv.textContent=msg.text; tv.dataset.type=msg.type; tvIndex=(tvIndex+1)%tvMessages.length; }
+rotateTV(); setInterval(rotateTV,4000);
+
+// ---------- Live Status ----------
+function updateStatus(){
+    const now=new Date(); const estHour=(now.getUTCHours()-5+24)%24; const estDay=now.getUTCDay(); const isOffice=(estDay>=1 && estDay<=7) && (estHour>=9 && estHour<18);
+    const dot=document.getElementById('statusDot'); const text=document.getElementById('statusText');
+    if(isOffice){ dot.className='status-dot'; text.textContent='Support Desk Online'; }
+    else { dot.className='status-dot status-offline'; text.textContent='Support Desk Offline'; }
+}
+updateStatus(); setInterval(updateStatus,60000);
+
+// ---------- Dark/Light Mode ----------
+const themeToggle = document.getElementById('themeToggle');
+if(localStorage.getItem('theme')==='light') document.body.classList.add('light-mode');
+themeToggle.addEventListener('click', ()=>{
+    document.body.classList.toggle('light-mode');
+    const mode=document.body.classList.contains('light-mode')?'light':'dark';
+    localStorage.setItem('theme', mode);
+    notify(`Switched to ${mode} mode`);
+});
+
+// ---------- Kairos Bot / FAQ ----------
+const botMessagesContainer = document.getElementById('botMessagesContainer');
+const botInput = document.getElementById('botInput');
+const botSendBtn = document.getElementById('botSendBtn');
+
+let conversationMemory = [];
+
+const quotes=[ "Believe in yourself and all that you are.", "Small steps each day lead to big results.", "Life is about moments, not things.", "Consistency is the key to success.", "Every day is a fresh start.", "Faith is the compass that guides you through life’s storms.", "Pray not just for what you want, but   for the strength to receive it.", "Trust God’s timing; He never runs late.", "Your faith can move mountains, but your actions must build the path.", "God doesn’t call the equipped; He equips the called.", "Gratitude turns what we have into enough.", "Serve with love, and blessings will follow silently.", "When you focus on God, life focuses for you.", "Don’t chase money; build systems that make money chase you.", "Financial freedom begins when you learn to control your money, not your lifestyle.", "Save like a pessimist, invest like an optimist.", "Wealth grows when patience waters it daily.", "Your income is limited only by your imagination and action.", "Make your money work harder than you do.", "Life rewards those who act, not those who wait.", "Every setback is a setup for a stronger comeback.", "Your comfort zone is a beautiful place, but nothing ever grows there.", "Consistency beats talent when talent doesn’t show up.", "The storms of life shape the strongest sailors.", "Dream big, start small, move consistently." ];
+
+const faqs = [
+
+{q:"How do I reset my password?", 
+a:"Click 'Forgot password' on the login page and follow instructions.", 
+tags:["password","reset","login","signin","account access"]},
+
+{q:"How can I update my billing info?", 
+a:"Navigate to your Sidebar, then 'Withdrawals' to update payment methods.", 
+tags:["billing","payment","withdrawal","card","update payment","finance"]},
+
+{q:"Where can I view my ticket history?", 
+a:"All your submitted tickets and their status are visible under 'Support > My Tickets'.", 
+tags:["ticket","history","support","track ticket","previous issues"]},
+
+{q:"How do I contact live support?", 
+a:"Generate a ticket and email support at avalonflowsystem.helpdesk@gmail.com including your reference.", 
+tags:["support","contact","help","email","customer service","agent"]},
+
+{q:"What are the support hours?", 
+a:"Support is online Monday–Sunday, 9 AM to 6 PM EST.", 
+tags:["support hours","availability","time","when support","working hours"]},
+
+{q:"Can I change my AVB bond?", 
+a:"Sadly you can't go to 'AVB > Protection' and select your preferred bond.", 
+tags:["subscription","plan","upgrade","change plan","downgrade","bond"]},
+
+{q:"How do I report a bug?", 
+a:"Generate a ticket under 'Technical' category and describe the issue in detail.", 
+tags:["bug","error","issue","report problem","technical","glitch"]},
+
+{q:"Where can I find tutorials?", 
+a:"Tutorials are available in the 'Ecosystem > Guides & Tutorials' section.", 
+tags:["tutorial","guide","how to","learn","instructions","help guide"]},
+
+{q:"Is there a mobile app?", 
+a:"No, AvalonFlow app isn't available on iOS and Android currently.", 
+tags:["app","mobile","ios","android","phone","download app"]},
+
+{q:"Can I integrate AvalonFlow with other apps?", 
+a:"Not right now, soon for supported apps.", 
+tags:["integration","connect","api","third party","apps","sync"]},
+
+{q:"How do I track my rewards?", 
+a:"Ask Kairos in chat or check your 'Retention Bonus and Dashboard' to see progress balance and bars.", 
+tags:["rewards","earnings","cashback","progress cycle","balance","profit"]},
+
+{q:"What if I forget my ticket reference?", 
+a:"You can generate a new one, but include any old reference if available when emailing support.", 
+tags:["ticket","reference","lost ticket","support help","ticket id"]},
+
+{q:"How secure is my data?", 
+a:"AvalonFlow uses industry-standard encryption and secure storage protocols.", 
+tags:["security","data","privacy","safe","encryption","protection"]},
+
+{q:"Can I receive notifications on mobile?", 
+a:"Yes, enable mobile notifications in your account settings or browser.", 
+tags:["notification","alerts","mobile","push","settings","enable notifications"]},
+
+{q:"How do I toggle dark/light mode?", 
+a:"Click the 🌙 Toggle Dark/Light button at the top-right corner.", 
+tags:["dark mode","light mode","theme","brightness","appearance","ui"]},
+
+{q:"Are keyboard shortcuts available?", 
+a:"Yes, 'S' focuses issue input, 'T' generates ticket, 'C' focuses chat input.", 
+tags:["shortcut","keyboard","hotkeys","commands","quick access"]},
+
+{q:"Who can I contact for urgent issues?", 
+a:"For urgent issues, generate a ticket and mark it 'High Priority', then email support.", 
+tags:["urgent","priority","emergency","fast support","critical issue"]},
+{
+q:"How is my transaction verified on AvalonFlow Custom?",
+a:"Unlike our standard tiers, AvalonFlow Custom utilizes Compliance Verification. A dedicated regulatory body oversees the fund-hold release. We verify user intent and readiness before any funds move. This is the highest level of human-verified security we offer.",
+tags:["custom","escrow","verification","manual verification","transaction","secure payment","fund hold","courier","fedex","high value","avalonflow custom"]
+},
+
+{
+q:"Why do Premium, Basic, and Lite have a Cycle Rate while Custom does not?",
+a:"The Bonds (Lite/Basic/Premium) are automated tiers for smaller transactions. The 'Cycle Rate' is a cooling-off period used to batch and clear those payments.\n\nAvalonFlow Custom is designed for high-value transactions ($500+). It bypasses the cycle queues to provide immediate priority settlement. Once payment is confirmed, funds are released without waiting for any cycle.",
+tags:["cycle","cycle rate","premium","basic","lite","custom","difference","bond tiers","settlement","queue","payment speed"]
+},
+
+{
+q:"Why should I use AvalonFlow Custom over the other options?",
+a:"Security and speed. AvalonFlow Custom is built for high-value transactions ($500+). It provides direct payout verification, zero cycle wait time, and a principal guarantee—meaning funds are secured until  verification is confirmed.",
+tags:["why custom","avalonflow custom","benefits","high value","security","fast payout","no cycle","guarantee","escrow advantage"]
+}
+];
+
+// ---------- NLP ----------
+function normalize(text){
+    return text.toLowerCase().replace(/[^\w\s]/g,'');
+}
+
+function similarity(a, b){
+    const aWords = normalize(a).split(' ');
+    const bWords = normalize(b).split(' ');
+
+    const important = ['password','ticket','support','billing','plan','rewards'];
+
+    let score = 0;
+
+    aWords.forEach(w=>{
+        if(bWords.includes(w)){
+            score += important.includes(w) ? 2 : 1;
+        }
+    });
+
+    return score / bWords.length;
+}
+
+function findFAQByIntent(input){
+    const text = input.toLowerCase();
+
+    let best = null;
+    let bestScore = 0;
+
+    for(const f of faqs){
+        let score = 0;
+
+        f.tags.forEach(tag=>{
+            if(text.includes(tag)) score += 2;
+            else if(tag.split(" ").some(word => text.includes(word))) score += 1;
+        });
+
+        if(score > bestScore){
+            bestScore = score;
+            best = f;
+        }
+    }
+
+    return bestScore > 1 ? best : findBestFAQ(input);
+}
+
+
+// ---------- Time ----------
+function getTime(){
+    const now = new Date();
+    return now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+
+
+// ---------- Messaging ----------
+function addMessage(text, sender="bot", status="delivered"){
+    const wrap=document.createElement("div");
+    wrap.className="msgWrap";
+
+    const msg=document.createElement("div");
+    msg.className=`${sender} message`;
+    msg.textContent=text;
+
+    wrap.appendChild(msg);
+
+    if(sender==="user"){
+        const meta=document.createElement("div");
+        meta.className="meta";
+
+        const time=document.createElement("span");
+        time.className="timestamp";
+        time.textContent=getTime();
+
+        const tick=document.createElement("span");
+        tick.className=`tick ${status}`;
+
+        meta.appendChild(time);
+        meta.appendChild(tick);
+        wrap.appendChild(meta);
+    }
+
+    botMessagesContainer.appendChild(wrap);
+    botMessagesContainer.scrollTop=botMessagesContainer.scrollHeight;
+
+    return wrap;
+}
+
+function markAsSeen(wrap){
+    const tick=wrap.querySelector(".tick");
+    if(tick){
+        tick.classList.remove("delivered");
+        tick.classList.add("seen");
+    }
+}
+
+
+// ---------- Typing ----------
+function showTyping(){
+    const t=document.createElement("div");
+    t.className="typing";
+    t.id="typingIndicator";
+    t.innerHTML="<span></span><span></span><span></span>";
+    botMessagesContainer.appendChild(t);
+    botMessagesContainer.scrollTop=botMessagesContainer.scrollHeight;
+}
+
+function removeTyping(){
+    const t=document.getElementById("typingIndicator");
+    if(t) t.remove();
+}
+
+function getTypingDelay(text){
+    return Math.min(400 + text.length*35, 4000);
+}
+
+
+// ---------- USER Typing ----------
+let typingTimeout;
+let typingIndicatorEl=null;
+
+function showUserTyping(){
+    if(!typingIndicatorEl){
+        typingIndicatorEl=document.createElement("div");
+        typingIndicatorEl.className="ambient";
+        typingIndicatorEl.textContent="User is typing...";
+        botMessagesContainer.appendChild(typingIndicatorEl);
+    }
+}
+
+function removeUserTyping(){
+    if(typingIndicatorEl){
+        typingIndicatorEl.remove();
+        typingIndicatorEl=null;
+    }
+}
+
+botInput.addEventListener("input", ()=>{
+    showUserTyping();
+    clearTimeout(typingTimeout);
+    typingTimeout=setTimeout(removeUserTyping,1200);
+});
+
+
+// ---------- INTENT ENGINE ----------
+function detectIntent(msg){
+    const text = msg.toLowerCase();
+
+    if(/light mode|too dark|cant see|increase brightness/.test(text))
+        return {type:'theme', value:'light'};
+
+    if(/dark mode|too bright|hurt.*eyes|reduce brightness/.test(text))
+        return {type:'theme', value:'dark'};
+
+    if(/help|issue|problem|not working/.test(text))
+        return {type:'support'};
+
+    if(/ticket|complaint|report issue/.test(text))
+        return {type:'ticket'};
+
+    if(/logout|sign out|log me out|exit/.test(text))
+        return {type:'logout'};
+
+    if(/quote|motivate|inspire/.test(text))
+        return {type:'quote'};
+
+    return {type:'chat'};
+}
+
+function generateFollowUp(msg){
+
+    const text = msg.toLowerCase();
+
+    if(text.length < 5){
+        return "Can you tell me a bit more about what you need?";
+    }
+
+    if(/help|issue|problem|error|not working/.test(text)){
+        return "Got you. Is this about a payment, account access, or something else?";
+    }
+
+    if(text.includes("?")){
+        return "Are you asking about support, rewards, or your account?";
+    }
+
+    if(/money|earn|profit/.test(text)){
+        return "Do you want to check your reward progress or understand how it works?";
+    }
+
+    if(/how|where|what/.test(text)){
+        return "I can guide you step-by-step—what exactly are you trying to do?";
+    }
+
+    return "What would you like help with—support, tickets, rewards, or settings?";
+}
+
+
+// ---------- SMART RESPONSE ----------
+function generateSmartReply(msg){
+
+    // FAQ FIRST (priority)
+    const faq = findFAQByIntent(msg);
+    if(faq){
+personality.lastIntent = "faq";
+    const variations = [
+        faq.a,
+        `${faq.a} Let me know if you want me to walk you through it.`,
+        `Here’s what you need: ${faq.a}`,
+        `${faq.a} — want help doing it now?`
+    ];
+
+    return variations[Math.floor(Math.random()*variations.length)];
+}
+
+    // Memory context
+const last = conversationMemory
+    .slice(-2)
+    .map(m => m.content)
+    .join(" ")
+    .toLowerCase();
+
+    const lastBot = conversationMemory
+        .filter(m => m.role === "bot")
+        .slice(-1)[0]?.content.toLowerCase() || "";
+
+// 🔥 CONTEXTUAL UNDERSTANDING (add here)
+    if(last.includes("password") && msg.toLowerCase().includes("not working")){
+        return "Got it—you’re having trouble resetting your password. Are you seeing an error or just not receiving the reset link?";
+    }
+
+const text = msg.toLowerCase();
+
+if(last.includes("ticket") && /not working|failed|error/.test(text)){
+    return "Is the ticket not generating or are you not seeing it in your dashboard?";
+}
+
+if(last.includes("payment") && msg.includes("delay")){
+    return "Are you referring to a payout delay or a transaction verification delay?";
+}
+
+    // YES / NO logic
+    if(/yes|yeah|sure|ok/.test(msg)){
+        if(lastBot.includes("ticket")){
+            generateTicket();
+            return "Done. Your support ticket has been created.";
+        }
+    }
+
+    if(/no|not really/.test(msg)){
+        return "Alright. What would you like help with instead?";
+    }
+
+    // Reward logic
+    if(/reward balance|progress|earnings balance|cashback/.test(msg)){
+        let unlocked=JSON.parse(localStorage.getItem('unlockedPlans'))||{};
+        let unlockTimes=JSON.parse(localStorage.getItem('unlockTimes'))||{};
+        let res="Bond progress:\n";
+
+        ['premium','basic','lite','custom'].forEach(plan=>{
+            if(unlocked[plan]){
+                const now=Date.now();
+                const elapsed=now-unlockTimes[plan];
+                const total=plan==='premium'?14*86400000:plan==='basic'?28*86400000:42*86400000;
+                const percent=Math.min(100,Math.round((elapsed/total)*100));
+                res+=`${plan}: ${percent}%\n`;
+            } else res+=`${plan}: Locked\n`;
+        });
+
+        return res;
+    }
+
+    // fallback → SMART follow-up (NOT spam)
+    const followUps = [
+    generateFollowUp(msg),
+    "Can you clarify that a bit for me?",
+    "I want to make sure I understand—what exactly are you trying to do?",
+    "Are you trying to fix something or just exploring?"
+];
+
+// 🔥 Context-aware continuation (ONLY when user is vague)
+const shortReply = msg.trim().split(" ").length <= 2;
+
+if(personality.lastIntent === "faq" && shortReply){
+    personality.lastIntent = null;
+    return "Want me to break that down step-by-step?";
+}
+
+if(personality.lastIntent === "ticket" && /ok|yes|yeah|hmm|alright/.test(msg.toLowerCase())){
+    personality.lastIntent = null;
+    return "Do you want to track it or describe the issue further?";
+}
+
+return followUps[Math.floor(Math.random()*followUps.length)];
+}
+
+const personality = {
+    tone: "neutral", // friendly | calm | professional
+    lastIntent: null,
+    userMood: "unknown"
+};
+
+function adaptTone(msg){
+    const text = msg.toLowerCase();
+
+    if(/frustrated|angry|not working|annoying/.test(text)){
+        personality.tone = "calm";
+        personality.userMood = "frustrated";
+    }
+    else if(/thanks|nice|good/.test(text)){
+        personality.tone = "friendly";
+        personality.userMood = "positive";
+    }
+    else{
+        personality.tone = "neutral";
+    }
+}
+
+function humanize(text){
+
+    const fillers = [
+    "",
+    "",
+    "Alright… ",
+    "Okay, so ",
+    "Got it. ",
+    "Hmm, ",
+    "Let me see… ",
+    "Right, ",
+    "Makes sense. "
+];
+
+    let prefix = fillers[Math.floor(Math.random()*fillers.length)];
+
+    if(personality.tone === "calm"){
+        prefix = "I get how that can be frustrating. ";
+    }
+
+    if(personality.tone === "friendly"){
+        return prefix + text + " 👍";
+    }
+
+    return prefix + text;
+}
+
+// ---------- BOT EXECUTION ----------
+
+function handleMessage(msg){
+
+    const lower = msg.toLowerCase();
+
+    // Greeting (prevents fallback spam)
+    if(/^(hi|hello|hey|yo)\b/.test(lower)){
+    const greetings = [
+        "Hey 👋 I’m Kairos. What do you need help with?",
+        "Hi there. I can help with support, tickets, rewards, or settings.",
+        "Hey—what’s going on? Need help with something?",
+        "Hello. Tell me what you're trying to do, I’ll guide you."
+    ];
+
+    botReply(greetings[Math.floor(Math.random()*greetings.length)]);
+    return;
+}
+
+    // Direct theme commands
+    if(lower.includes('light mode')){
+        setTheme('light');
+        botReply("Switched to light mode.");
+        return;
+    }
+
+    if(lower.includes('dark mode')){
+        setTheme('dark');
+        botReply("Switched to dark mode.");
+        return;
+    }
+
+    const intent = detectIntent(msg);
+
+    if(intent.type==='theme'){
+        setTheme(intent.value);
+        botReply(`Switched to ${intent.value} mode.`);
+        return;
+    }
+
+    if(intent.type==='ticket'){
+    personality.lastIntent = "ticket"; // ✅ ADD HERE
+    generateTicket();
+    botReply("Your ticket has been generated.");
+    return;
+}
+
+    if(intent.type==='logout'){
+        botReply("Logging you out...");
+        setTimeout(()=>logout(),1000);
+        return;
+    }
+
+    if(intent.type==='quote'){
+        botReply(quotes[Math.floor(Math.random()*quotes.length)]);
+        return;
+    }
+
+    if(intent.type==='support'){
+        botReply("I can help with that. Do you want me to create a support ticket for you, or are you just looking for quick guidance?");
+        return;
+    }
+
+    // Default → smart brain
+    adaptTone(msg);
+
+const reply = generateSmartReply(msg);
+botReply(reply);
+}
+
+
+// ---------- BOT REPLY ----------
+function botReply(text){
+
+    // ✅ ALWAYS humanize before sending
+    const finalText = humanize(text);
+
+    showTyping();
+
+    const delay = getTypingDelay(finalText);
+
+    setTimeout(()=>{
+        removeTyping();
+        addMessage(finalText,"bot");
+
+        conversationMemory.push({
+            role: "bot",
+            content: finalText,
+            time: Date.now()
+        });
+
+        if(conversationMemory.length > 10){
+            conversationMemory.shift();
+        }
+
+    }, delay);
+}
+
+
+// ---------- SEND ----------
+function sendMessage(){
+    const text = botInput.value.trim();
+    if(!text) return;
+
+    removeUserTyping();
+
+    const userMsg = addMessage(text,"user","delivered");
+    botInput.value="";
+
+    setTimeout(()=>markAsSeen(userMsg),800);
+
+    conversationMemory.push({
+    role: "user",
+    content: text,
+    time: Date.now()
+});
+
+// keep memory small (important)
+if(conversationMemory.length > 10){
+    conversationMemory.shift();
+}
+
+    handleMessage(text);
+
+    recordChatMessage();
+}
+
+botSendBtn.addEventListener('click', sendMessage);
+
+botInput.addEventListener('keypress', e=>{
+    if(e.key==='Enter') sendMessage();
+});
+
+
+// ---------- Record Chat ----------
+function recordChatMessage(){
+    let chats=parseInt(localStorage.getItem("messagesSent")||0);
+    chats++;
+    localStorage.setItem("messagesSent",chats);
+    updateEngagementUI();
+}
+
+
+// ---------- Auto Suggestions ----------
+const autoSuggest=[
+    {keywords:['ticket','issue'], suggestion:"You can say 'generate ticket'."},
+    {keywords:['faq'], suggestion:"Ask your question directly."},
+    {keywords:['quote'], suggestion:"Type 'quote' for motivation."}
+];
+
+botInput.addEventListener('input', e=>{
+    const msg=e.target.value.toLowerCase();
+    const found=autoSuggest.find(s=>s.keywords.some(k=>msg.includes(k)));
+    if(found) notify(`💡 ${found.suggestion}`);
+});
+
+// --- File Upload for Tickets ---
+const ticketFile = document.getElementById('ticketFile');
+let uploadedFileName = null;
+ticketFile.addEventListener('change', e => {
+    if(e.target.files.length > 0) uploadedFileName = e.target.files[0].name;
+});
+
+// ---------- DAILY RESET ----------
+const today = new Date().toDateString();
+const storedDate = localStorage.getItem("analyticsDate");
+
+if (storedDate !== today) {
+    localStorage.removeItem("issueCounts");
+    localStorage.setItem("analyticsDate", today);
+}
+
+function logout() {
+            window.location.href = "https://membership-signup.avalonflow.site/sign-in";
+        }
+
+// ---------- LOAD OR CREATE ANALYTICS ----------
+let issueCounts = JSON.parse(localStorage.getItem("issueCounts")) || {
+    "Login Issues": Math.floor(Math.random() * 10) + 5,
+    "Payment Problems": Math.floor(Math.random() * 6) + 2,
+    "Feature Requests": Math.floor(Math.random() * 8) + 3,
+    "Bug Reports": Math.floor(Math.random() * 7) + 4
+};
+
+const issueCountsContainer = document.getElementById('issueCounts');
+
+// ---------- RENDER FUNCTION ----------
+function renderAnalytics(){
+    issueCountsContainer.innerHTML = '';
+
+    Object.entries(issueCounts).forEach(([issue, count]) => {
+        const div = document.createElement('div');
+        div.textContent = `${issue}: ${count} submissions`;
+        issueCountsContainer.appendChild(div);
+    });
+
+    localStorage.setItem("issueCounts", JSON.stringify(issueCounts));
+}
+
+// Initial render
+renderAnalytics();
+
+// ---------- SIMULATE OTHER USERS ----------
+function simulateTraffic(){
+    const categories = Object.keys(issueCounts);
+    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+    issueCounts[randomCategory] += 1;
+    renderAnalytics();
+
+    const nextTime = Math.random() * 20000 + 20000;
+    setTimeout(simulateTraffic, nextTime);
+}
+
+simulateTraffic();
+
+// ---------- Update Engagement UI ----------
+function updateEngagementUI() {
+    const badgesContainer = document.getElementById("badgesContainer");
+
+    // Clear old badges
+    badgesContainer.innerHTML = "";
+
+    // Tickets and chats
+    const tickets = parseInt(localStorage.getItem("ticketsGenerated") || 0);
+    const chats = parseInt(localStorage.getItem("messagesSent") || 0);
+
+    if (tickets >= 1) addBadge("🎫 First Ticket");
+    if (tickets >= 5) addBadge("🎟️ Ticket Master");
+    if (chats >= 1) addBadge("💬 First Chat");
+    if (chats >= 10) addBadge("🗣️ Chat Pro");
+
+    // Update streak — simple version: store last visit date
+    const today = new Date().toDateString();
+    const lastVisit = localStorage.getItem("lastVisit");
+    let streak = parseInt(localStorage.getItem("streak") || 0);
+
+    if (lastVisit === today) {
+        // already counted today
+    } else {
+        if(lastVisit === new Date(Date.now() - 86400000).toDateString()){
+            streak += 1; // consecutive day
+        } else {
+            streak = 1; // reset streak
+        }
+        localStorage.setItem("streak", streak);
+        localStorage.setItem("lastVisit", today);
+    }
+
+    document.getElementById("streakCount").innerText = streak;
+}
+
+/* ---------- Welcome ---------- */
+
+window.onload = () => {
+
+notify('Get assistance or clarification here.');
+
+};
+
+// ---------- Add a Badge ----------
+function addBadge(text) {
+    const div = document.createElement("div");
+    div.className = "badge-item";
+    div.textContent = text;
+    document.getElementById("badgesContainer").appendChild(div);
+}
+
+// ---------- Ambient Messages ----------
+setInterval(()=>{
+    const msg = quotes[Math.floor(Math.random()*quotes.length)];
+    const ambientDiv = document.createElement('div');
+    ambientDiv.className = 'ambient';
+    ambientDiv.textContent = msg;
+    ambientDiv.style.opacity = 0;
+    botMessagesContainer.appendChild(ambientDiv);
+    botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
+
+    // Use CSS transition for fade
+    ambientDiv.style.transition = 'opacity 1s';
+    setTimeout(()=>ambientDiv.style.opacity = 0.8, 50); // fade in
+    setTimeout(()=>ambientDiv.style.opacity = 0, 10000); // fade out
+    setTimeout(()=>ambientDiv.remove(), 11000); // remove after fade out
+}, 10000);
+
+/* ---------- Auto-Logout After 8 Hours of Inactivity ---------- */
+        const AUTO_LOGOUT_TIME = 60 * 60 * 1000; // 1 hour
+        let logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
+
+        function resetLogoutTimer(){
+            clearTimeout(logoutTimer);
+            logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
+        }
+
+        ["mousemove","keydown","scroll","click"].forEach(event => {
+            window.addEventListener(event, resetLogoutTimer);
+        });
+
+</script>
+</body>
+</html>
