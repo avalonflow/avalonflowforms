@@ -241,139 +241,49 @@ display: none !important;
     100% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
 }
 
-/* ================= Header Logo Card Neon ================= */
-header .logo-card {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 90%;
-  max-width: 300px;
-  height: 180px;
-  border-radius: 24px;
+           /* ================= Header Logo Card Neon ================= */
+        .minimal-logo-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Reduced top padding dramatically so it sits near the top edge */
+            padding: 10px 0 10px 0; 
+            /* Optional: Ensures it stays firmly at the absolute top of the page layout */
+            width: 100%;
+            margin-top: -92px; 
+            background: transparent !important;
+        }
 
-  /* Purple glass */
-  background: rgba(107,44,216,0.2);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(107,44,216,0.4);
+        .logo-shimmer-wrapper {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            overflow: hidden;
+            background: transparent !important; /* Kept perfectly transparent, no card background */
+        }
 
-  /* Outer neon glow */
-  box-shadow: 
-    0 0 10px rgba(107,44,216,0.5),
-    0 0 20px rgba(107,44,216,0.4),
-    0 0 40px rgba(107,44,216,0.3),
-    0 0 80px rgba(107,44,216,0.2);
-  position: relative;
-  margin: 0 auto;
-
-  /* Smooth pulsing */
-  animation: neonGlow 2.5s ease-in-out infinite alternate;
-  transition: box-shadow 0.3s ease;
-  overflow: hidden;
-}
-
-/* Inner border glow */
-header .logo-card::before {
-  content: '';
-  position: absolute;
-  inset: 2px; /* slightly smaller than card edges */
-  border-radius: 22px;
-  border: 2px solid rgba(107,44,216,0.6);
-  box-shadow:
-    0 0 10px rgba(107,44,216,0.8),
-    0 0 20px rgba(107,44,216,0.6),
-    0 0 30px rgba(107,44,216,0.4);
-  pointer-events: none;
-  z-index: 1;
-  animation: innerGlow 2.5s ease-in-out infinite alternate;
-}
-
-/* Animated halo behind logo */
-header .logo-card::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 120%;
-  height: 120%;
-  background: radial-gradient(circle, rgba(107,44,216,0.4) 0%, transparent 70%);
-  transform: translate(-50%, -50%) scale(1);
-  border-radius: 50%;
-  z-index: 0; /* behind logo image */
-  animation: haloPulse 2.5s ease-in-out infinite alternate;
-  pointer-events: none;
-}
-
-/* Image inside card stays on top */
-header .logo-card img {
-  max-width: 90%;
-  max-height: 90%;
-  height: auto;
-  z-index: 2;
-  position: relative;
-}
-
-/* Outer glow pulse animation */
-@keyframes neonGlow {
-  0% {
-    box-shadow: 
-      0 0 15px rgba(107,44,216,0.4),
-      0 0 30px rgba(107,44,216,0.3),
-      0 0 50px rgba(107,44,216,0.2),
-      0 0 100px rgba(107,44,216,0.15);
-  }
-  50% {
-    box-shadow: 
-      0 0 25px rgba(107,44,216,0.8),
-      0 0 50px rgba(107,44,216,0.6),
-      0 0 80px rgba(107,44,216,0.4),
-      0 0 120px rgba(107,44,216,0.25);
-  }
-  100% {
-    box-shadow: 
-      0 0 15px rgba(107,44,216,0.4),
-      0 0 30px rgba(107,44,216,0.3),
-      0 0 50px rgba(107,44,216,0.2),
-      0 0 100px rgba(107,44,216,0.15);
-  }
-}
-
-/* Inner border glow pulse animation */
-@keyframes innerGlow {
-  0% {
-    box-shadow:
-      0 0 5px rgba(107,44,216,0.5),
-      0 0 10px rgba(107,44,216,0.4),
-      0 0 15px rgba(107,44,216,0.3);
-  }
-  50% {
-    box-shadow:
-      0 0 15px rgba(107,44,216,0.8),
-      0 0 25px rgba(107,44,216,0.6),
-      0 0 35px rgba(107,44,216,0.4);
-  }
-  100% {
-    box-shadow:
-      0 0 5px rgba(107,44,216,0.5),
-      0 0 10px rgba(107,44,216,0.4),
-      0 0 15px rgba(107,44,216,0.3);
-  }
-}
-
-/* Halo pulse animation behind logo */
-@keyframes haloPulse {
-  0% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.5;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.15);
-    opacity: 0.7;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.5;
-  }
-}
+        .avalon-logo-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            /* Keep your logo scaling */
+            transform: scale(0.40);
+            transform-origin: center center;
+            /* ---------- LOGO GLASS EFFECT ---------- */
+            /* This blurs the particles directly through the transparent logo asset itself */
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            opacity: 0.9; 
+            /* -------------------------------------- */
+            filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.05));
+            mix-blend-mode: multiply; 
+            background: transparent !important;
+            border: none !important;            
+            outline: none !important;
+        }
 
 
 /* =========================
@@ -743,11 +653,11 @@ background: linear-gradient(90deg,#6b2cd8,#b393ff,#6b2cd8);
         <!-- Notification Bar -->
         <div id="planNotification" class="notification-bar"></div>
 
-<header style="text-align:center; padding:40px 0;">
-  <div class="logo-card">
-    <img src="assets/pictures/1775740874549.jpg" alt="AvalonFlow Logo">
-  </div>
-</header>
+    <header class="minimal-logo-header">
+        <div class="logo-shimmer-wrapper">
+            <img src="assets/pictures/1780995787737.jpeg" alt="Avalon Logo" class="avalon-logo-img">
+        </div>
+    </header>
 
 <section id="section2" class="account-setup-container">
 
