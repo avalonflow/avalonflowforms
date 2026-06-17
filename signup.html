@@ -138,39 +138,47 @@ a { color: inherit; text-decoration: none; }
     transition:0.2s;
 }
 
-/* Input styling */
-.payment-method input{
+/* Input styling at rest (Solid black outline) */
+.payment-method input {
   width: 100%;
   padding: 14px 16px;
   margin-top: 12px;
   border-radius: 12px;
-  border: none;
-  background: rgba(255,255,255,0.15);
+  border: 2px solid #000000; /* Smooth solid black outline at rest */
+  background: rgba(255, 255, 255, 0.15);
   color: #160a2c;
-/* FIX */
   box-sizing: border-box;
+  outline: none; /* Removes the default blue browser focus outline */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease; /* Makes transition smooth */
 }
 
-  .payment-method input::placeholder{
+/* Active typing state (Purple glow transition) */
+.payment-method input:focus {
+  border-color: #6b2cd8; /* Changes the border line to purple */
+  box-shadow: 0 0 18px rgba(107, 44, 216, 0.5); /* Matches your option button glow precisely */
+}
+
+.payment-method input::placeholder {
   color: #160a2c;
   font-style: italic;
 }
 
-.input-wrapper{
-    position:relative;
-    width:100%;
+.input-wrapper {
+  position: relative;
+  width: 100%;
 }
 
-.pass-toggle{
-    position:absolute;
-    right:10px;
-    top:50%;
-    transform:translateY(-40%);
-    background:none;
-    border:none;
-    cursor:pointer;
-    padding:0;
+.pass-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-40%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
 }
+
 
     input { width:100%; padding:14px; margin-top:10px; border-radius:12px; border:none; background:rgba(255,255,255,0.15); color:#160a2c; }
 
