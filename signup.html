@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🪽 AvalonCare Membership</title>
+
+        <!-- Favicon -->
+<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=3">
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=3">
+
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
+
+<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png?v=3">
+<link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png?v=3">
+<link rel="manifest" href="/manifest.json?v=3">
+
+<!-- Structured Data for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "AvalonFlow",
+  "url": "https://avalonflow.site",
+  "logo": "https://avalonflow.site/favicon.png"
+}
+</script>
+
+<!-- jQuery (required for Select2) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<style>
+
+    /* 1. Reset everything so elements calculate their padding INSIDE their width */
+*, *::before, *::after {
+    box-sizing: border-box !important;
+}
+
+/* 2. Lock the root HTML layer down */
+html {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+}
+
+/* 3. Target the actual body tag (NO DOT) */
+body {
+    font-family: 'Georgia', sans-serif; 
+    margin: 0 auto !important; 
+    background: #0d0d0d;
+    max-width: 100% !important;
+    color: #fff;
+    overflow-x: hidden !important;
+}
+
+button { cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+
+
+            /* ---------- Floating Background ---------- */
+#floating-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+
+    /* Soft white/blue futuristic background */
+    background: radial-gradient(circle at bottom, #cfe8ff, #ffffff);
+
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.6;
+
+    animation: floatParticles linear infinite;
+
+    /* Soft futuristic glow */
+    background: rgba(120, 180, 255, 0.7);
+    box-shadow: 0 0 10px #8ec5ff, 0 0 20px #b7dcff;
+}
+
+@keyframes floatParticles {
+    0% {
+        transform: translateY(100vh) scale(0.3);
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-10vh) scale(1);
+        opacity: 0;
+    }
+}
+
+    /* ---------- Panels & Glass Cards ---------- */
+      .glass-card { background:rgba(255,255,255,0.12); backdrop-filter:blur(12px); border-radius:18px; padding:28px; margin-bottom:28px; box-shadow:0 10px 30px rgba(0,0,0,0.35); max-width:570px; margin-left:auto; margin-right:auto; overflow: hidden; }
+
+/* Reuse Section 3 glow + hover for cards */
+.payment-method {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(12px);
+  border-radius: 18px;
+  padding: 28px;
+  margin-bottom: 28px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  transition: 0.3s ease, transform 0.2s ease;
+}
+
+.payment-method:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 18px rgba(107,44,216,0.5); /* purple glow on hover */
+}
+
+#strength-meter div{
+    height:4px;
+    flex:1;
+    background:#e0e0e0;
+    border-radius:2px;
+    transition:0.2s;
+}
+
+#strength-label{
+    transition:0.2s;
+}
+
+/* Input styling */
+.payment-method input{
+  width: 100%;
+  padding: 14px 16px;
+  margin-top: 12px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: #160a2c;
+/* FIX */
+  box-sizing: border-box;
+}
+
+  .payment-method input::placeholder{
+  color: #160a2c;
+  font-style: italic;
+}
+
+.input-wrapper{
+    position:relative;
+    width:100%;
+}
+
+.pass-toggle{
+    position:absolute;
+    right:10px;
+    top:50%;
+    transform:translateY(-40%);
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:0;
+}
+
+    input { width:100%; padding:14px; margin-top:10px; border-radius:12px; border:none; background:rgba(255,255,255,0.15); color:#160a2c; }
+
+    button {
+        padding: 12px 24px;
+        border-radius: 12px;
+        border: none;
+        font-weight: bold;
+        background: rgba(107,44,216,0.6);
+        color: #160a2c;
+        cursor: pointer;
+    }
+
+    .option-btn {
+  background: rgba(255,255,255,0.15);
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.2);
+  font-weight: bold;
+  color: #160a2c;
+  cursor: pointer;
+  transition: 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  position: relative;
+}
+
+.option-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 18px rgba(107,44,216,0.5); /* purple glow */
+}
+
+.option-btn.active {
+  border: 1px solid #6b2cd8;
+  box-shadow: 0 0 18px rgba(107,44,216,0.5); /* purple glow when selected */
+}
+
+/* Animated purple glow for heading */
+.heading-glow::before {
+  content: '';
+  position: absolute;
+  width:120%;
+height:120%;
+left:-10%;
+top:-10%;
+  background: radial-gradient(circle at center, rgba(107,44,216,0.25), transparent 70%);
+  opacity: 0.5;
+  transform: scale(1);
+  animation: glowPulse 2.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+display: none !important;
+}
+
+@keyframes glowPulse {
+  0% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.05); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 0.4; }
+}
+
+/* Red warning glow around container */
+.warning {
+    animation: warning-glow 0.8s ease-in-out 2;
+    box-shadow: 0 0 20px 4px rgba(255,77,77,0.9);
+    border-radius: 18px;
+}
+@keyframes warning-glow {
+    0% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
+    50% { box-shadow: 0 0 20px 6px rgba(255,77,77,0.9); }
+    100% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
+}
+
+           /* ================= Header Logo Card Neon ================= */
+        .minimal-logo-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Reduced top padding dramatically so it sits near the top edge */
+            padding: 10px 0 10px 0; 
+            /* Optional: Ensures it stays firmly at the absolute top of the page layout */
+            width: 100%;
+            margin-top: -70px !important; 
+            background: transparent !important;
+        }
+
+        .logo-shimmer-wrapper {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            overflow: hidden;
+            background: transparent !important; /* Kept perfectly transparent, no card background */
+        }
+
+        .avalon-logo-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            /* Keep your logo scaling */
+            transform: scale(0.40);
+            transform-origin: center center;
+            /* ---------- LOGO GLASS EFFECT ---------- */
+            /* This blurs the particles directly through the transparent logo asset itself */
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            opacity: 0.9; 
+            /* -------------------------------------- */
+            filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.05));
+            mix-blend-mode: multiply; 
+            background: transparent !important;
+            border: none !important;            
+            outline: none !important;
+        }
+
+
+/* =========================
+   PREMIUM GLASS SELECT BOX
+========================= */
+.select2-container--default .select2-selection--single {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    border-radius: 18px !important;
+
+    height: 52px !important;
+    padding: 6px 16px !important;
+
+    display: flex !important;
+    align-items: center !important;
+
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+
+    transition: all 0.25s ease;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+}
+
+/* hover glow */
+.select2-container--default .select2-selection--single:hover {
+    border-color: rgba(107, 44, 216, 0.5) !important;
+    box-shadow: 0 0 0 2px rgba(107, 44, 216, 0.15),
+                0 10px 35px rgba(0,0,0,0.25);
+}
+
+.select2-selection__rendered {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+}
+
+/* focus state */
+.select2-container--open .select2-selection--single {
+    border-color: rgba(107, 44, 216, 0.7) !important;
+}
+
+/* selected text */
+.select2-container--default .select2-selection__rendered {
+    color: #160a2c !important;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* arrow */
+.select2-container--default .select2-selection__arrow {
+    height: 100% !important;
+    right: 12px !important;
+}
+
+/* =========================
+   DROPDOWN PANEL (GLASS FLOAT)
+========================= */
+.select2-container--open .select2-dropdown {
+    background: rgba(15, 15, 25, 0.92) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 18px !important;
+
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+
+    overflow: hidden;
+
+    box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+
+    animation: dropdownFade 0.18s ease-out;
+}
+
+/* dropdown animation */
+@keyframes dropdownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================
+   OPTIONS (PREMIUM FEEL)
+========================= */
+.select2-results__option {
+    color: #fff !important;
+    padding: 12px 14px !important;
+    border-radius: 10px !important;
+    transition: 0.2s ease;
+}
+
+/* hover */
+.select2-results__option--highlighted {
+    background: rgba(107, 44, 216, 0.35) !important;
+}
+
+/* selected */
+.select2-results__option[aria-selected="true"] {
+    background: rgba(107, 44, 216, 0.18) !important;
+}
+
+/* =========================
+   SEARCH INPUT (DROPDOWN)
+========================= */
+.select2-search--dropdown .select2-search__field {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    color: #fff !important;
+
+    border-radius: 12px !important;
+    padding: 10px !important;
+
+    outline: none !important;
+}
+
+/* remove focus glow */
+.select2-search--dropdown .select2-search__field:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+        /* ---------- Notification Bar ---------- */
+        .notification-bar {
+            position: fixed;
+            top: -80px;
+            right: 20px;
+            background: rgba(30, 144, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(30,144,255,0.4);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 14px;
+font-weight: bold;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+            transition: top 0.5s ease, opacity 0.5s ease;
+            z-index: 9999;
+            opacity: 0;
+            max-width: 350px;
+            white-space: normal;
+            overflow: hidden;
+        }
+        .notification-bar.show {
+            top: 20px;
+            opacity: 1;
+        }
+        .notification-bar::before {
+            content: '';
+            position: absolute;
+            left: -50%;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            background: rgba(255,255,255,0.3);
+            transform: skewX(-25deg);
+            animation: liquidWave 2s linear infinite;
+        }
+        @keyframes liquidWave {
+            0% { left: -50%; }
+            100% { left: 100%; }
+        }
+
+        footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    padding: 18px 0;
+    font-size: 14px;
+    color: #555;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.08);
+    z-index: 6;
+}
+
+.heading-glow{
+  font-weight: bold;
+  font-size: 1.8rem;
+
+  background: linear-gradient(90deg,#6b2cd8,#b393ff,#6b2cd8);
+  background-size: 200% auto;
+  animation: gradientShift 6s linear infinite;
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+.lit-animation{
+background: linear-gradient(90deg,#6b2cd8,#b393ff,#6b2cd8);
+  background-size: 200% auto;
+  animation: gradientShift 6s linear infinite;
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+@keyframes gradientShift{
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* PWA Installation Overlay Styles */
+.pwa-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 12, 16, 0.7); /* Dark deep base */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999999;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.pwa-overlay.hidden {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.pwa-modal {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    animation: modalFadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Ambient Floating Mist inside Card */
+.pwa-modal .ambient-glow {
+    position: absolute;
+    top: -20%;
+    left: 30%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 70%);
+    filter: blur(20px);
+    pointer-events: none;
+}
+
+.pwa-content {
+    padding: 32px 24px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.pwa-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    background: #161920;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.pwa-app-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+.pwa-content h2 {
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    letter-spacing: -0.5px;
+}
+
+.pwa-content p {
+    color: rgba(255, 255, 255, 0.6);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0 0 32px 0;
+    font-weight: 400;
+}
+
+.pwa-actions {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Premium Buttons */
+.pwa-btn-primary {
+    width: 100%;
+    background: #ffffff;
+    color: #0a0c10;
+    border: none;
+    padding: 14px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
+}
+
+.pwa-btn-primary:active {
+    transform: scale(0.98);
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.pwa-btn-secondary {
+    width: 100%;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.4);
+    border: none;
+    padding: 12px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.pwa-btn-secondary:hover {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+@keyframes modalFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+</style>
+</head>
+
+<body>
+<div id="floating-bg"></div>
+
+        <!-- Notification Bar -->
+        <div id="planNotification" class="notification-bar"></div>
+
+    <header class="minimal-logo-header">
+        <div class="logo-shimmer-wrapper">
+            <img src="assets/pictures/1780995787737.jpeg" alt="Avalon Logo" class="avalon-logo-img">
+        </div>
+    </header>
+
+<section id="section2" class="account-setup-container">
+
+  <div style="text-align:center; margin:-70px 0 30px; position:relative;">
+    <h2 class="heading-glow">
+       Tell us a bit about yourself 👋
+    </h2>
+  </div>
+
+  <!-- ONE BIG CARD ONLY -->
+  <div class="glass-card payment-method">
+
+    <h3 class="lit-animation">Full Name</h3>
+    <input id="fullName" placeholder="Enter your full name">
+
+    <h3 class="lit-animation">Email Address</h3>
+    <input id="email" type="email" placeholder="Enter your email address">
+
+    <h3 class="lit-animation">Create Password</h3>
+<input id="password" type="password" placeholder="Create password">
+
+<div id="strength-meter-password" style="margin-top:6px; display:flex; gap:4px; max-width:200px;"></div>
+<div id="strength-label-password" style="margin-top:6px; font-size:13px; font-weight:500; color:#ff4d4d;"></div>
+
+<h3 class="lit-animation">Confirm Password</h3>
+<input id="confirmPassword" type="password" placeholder="Re-enter password">
+
+<div id="strength-meter-confirm" style="margin-top:6px; display:flex; gap:4px; max-width:200px;"></div>
+<div id="strength-label-confirm" style="margin-top:6px; font-size:13px; font-weight:500;"></div>
+
+    <h3 class="lit-animation">Select Your Country</h3>
+
+    <select id="location" style="width:100%">
+      <option value="">Select your country</option>
+
+      <optgroup label="North America">
+        <option>United States</option>
+        <option>Canada</option>
+        <option>Mexico</option>
+      </optgroup>
+
+      <optgroup label="Europe">
+        <option>United Kingdom</option>
+        <option>Germany</option>
+        <option>France</option>
+        <option>Italy</option>
+        <option>Spain</option>
+      </optgroup>
+
+      <optgroup label="Oceania">
+        <option>Australia</option>
+        <option>New Zealand</option>
+      </optgroup>
+
+      <optgroup label="South America">
+        <option>Brazil</option>
+        <option>Argentina</option>
+        <option>Colombia</option>
+      </optgroup>
+
+      <optgroup label="Africa">
+        <option>Nigeria</option>
+        <option>South Africa</option>
+        <option>Kenya</option>
+        <option>Ghana</option>
+        <option>Egypt</option>
+      </optgroup>
+
+      <optgroup label="Asia">
+        <option>India</option>
+        <option>China</option>
+        <option>Japan</option>
+        <option>Philippines</option>
+        <option>Indonesia</option>
+        <option>UAE</option>
+      </optgroup>
+    </select>
+
+    <h3 class="lit-animation">Familiarity with Hybrid AI systems</h3>
+    <div style="display:flex; gap:10px; justify-content:center; margin-top:14px;">
+      <button class="option-btn" data-value="Beginner">Beginner</button>
+      <button class="option-btn" data-value="Intermediate">Intermediate</button>
+      <button class="option-btn" data-value="Expert">Expert</button>
+    </div>
+
+  </div>
+
+</section>
+
+  <!-- Navigation Buttons -->
+<div id="navButtons" style="max-width:600px;margin:40px auto 100px; display:flex;justify-content:flex-end; position:relative; z-index:5;">
+    <button id="nextBtn" style="background: rgba(107,44,216,0.9); border:1px solid #fff; padding:12px 24px; border-radius:12px; font-weight:bold; color:#fff;">Next</button>
+</div>
+
+</section>
+
+<div id="pwa-install-overlay" class="pwa-overlay hidden">
+    <div class="pwa-modal">
+        <div class="ambient-glow"></div>
+        
+        <div class="pwa-content">
+            <div class="pwa-icon-wrapper">
+                <img src="assets/pictures/1780991082871 (1).jpeg" alt="AvalonFlow Icon" class="pwa-app-icon">
+            </div>
+            
+            <h2>Launch AvalonFlow App</h2>
+            <p>To access secure biometrics, identity verification, and your private dashboard, switch to the standalone application.</p>
+            
+            <div class="pwa-actions">
+                <button id="pwa-btn-install" class="pwa-btn-primary">Install Application</button>
+                <button id="pwa-btn-close" class="pwa-btn-secondary">Continue in Browser</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    © 2026 AvalonFlow Corp • All Rights Reserved
+</footer>
+
+<script>
+let deferredPrompt;
+const installOverlay = document.getElementById('pwa-install-overlay');
+const btnInstall = document.getElementById('pwa-btn-install');
+const btnClose = document.getElementById('pwa-btn-close');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    // 1. Stop Chrome from automatically throwing the messy default browser banner
+    e.preventDefault();
+    
+    // 2. Cache the event structure so we can wake it up on demand
+    deferredPrompt = e;
+    
+    // 3. Smoothly drop our premium overlay interface into view
+    installOverlay.classList.remove('hidden');
+});
+
+// Action Link: Handle clicking the installation asset button
+btnInstall.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    
+    // Fire up the native system installation prompt wrapper
+    deferredPrompt.prompt();
+    
+    // Evaluate if the user allowed or rejected the device deployment
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`PWA Deployment Response: ${outcome}`);
+    
+    // Clear out the cached asset framework
+    deferredPrompt = null;
+    
+    // Wipe out the visual interface layout container
+    installOverlay.classList.add('hidden');
+});
+
+// Dismiss Mechanism: If they select to stay inside the web browser view
+btnClose.addEventListener('click', () => {
+    installOverlay.classList.add('hidden');
+});
+
+window.addEventListener("DOMContentLoaded", () => {
+
+    /* ---------- Floating Particles ---------- */
+    const bg = document.getElementById('floating-bg');
+    const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
+    function particle() {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const s = Math.random()*20+10;
+        p.style.width = s+'px';
+        p.style.height = s+'px';
+        p.style.left = Math.random()*100+'vw';
+        p.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random()*3)]}, transparent)`;
+        p.style.animationDuration = (Math.random()*20+10)+'s';
+        bg.appendChild(p);
+        setTimeout(()=>p.remove(),30000);
+    }
+    setInterval(particle,800);
+
+        /* ---------- Notification ---------- */
+    const notification = document.getElementById("planNotification");
+    if (notification) {
+        notification.textContent = "Welcome! Let’s get started";
+
+        setTimeout(() => notification.classList.add("show"), 300);
+        setTimeout(() => notification.classList.remove("show"), 3300);
+    }
+
+    /* =========================
+INIT CORE
+========================= */
+initSelect2();
+autoDetectCountry();
+setupPasswordSystem("password", "confirmPassword");
+});
+
+/* =========================
+INPUT ELEMENTS
+========================= */
+const fullName = document.getElementById("fullName");
+const email = document.getElementById("email");
+const locationEl = document.getElementById("location");
+const password = document.getElementById("password");
+const confirmPassword = document.getElementById("confirmPassword");
+
+let experience = "";
+
+/* =========================
+SAFE LOCALSTORAGE LOAD
+========================= */
+let savedData = {};
+
+try {
+    const rawData = localStorage.getItem("section2Data");
+
+    if (rawData) {
+        savedData = JSON.parse(rawData);
+    } else {
+        savedData = {};
+    }
+
+} catch (error) {
+    console.log("Error parsing saved data:", error);
+    savedData = {};
+}
+
+/* =========================
+PASSWORD SYSTEM
+========================= */
+function setupPasswordSystem(passwordId, confirmId) {
+
+    const password = document.getElementById(passwordId);
+    const confirm = document.getElementById(confirmId);
+
+    /* =========================
+       EYE TOGGLE FEATURE
+    ========================= */
+    function addEyeToggle(input) {
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "input-wrapper";
+
+        const parent = input.parentNode;
+
+        parent.insertBefore(wrapper, input);
+        wrapper.appendChild(input);
+
+        const toggleButton = document.createElement("button");
+        toggleButton.type = "button";
+        toggleButton.className = "pass-toggle";
+
+        toggleButton.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+        `;
+
+        wrapper.appendChild(toggleButton);
+
+        let hideTimer = null;
+
+        toggleButton.onclick = function () {
+
+            const isCurrentlyHidden = input.type === "password";
+
+            if (isCurrentlyHidden) {
+                input.type = "text";
+            } else {
+                input.type = "password";
+            }
+
+            clearTimeout(hideTimer);
+
+            if (isCurrentlyHidden) {
+                hideTimer = setTimeout(function () {
+                    input.type = "password";
+                }, 5000);
+            }
+        };
+    }
+
+    addEyeToggle(password);
+    addEyeToggle(confirm);
+
+    /* =========================
+       PASSWORD STRENGTH LOGIC
+    ========================= */
+    function calculateStrength(value) {
+
+        let score = 0;
+
+        if (value.length > 5) {
+            score = score + 1;
+        }
+
+        if (value.length > 8) {
+            score = score + 1;
+        }
+
+        if (/[A-Z]/.test(value)) {
+            score = score + 1;
+        }
+
+        if (/[0-9]/.test(value)) {
+            score = score + 1;
+        }
+
+        if (/[^A-Za-z0-9]/.test(value)) {
+            score = score + 1;
+        }
+
+        if (score > 4) {
+            score = 4;
+        }
+
+        return score;
+    }
+
+    /* =========================
+       RENDER STRENGTH BARS
+    ========================= */
+    function renderBars(meter, score) {
+
+        const bars = meter.querySelectorAll("div");
+
+        for (let i = 0; i < bars.length; i++) {
+
+            const bar = bars[i];
+
+            bar.style.opacity = "1";
+
+            if (i < score) {
+
+                if (score <= 1) {
+                    bar.style.background = "#ff4d4d";
+                }
+
+                else if (score === 2) {
+                    bar.style.background = "#ffb84d";
+                }
+
+                else {
+                    bar.style.background = "#4caf50";
+                }
+
+            } else {
+                bar.style.background = "#e0e0e0";
+            }
+        }
+    }
+
+    /* =========================
+       CREATE BARS
+    ========================= */
+    function createBars(meterId) {
+
+        const meter = document.getElementById(meterId);
+
+        if (!meter) {
+            return;
+        }
+
+        meter.innerHTML = "";
+
+        for (let i = 0; i < 4; i++) {
+
+            const bar = document.createElement("div");
+
+            bar.style.height = "4px";
+            bar.style.flex = "1";
+            bar.style.background = "#e0e0e0";
+            bar.style.borderRadius = "2px";
+            bar.style.transition = "0.2s";
+
+            meter.appendChild(bar);
+        }
+    }
+
+    createBars("strength-meter-password");
+    createBars("strength-meter-confirm");
+
+    /* =========================
+       INPUT SYNC SYSTEM
+    ========================= */
+    password.addEventListener("input", handleSync);
+    confirm.addEventListener("input", handleSync);
+
+    function handleSync() {
+
+        const passwordValue = password.value;
+        const confirmValue = confirm.value;
+
+        const passwordScore = calculateStrength(passwordValue);
+        const confirmScore = calculateStrength(confirmValue);
+
+        const passwordMeter = document.getElementById("strength-meter-password");
+        const passwordLabel = document.getElementById("strength-label-password");
+
+        const confirmMeter = document.getElementById("strength-meter-confirm");
+        const confirmLabel = document.getElementById("strength-label-confirm");
+
+        /* PASSWORD LABEL */
+        if (passwordLabel) {
+
+            if (passwordValue.length === 0) {
+                passwordLabel.textContent = "";
+            }
+
+            else if (passwordScore <= 1) {
+                passwordLabel.textContent = "Weak";
+            }
+
+            else if (passwordScore === 2) {
+                passwordLabel.textContent = "Medium";
+            }
+
+            else {
+                passwordLabel.textContent = "Strong";
+            }
+        }
+
+        /* PASSWORD METER */
+        if (passwordMeter) {
+            renderBars(passwordMeter, passwordScore);
+        }
+
+        /* CONFIRM EMPTY RESET */
+        if (confirmValue.length === 0) {
+
+            if (confirmLabel) {
+                confirmLabel.textContent = "";
+            }
+
+            if (confirmMeter) {
+                renderBars(confirmMeter, 0);
+            }
+
+            return;
+        }
+
+        const mismatch = confirmValue !== passwordValue;
+
+        /* MISMATCH STATE */
+        if (mismatch) {
+
+            if (confirmLabel) {
+                confirmLabel.textContent = "Doesn't match password";
+                confirmLabel.style.color = "#ff4d4d";
+            }
+
+            if (confirmMeter) {
+
+                const bars = confirmMeter.querySelectorAll("div");
+
+                for (let i = 0; i < bars.length; i++) {
+                    bars[i].style.opacity = "0.25";
+                }
+            }
+
+        } else {
+
+            if (confirmLabel) {
+
+                if (confirmScore <= 1) {
+                    confirmLabel.textContent = "Weak";
+                }
+
+                else if (confirmScore === 2) {
+                    confirmLabel.textContent = "Medium";
+                }
+
+                else {
+                    confirmLabel.textContent = "Strong";
+                }
+            }
+
+            if (confirmMeter) {
+                renderBars(confirmMeter, confirmScore);
+            }
+        }
+    }
+}
+
+/* =========================
+CONTINENT MAPPING
+========================= */
+function getContinent(country) {
+const map = {
+"United States": "North America",
+"Canada": "North America",
+"Mexico": "North America",
+
+"United Kingdom": "Europe",
+"Germany": "Europe",
+"France": "Europe",
+"Italy": "Europe",
+"Spain": "Europe",
+
+"Australia": "Oceania",    
+"New Zealand": "Oceania",    
+
+"Brazil": "South America",    
+"Argentina": "South America",    
+"Colombia": "South America",    
+
+"Nigeria": "Africa",    
+"South Africa": "Africa",    
+"Kenya": "Africa",    
+"Ghana": "Africa",    
+"Egypt": "Africa",    
+
+"India": "Asia",    
+"China": "Asia",    
+"Japan": "Asia",    
+"Philippines": "Asia",    
+"Indonesia": "Asia",    
+"UAE": "Asia"
+};
+
+return map[country] || "Unknown";
+}
+
+/* =========================
+FLAGS
+========================= */
+const countryFlags = {
+"United States": "🇺🇸",
+"Canada": "🇨🇦",
+"Mexico": "🇲🇽",
+"United Kingdom": "🇬🇧",
+"Germany": "🇩🇪",
+"France": "🇫🇷",
+"Italy": "🇮🇹",
+"Spain": "🇪🇸",
+"Australia": "🇦🇺",
+"New Zealand": "🇳🇿",
+"Brazil": "🇧🇷",
+"Argentina": "🇦🇷",
+"Colombia": "🇨🇴",
+"Nigeria": "🇳🇬",
+"South Africa": "🇿🇦",
+"Kenya": "🇰🇪",
+"Ghana": "🇬🇭",
+"Egypt": "🇪🇬",
+"India": "🇮🇳",
+"China": "🇨🇳",
+"Japan": "🇯🇵",
+"Philippines": "🇵🇭",
+"Indonesia": "🇮🇩",
+"UAE": "🇦🇪"
+};
+
+function getFlag(country) {
+return countryFlags[country] || "🌍";
+}
+
+/* =========================
+SELECT2 FORMAT (FIXED BUG)
+IMPORTANT: NEVER break selection rendering
+========================= */
+function formatCountrySelection(option) {
+if (!option.id) return option.text;
+
+const country = option.text;
+const flag = getFlag(country);
+
+return `${flag} ${country}`;
+}
+
+/* =========================
+SELECT2 FORMAT RESULT
+========================= */
+function formatCountry(option) {
+if (!option.id) return option.text;
+
+const country = option.text;
+const flag = getFlag(country);
+const continent = getContinent(country);
+
+const el = document.createElement("span");
+el.innerHTML = `
+    <span style="margin-right:8px;">${flag}</span>
+    <strong>${country}</strong>
+    <span style="opacity:0.6;font-size:12px;"> — ${continent}</span>
+`;
+
+return el;
+}
+
+/* =========================
+INIT SELECT2 (FIXED ORDER ISSUE)
+========================= */
+function initSelect2() {
+if (!window.jQuery || !$.fn.select2) {
+setTimeout(initSelect2, 100);
+return;
+}
+
+$('#location').select2({
+placeholder: "Search your country",
+allowClear: true,
+
+templateResult: function(option) {
+if (!option.id) return option.text;
+return formatCountry(option);
+},
+
+templateSelection: formatCountrySelection,
+width: "100%"
+});
+}
+
+/* =========================
+AUTO DETECT COUNTRY (SAFE)
+========================= */
+async function autoDetectCountry() {
+try {
+const res = await fetch("https://ipapi.co/json/");
+const data = await res.json();
+
+const country = data.country_name;
+if (!country) return;
+
+const current = $('#location').val();
+
+if (!current && window.jQuery && $.fn.select2) {
+$('#location').val(country).trigger('change');
+}
+
+} catch (err) {
+console.log("Auto-detect failed:", err);
+}
+}
+
+/* =========================
+RESTORE SAVED DATA
+========================= */
+
+
+setTimeout(function () {
+
+if (savedData.location && window.jQuery) {
+$('#location').val(savedData.location).trigger('change');
+}
+
+if (savedData.fullName) {
+fullName.value = savedData.fullName;
+}
+
+if (savedData.email) {
+email.value = savedData.email;
+}
+
+if (savedData.password) {
+password.value = savedData.password;
+}
+
+if (savedData.confirmPassword) {
+confirmPassword.value = savedData.confirmPassword;
+}
+
+if (savedData.experience) {
+experience = savedData.experience;
+}
+
+password.dispatchEvent(new Event("input"));
+confirmPassword.dispatchEvent(new Event("input"));
+
+}, 500);
+
+/* =========================
+AUTO SAVE SYSTEM
+========================= */
+function saveSection2() {
+
+    const data = {
+        fullName: fullName.value.trim(),
+        email: email.value.trim(),
+        password: password.value.trim(),
+        confirmPassword: confirmPassword.value.trim(),
+        location: window.jQuery ? $('#location').val() : locationEl.value,
+        experience: experience
+    };
+
+    localStorage.setItem("section2Data", JSON.stringify(data));
+}
+
+/* =========================
+EVENT LISTENERS
+========================= */
+fullName.addEventListener("input", saveSection2);
+email.addEventListener("input", saveSection2);
+password.addEventListener("input", saveSection2);
+confirmPassword.addEventListener("input", saveSection2);
+
+if (window.jQuery) {
+    $('#location').on("change", saveSection2);
+}
+
+/* =========================
+EXPERIENCE BUTTONS
+========================= */
+document.querySelectorAll(".option-btn").forEach(function (btn) {
+
+    btn.onclick = function () {
+
+        experience = btn.dataset.value;
+
+        document.querySelectorAll(".option-btn").forEach(function (b) {
+            b.classList.remove("active");
+        });
+
+        btn.classList.add("active");
+
+        saveSection2();
+    };
+});
+
+/* =========================
+NAVIGATION
+========================= */
+const nextBtn = document.getElementById("nextBtn");
+
+if (nextBtn) {
+
+    nextBtn.onclick = function () {
+
+        let hasError = false;
+
+        const locationValue = window.jQuery ? $('#location').val() : locationEl.value;
+
+        const fields = [
+            { el: fullName },
+            { el: email },
+            { el: password },
+            { el: confirmPassword }
+        ];
+
+        fields.forEach(function (field) {
+
+            const value = field.el.value.trim();
+
+            if (!value) {
+                hasError = true;
+
+                const card = field.el.closest(".payment-method");
+
+                if (card) {
+                    card.classList.add("warning");
+
+                    setTimeout(function () {
+                        card.classList.remove("warning");
+                    }, 2200);
+                }
+            }
+        });
+
+        if (password.value !== confirmPassword.value) {
+            hasError = true;
+        }
+
+        if (!locationValue) {
+            hasError = true;
+        }
+
+        if (!experience) {
+            hasError = true;
+        }
+
+        if (hasError) {
+            return;
+        }
+
+        saveSection2();
+        window.location.href = "https://link.avalonflow.site/section4";
+    };
+}
+
+/* =========================
+FINGERPRINT
+========================= */
+function getFingerprint() {
+
+    return btoa(
+        navigator.userAgent +
+        screen.width +
+        screen.height +
+        navigator.language
+    );
+}
+
+/* =========================
+BLOCK AFTER SUBMISSION
+========================= */
+if (localStorage.getItem('membershipConfirmed') === 'true') {
+    window.location.href = "https://membership-signup.avalonflow.site/sign-in";
+}
+</script>
+</body>
+</html>
