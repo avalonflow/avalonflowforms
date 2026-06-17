@@ -5,8 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Get Started</title>
 
-      <!-- Favicon as .ico -->
-<link rel="icon" href="/favicon.png" type="image/png" sizes="48x48">
+              <!-- Favicon -->
+<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=3">
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=3">
+
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
+
+<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png?v=3">
+<link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png?v=3">
+<link rel="manifest" href="/manifest.json?v=3">
   
     <!-- Structured Data for Logo -->
     <script type="application/ld+json">
@@ -361,7 +370,7 @@ header .logo-card img {
                 Your information is kept strictly confidential.
             </p>
         
-  <a href="section2">Start Your Membership</a>
+  <a href="/signup">Start Your Membership</a>
 </div>
 
 <footer>
@@ -404,7 +413,7 @@ function getFingerprint() {
 
 // Any section except Section 4
 if (localStorage.getItem('formSubmitted') === 'true') {
-  window.location.href = 'after-submission';
+  window.location.href = 'https://membership.avalonflow.site/sign-in';
   }
 </script>
 
