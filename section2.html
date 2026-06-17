@@ -126,29 +126,6 @@ a { color: inherit; text-decoration: none; }
   box-shadow: 0 0 18px rgba(107,44,216,0.5); /* purple glow on hover */
 }
 
-
-/* Glow around card (pulsing purple) */
-.payment-method::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at center, rgba(107,44,216,0.25), transparent 70%);
-    opacity: 0.5;
-    transform: scale(1);
-    animation: glowPulse 2.5s ease-in-out infinite;
-    pointer-events: none;
-    z-index: 1;
-}
-
-@keyframes glowPulse {
-    0% { transform: scale(1); opacity: 0.4; }
-    50% { transform: scale(1.05); opacity: 0.6; }
-    100% { transform: scale(1); opacity: 0.4; }
-}
-
 #strength-meter div{
     height:4px;
     flex:1;
