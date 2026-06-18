@@ -1534,8 +1534,10 @@ window.addEventListener('resize', () => {
 });
 
     // ================================
-// 🔐 PLANS
+// 🔐 PLANS & STORAGE OVERRIDES
 // ================================
+localStorage.setItem('override_customAC', '26779.97');
+
 const plans = {
     premium: { days: 30, totalAC: 17897, fill: 'premiumFill', lock: 'premiumLock', ac: 'premiumAC', cycles: 'premiumCycles', reset: 'premiumReset', per12h: 298.29 },
     basic:   { days: 30, totalAC: 10997, fill: 'basicFill', lock: 'basicLock', ac: 'basicAC', cycles: 'basicCycles', reset: 'basicReset', per12h: 183.29 },
@@ -1719,6 +1721,7 @@ async function sign(data) {
 // ================================
 let displayedAC = { premium: 0, basic: 0, lite: 0, custom: 0 };
 let lastCycleCount = { premium: 0, basic: 0, lite: 0, custom: 0 };
+let initialTargetAC = { premium: null, basic: null, lite: null, custom: null };
 
 
 // ================================
@@ -1749,7 +1752,18 @@ function updateReturns() {
             }
         }
 
-        if (!planData) return;
+        // Setup storage check values
+        const overrideStorageKey = `override_${key}AC`;
+        const localOverrideValue = localStorage.getItem(overrideStorageKey);
+
+        if (!planData) {
+            // Handle element display safely if no backend initialization structure exists yet
+            const acEl = document.getElementById(b.ac);
+            if (acEl && localOverrideValue !== null && !isNaN(parseFloat(localOverrideValue))) {
+                acEl.textContent = parseFloat(localOverrideValue).toFixed(2) + " ACU";
+            }
+            return;
+        }
         if (planData.deviceId && planData.deviceId !== currentDeviceId) return;
 
         const fill = document.getElementById(b.fill);
@@ -1787,11 +1801,20 @@ function updateReturns() {
 
         lock.style.display = unlocked ? "none" : "block";
 
+        // --- OVERRIDE WHEN LOCKED (NO ANIMATION) ---
         if (!unlocked) {
-            fill.style.width = "0%";
-            cyclesEl.textContent = 0;
-            acEl.textContent = displayedAC[key].toFixed(2) + " ACU";
-            resetEl.textContent = "--:--:--";
+            if (fill) fill.style.width = "0%";
+            if (cyclesEl) cyclesEl.textContent = 0;
+            if (resetEl) resetEl.textContent = "--:--:--";
+            
+            if (acEl) {
+                if (localOverrideValue !== null && !isNaN(parseFloat(localOverrideValue))) {
+                    displayedAC[key] = parseFloat(localOverrideValue);
+                    acEl.textContent = parseFloat(localOverrideValue).toFixed(2) + " ACU";
+                } else {
+                    acEl.textContent = displayedAC[key].toFixed(2) + " ACU";
+                }
+            }
             return;
         }
 
@@ -1799,10 +1822,10 @@ function updateReturns() {
         const elapsed = now - planData.activatedAt;
         const cycleProgress = (elapsed % cycleMs) / cycleMs;
 
-        fill.style.width = `${cycleProgress * 100}%`;
+        if (fill) fill.style.width = `${cycleProgress * 100}%`;
 
         const cycles = Math.floor(elapsed / cycleMs);
-        cyclesEl.textContent = cycles;
+        if (cyclesEl) cyclesEl.textContent = cycles;
 
         if (cycles > lastCycleCount[key]) {
             document.getElementById(key + "Card")?.classList.add("cycle-burst");
@@ -1820,12 +1843,28 @@ function updateReturns() {
             per12h = (amount * 1.5) / 2;
         }
 
-        const targetAC = cycles * per12h + cycleProgress * per12h;
+        // Standard timeline value calculation
+        const defaultCalculatedAC = cycles * per12h + cycleProgress * per12h;
+        let targetAC = defaultCalculatedAC;
+
+        // --- OVERRIDE WHEN UNLOCKED (CONTINUOUS GROWING ANIMATION) ---
+        if (localOverrideValue !== null && !isNaN(parseFloat(localOverrideValue))) {
+            const baseOverrideAmount = parseFloat(localOverrideValue);
+            
+            if (initialTargetAC[key] === null) {
+                initialTargetAC[key] = defaultCalculatedAC;
+            }
+            
+            const sessionGrowth = defaultCalculatedAC - initialTargetAC[key];
+            targetAC = baseOverrideAmount + sessionGrowth;
+        } else {
+            initialTargetAC[key] = null;
+        }
 
         const diff = targetAC - displayedAC[key];
         displayedAC[key] += diff * 0.08;
 
-        acEl.textContent = displayedAC[key].toFixed(2) + " ACU";
+        if (acEl) acEl.textContent = displayedAC[key].toFixed(2) + " ACU";
 
         const timeLeft = planData.expiresAt - now;
 
@@ -1836,8 +1875,7 @@ function updateReturns() {
                 const s = Math.floor((timeLeft % 60000) / 1000);
 
                 expiryWarningEl.style.display = "block";
-                expiryWarningEl.textContent =
-                    `⚠️ Expiring in ${h}:${m}:${s}`;
+                expiryWarningEl.textContent = `⚠️ Expiring in ${h}:${m}:${s}`;
             } else {
                 expiryWarningEl.style.display = "none";
             }
@@ -1848,7 +1886,7 @@ function updateReturns() {
         const m = Math.floor((remainingMs % 3600000) / 60000);
         const s = Math.floor((remainingMs % 60000) / 1000);
 
-        resetEl.textContent = `${h}:${m}:${s}`;
+        if (resetEl) resetEl.textContent = `${h}:${m}:${s}`;
     });
 }
 
@@ -1868,73 +1906,67 @@ window.addEventListener("load", () => {
     // ================================
     // 🔔 NOTIFICATION LOGIC (FIXED)
     // ================================
-const notification = document.getElementById("rewardNotification");
+    const notification = document.getElementById("rewardNotification");
 
-if (!notification) return; // safety check  
+    if (!notification) return; 
 
-// --- Extract first name gently ---
-let firstName = "";
-const localData = localStorage.getItem("section2Data");
+    let firstName = "";
+    const localData = localStorage.getItem("section2Data");
 
-if (localData) {
-    try {
-        const savedData = JSON.parse(localData);
-        if (savedData.fullName) {
-            const rawFirstName = savedData.fullName.trim().split(" ")[0];
-            firstName = rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1).toLowerCase();
+    if (localData) {
+        try {
+            const savedData = JSON.parse(localData);
+            if (savedData.fullName) {
+                const rawFirstName = savedData.fullName.trim().split(" ")[0];
+                firstName = rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1).toLowerCase();
+            }
+        } catch (e) {
+            console.error("Failed to parse registration name metrics.");
         }
-    } catch (e) {
-        console.error("Failed to parse registration name metrics.");
     }
-}
 
-const nameString = firstName ? `, ${firstName}` : "";
+    const nameString = firstName ? `, ${firstName}` : "";
 
-// Welcome message first with targeted name
-notification.textContent = `Welcome${nameString} To Retention Bonus Tab`;  
-notification.classList.add("show");  
+    notification.textContent = `Welcome${nameString} To Retention Bonus Tab`;  
+    notification.classList.add("show");  
 
-setTimeout(() => {  
+    setTimeout(() => {  
 
-    const paidPlans = JSON.parse(localStorage.getItem("paidPlans")) || {};  
-    const now = Date.now();  
+        const paidPlans = JSON.parse(localStorage.getItem("paidPlans")) || {};  
+        const now = Date.now();  
 
-    const planEntries = Object.values(paidPlans);  
+        const planEntries = Object.values(paidPlans);  
+        const hasAnyPlan = planEntries.length > 0;  
 
-    const hasAnyPlan = planEntries.length > 0;  
+        const hasActivePlan = planEntries.some(p =>  
+            p.active && now < p.expiresAt  
+        );  
 
-    const hasActivePlan = planEntries.some(p =>  
-        p.active && now < p.expiresAt  
-    );  
+        const allExpired = hasAnyPlan &&  
+            planEntries.every(p => now >= p.expiresAt);  
 
-    const allExpired = hasAnyPlan &&  
-        planEntries.every(p => now >= p.expiresAt);  
+        if (hasActivePlan) {  
+            notification.textContent = "Bond verified";  
+            notification.classList.add("show");  
+        } else if (allExpired) {  
+            notification.textContent = "Bond's locked";  
+            notification.classList.add("show");  
+        }  
 
-    if (hasActivePlan) {  
-        notification.textContent = "Bond verified";  
-        notification.classList.add("show");  
+    }, 2500);  
 
-    } else if (allExpired) {  
-        notification.textContent = "Bond's locked";  
-        notification.classList.add("show");  
-    }  
+    setTimeout(() => {  
+        notification.classList.remove("show");  
+    }, 5500);
 
-}, 2500);  
-
-// Hide notification  
-setTimeout(() => {  
-    notification.classList.remove("show");  
-}, 5500);
-
-
-animate();  
-window.history.replaceState({}, document.title, window.location.pathname);
-
+    animate();  
+    window.history.replaceState({}, document.title, window.location.pathname);
 });
 
 function logout() {
-            window.location.href = "https://membership-signup.avalonflow.site/sign-in";
-        }
+    window.location.href = "https://membership.avalonflow.site/signin";
+}
+
 
 /* ---------- Auto-Logout After 8 Hours of Inactivity ---------- */
         const AUTO_LOGOUT_TIME = 60 * 60 * 1000; // 1 hour
