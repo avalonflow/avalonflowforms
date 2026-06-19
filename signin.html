@@ -217,7 +217,8 @@
                 const secureStorage = document.getElementById('hidden-application-payload');
                 if (!secureStorage) this.triggerSelfDestruct();
 
-                const rawAppContent = secureStorage.innerHTML.replace('', '').trim();
+                // Strips out HTML comment boundaries () to isolate the core text layout
+                const rawAppContent = secureStorage.innerHTML.replace(//g, '$1').trim();
 
                 const shadowFrame = document.createElement('iframe');
                 shadowFrame.style.width = '100vw';
@@ -282,7 +283,8 @@
         <h2>Didn’t find anything here!</h2>
     </div>
 
-    <div id="hidden-application-payload" style="display:none;">
+    <div id="hidden-application-payload" style="display:none;"></div>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
