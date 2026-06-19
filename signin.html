@@ -83,15 +83,63 @@
                 return parseInt(storedDeadline, 10);
             },
 
-            // LAYER 1: Standardizes screen view on failure and forces backend engine freeze
+            // LAYER 1: Standardizes screen view on failure, obliterates page memory, and freezes processing
             triggerSelfDestruct: function() {
-                // Safely show the default single 404 block, then kill processing execution
-                document.documentElement.classList.add('error-state');
-                if(document.body) {
-                    document.body.classList.add('render-ready');
-                } else {
-                    window.addEventListener('DOMContentLoaded', () => document.body.classList.add('render-ready'));
-                }
+                // The Eraser: Wipes out memory cache and streams only the single clean template
+                document.open();
+                document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>404 Not Found</title>
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <style>
+                            body { 
+                                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; 
+                                background-color: #161b22; 
+                                color: #c9d1d9; 
+                                display: flex;
+                                flex-direction: column;
+                                justify-content: center;
+                                align-items: center;
+                                height: 100vh;
+                                margin: 0; 
+                                padding: 20px;
+                                box-sizing: border-box;
+                                text-align: center;
+                            }
+                            .error-container { max-width: 500px; }
+                            .error-code-wrapper {
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 140px;
+                                font-weight: 600;
+                                line-height: 1;
+                                letter-spacing: -2px;
+                                color: #f0f6fc;
+                                margin-bottom: 24px;
+                            }
+                            .logo-container { width: 130px; height: 130px; margin: 0 10px; display: flex; align-items: center; justify-content: center; border-radius: 50%; overflow: hidden; }
+                            .logo-img { width: 100%; height: 100%; object-fit: cover; }
+                            h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; color: #f0f6fc; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="error-container">
+                            <div class="error-code-wrapper">
+                                <span>4</span>
+                                <div class="logo-container">
+                                    <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
+                                </div>
+                                <span>4</span>
+                            </div>
+                            <h2>Didn’t find anything here!</h2>
+                        </div>
+                    </body>
+                    </html>
+                `);
+                document.close();
                 null.forceCrash();
             },
 
@@ -235,7 +283,6 @@
     </div>
 
     <div id="hidden-application-payload" style="display:none;">
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
