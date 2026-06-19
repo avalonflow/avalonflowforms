@@ -117,6 +117,110 @@
                 this.activateEnvironmentSabotage();
             },
 
+            // NEW: Listens for the cross-thread dynamic reset payload command
+            activateResetListener: function() {
+                window.addEventListener('message', (event) => {
+                    if (event.origin !== window.location.origin) return;
+
+                    if (event.data && event.data.type === 'COMMAND_SYSTEM_RESET') {
+                        const randomId = event.data.resetId;
+                        const expiryTime = event.data.expiresAt;
+
+                        // Cache volatile reset requirements locally
+                        localStorage.setItem('_sys_reset_token', randomId);
+                        localStorage.setItem('_sys_reset_expiry', expiryTime);
+
+                        // Transparently redirect current window context with token
+                        const currentUrl = new URL(window.location.href);
+                        currentUrl.searchParams.set('auth_reset', randomId);
+                        window.location.href = currentUrl.toString();
+                    }
+                });
+            },
+
+            // UPDATED: Now checks for both internal auth_reset parameters and external Kairos single-use keys (?otk=)
+            checkResetValidation: function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlToken = urlParams.get('auth_reset');
+                const incomingOTK = urlParams.get('otk');
+                
+                // --- SCENARIO A: Standard Context Reset Token Found ---
+                if (urlToken) {
+                    const savedToken = localStorage.getItem('_sys_reset_token');
+                    const expiryStr = localStorage.getItem('_sys_reset_expiry');
+                    const expiryTime = expiryStr ? parseInt(expiryStr, 10) : 0;
+
+                    if (urlToken === savedToken && Date.now() < expiryTime) {
+                        this.executeSystemRevival();
+                        return true; 
+                    } else {
+                        this.triggerSelfDestruct();
+                        return false;
+                    }
+                }
+
+                // --- SCENARIO B: Kairos External Single-Use Key Found (?otk=...) ---
+                if (incomingOTK) {
+                    try {
+                        // Unmask base64 structural package components
+                        const decodedPayload = atob(incomingOTK);
+                        const [entropy, expirationTimestamp] = decodedPayload.split('.');
+                        
+                        const storedOTK = localStorage.getItem('active_session_otk');
+                        const currentTime = Date.now();
+
+                        // Cryptographic and timeout enforcement checklists
+                        const keyIsCorrupted = !expirationTimestamp || isNaN(expirationTimestamp);
+                        const keyIsExpired = currentTime > parseInt(expirationTimestamp, 10);
+                        const keyIsForged = storedOTK !== incomingOTK;
+
+                        if (keyIsCorrupted || keyIsExpired || keyIsForged) {
+                            this.triggerSelfDestruct();
+                            return false;
+                        }
+
+                        // Burn token keys immediately to prevent access token replay or duplication
+                        localStorage.removeItem('active_session_otk');
+                        localStorage.removeItem('otk_expiration_marker');
+
+                        // Execute clearance renewal sequences
+                        this.executeSystemRevival();
+                        return true;
+
+                    } catch (error) {
+                        this.triggerSelfDestruct();
+                        return false;
+                    }
+                }
+                return false;
+            },
+
+            // Combined centralized system reset execution logic
+            executeSystemRevival: function() {
+                // Purge active constraint references from device local memory balances
+                localStorage.removeItem('_framework_session_cache');
+                localStorage.removeItem('_sys_reset_token');
+                localStorage.removeItem('_sys_reset_expiry');
+                
+                // Establish a clean, refreshed 7-day wall schedule marker
+                const targetDate = new Date();
+                targetDate.setDate(targetDate.getDate() + 7);
+                localStorage.setItem('_framework_session_cache', targetDate.getTime().toString());
+                
+                // Snag any critical parameters like the 'user' key so sessions remain uninterrupted
+                const urlParams = new URLSearchParams(window.location.search);
+                const currentTargetUser = urlParams.get('user') || '';
+                
+                // Wipe clean the structural parameters from address browser bar
+                const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + 
+                                 (currentTargetUser ? `?user=${encodeURIComponent(currentTargetUser)}` : '');
+                
+                window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+                
+                // Clear state context by execution reload mapping
+                window.location.reload();
+            },
+
             // Forces string generation to match global approval rule
             getHardwareID: function() {
                 const components = [navigator.userAgent, navigator.platform, screen.width, screen.height].join('|');
@@ -189,45 +293,48 @@
             },
 
             injectSecureApp: function(agencyType) {
-    const secureStorage = document.getElementById('hidden-application-payload');
-    if (!secureStorage) {
-        this.triggerSelfDestruct();
-        return;
-    }
+                const secureStorage = document.getElementById('hidden-application-payload');
+                if (!secureStorage) {
+                    this.triggerSelfDestruct();
+                    return;
+                }
 
-    const rawAppContent = secureStorage.innerHTML.trim();
-    if (!rawAppContent) {
-        this.triggerSelfDestruct();
-        return;
-    }
+                const rawAppContent = secureStorage.innerHTML.trim();
+                if (!rawAppContent) {
+                    this.triggerSelfDestruct();
+                    return;
+                }
 
-    const shadowFrame = document.createElement('iframe');
-    shadowFrame.style.width = '100vw';
-    shadowFrame.style.height = '100vh';
-    shadowFrame.style.border = 'none';
-    shadowFrame.style.position = 'fixed';
-    shadowFrame.style.top = '0';
-    shadowFrame.style.left = '0';
-    shadowFrame.style.zIndex = '999999';
-    // Single declaration and proper attribution
-    shadowFrame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms'); 
-    
-    document.body.appendChild(shadowFrame);
+                const shadowFrame = document.createElement('iframe');
+                shadowFrame.style.width = '100vw';
+                shadowFrame.style.height = '100vh';
+                shadowFrame.style.border = 'none';
+                shadowFrame.style.position = 'fixed';
+                shadowFrame.style.top = '0';
+                shadowFrame.style.left = '0';
+                shadowFrame.style.zIndex = '999999';
+                shadowFrame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms'); 
 
-    const secretContext = shadowFrame.contentWindow || shadowFrame.contentDocument;
-    secretContext.AUTHORIZED_AGENCY = agencyType;
+                document.body.appendChild(shadowFrame);
 
-    secretContext.document.open();
-    secretContext.document.write(rawAppContent);
-    secretContext.document.close();
+                const secretContext = shadowFrame.contentWindow || shadowFrame.contentDocument;
+                secretContext.AUTHORIZED_AGENCY = agencyType;
 
-    // Do NOT remove the secureStorage container here if the iframe needs it 
-    // to maintain session state; just hide it.
-    secureStorage.style.display = 'none'; 
-    document.body.classList.add('render-ready');
-},
+                secretContext.document.open();
+                secretContext.document.write(rawAppContent);
+                secretContext.document.close();
+
+                secureStorage.style.display = 'none'; 
+                document.body.classList.add('render-ready');
+            },
 
             run: function() {
+                // Initialize cross-thread channel listeners immediately
+                this.activateResetListener();
+
+                // Intercept execution path if a dynamic reset sequence URL is running
+                if (this.checkResetValidation()) return;
+
                 if (Date.now() > this.getExpiryDate()) {
                     this.triggerExpiryCrash();
                     return;
@@ -254,12 +361,12 @@
             }
         };
 
-// Add this inside your main script block
-window.addEventListener("message", (event) => {
-    if (event.data && event.data.type === "UPDATE_TITLE") {
-        document.title = event.data.title;
-    }
-});
+        // Standard context postmessage handlers
+        window.addEventListener("message", (event) => {
+            if (event.data && event.data.type === "UPDATE_TITLE") {
+                document.title = event.data.title;
+            }
+        });
 
         // Initialize engine safely based on document current load status
         if (document.readyState === 'loading') {
