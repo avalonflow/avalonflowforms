@@ -929,6 +929,7 @@ left:300px;
         padding: 12px 18px;
         border-radius: 12px;
         font-size: 14px;
+font-weight: bold;
         box-shadow: 0 6px 18px rgba(0,0,0,0.25);
         transition: top 0.5s ease, opacity 0.5s ease;
         z-index: 9999;
@@ -1156,8 +1157,8 @@ CROP MODAL
         <h2>AvalonFlow</h2>
     <button onclick="window.location.href='/dashboard'">Dashboard</button>
 <button onclick="window.location.href='https://avalonflowverificationbonds.avalonflow.site/'">AVB</button>
-    <button onclick="window.location.href='/acu-payouts'">Withdrawal</button>
-    <button onclick="window.location.href='/returns'">Retention Bonus</button>
+    <button onclick="window.location.href='/withdrawal'">Withdrawal</button>
+    <button onclick="window.location.href='/myreturns'">Retention Bonus</button>
     <button onclick="window.location.href='/support'">Support</button>
     <button onclick="logout()">Logout</button>
 </div>
@@ -1872,7 +1873,7 @@ SESSION GUARD (CLEANED)
             // Note: We leave avb_key_used_count so the 10-visit limit persists across timeouts
 
             window.location.href =
-                "https://membership-signup.avalonflow.site/sign-in";
+                "https://membership.avalonflow.site/signin";
         }
     };
 
