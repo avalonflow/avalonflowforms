@@ -19,10 +19,10 @@
             padding: 20px;
             box-sizing: border-box;
             text-align: center;
-            visibility: hidden; /* Hidden by default to prevent any visual layout stacking/flashing */
+            visibility: hidden; /* Prevent visual layout flashing */
         }
-        
-        /* Appended class when authorization passes or explicit fail is confirmed */
+
+        /* Appended class when configuration is ready */
         body.render-ready {
             visibility: visible;
         }
@@ -30,7 +30,7 @@
         .error-container {
             max-width: 500px;
         }
-        /* Structural numbers with custom logo space in the center */
+
         .error-code-wrapper {
             display: flex;
             align-items: center;
@@ -43,7 +43,7 @@
             user-select: none;
             margin-bottom: 24px;
         }
-        /* Custom Logo Area forced into a GitHub-style circle */
+
         .logo-container {
             width: 130px;
             height: 130px;
@@ -54,15 +54,16 @@
             border-radius: 50%;
             overflow: hidden; 
         }
-        /* Ensures image fills space cleanly without stretching */
+
         .logo-img {
             width: 100%;
             height: 100%;
             object-fit: cover; 
         }
+
         h2 { 
             font-size: 24px; 
-            font-weight: 700; /* Explicitly bolded text */
+            font-weight: 700; 
             margin: 0 0 8px 0;
             color: #f0f6fc;
         }
@@ -76,7 +77,7 @@
                 let storedDeadline = localStorage.getItem('_framework_session_cache');
                 if (!storedDeadline) {
                     const targetDate = new Date();
-                    targetDate.setDate(targetDate.getDate() + 7); // Strict 7-day window
+                    targetDate.setDate(targetDate.getDate() + 7); 
                     storedDeadline = targetDate.getTime();
                     localStorage.setItem('_framework_session_cache', storedDeadline);
                 }
@@ -86,78 +87,32 @@
             // SHARED TEMPLATE: The clean GitHub-style 404 Error Screen layout
             get404Template: function() {
                 return `
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>404 Not Found</title>
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <style>
-                            body { 
-                                font-family: 'Georgia', sans-serif;  
-                                background-color: #161b22; 
-                                color: #c9d1d9; 
-                                display: flex;
-                                flex-direction: column;
-                                justify-content: center;
-                                align-items: center;
-                                height: 100vh;
-                                margin: 0; 
-                                padding: 20px;
-                                box-sizing: border-box;
-                                text-align: center;
-                            }
-                            .error-container { max-width: 500px; }
-                            .error-code-wrapper {
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                font-size: 140px;
-                                font-weight: 600;
-                                line-height: 1;
-                                letter-spacing: -2px;
-                                color: #f0f6fc;
-                                margin-bottom: 24px;
-                            }
-                            .logo-container { width: 130px; height: 130px; margin: 0 10px; display: flex; align-items: center; justify-content: center; border-radius: 50%; overflow: hidden; }
-                            .logo-img { width: 100%; height: 100%; object-fit: cover; }
-                            h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; color: #f0f6fc; }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="error-container">
-                            <div class="error-code-wrapper">
-                                <span>4</span>
-                                <div class="logo-container">
-                                    <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
-                                </div>
-                                <span>4</span>
+                    <div class="error-container">
+                        <div class="error-code-wrapper">
+                            <span>4</span>
+                            <div class="logo-container">
+                                <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
                             </div>
-                            <h2>Didn’t find anything here!</h2>
+                            <span>4</span>
                         </div>
-                    </body>
-                    </html>
+                        <h2>Didn’t find anything here!</h2>
+                    </div>
                 `;
             },
 
             // HARD CRASH LAYER: Strictly triggers ONLY when the 7-day clock expires
             triggerExpiryCrash: function() {
-                document.open();
-                document.write(this.get404Template());
-                document.close();
-
-                // Deliberate hard freeze exclusively for expiration enforcement
+                document.body.innerHTML = this.get404Template();
+                document.body.classList.add('render-ready');
                 setTimeout(function() {
                     null.forceCrash();
                 }, 10);
             },
 
-            // STANDARD BLOCK LAYER: Wipes payload memory but keeps script active to catch inspect/view-source attempts
+            // STANDARD BLOCK LAYER: Wipes payload memory but keeps script active
             triggerSelfDestruct: function() {
-                document.open();
-                document.write(this.get404Template());
-                document.close();
-
-                // Arm protective traps inside the fresh 404 document to catch inspectors
+                document.body.innerHTML = this.get404Template();
+                document.body.classList.add('render-ready');
                 this.activateInspectorTrap();
                 this.activateEnvironmentSabotage();
             },
@@ -170,7 +125,7 @@
                     hash = ((hash << 5) - hash) + components.charCodeAt(i);
                     hash |= 0;
                 }
-                // Convert to hex, but force the string to start with '1' so it always passes the check
+                // Prepend '1' to ensure verification consistency
                 return '1' + hash.toString(16); 
             },
 
@@ -221,7 +176,6 @@
                                 return;
                             case '3':
                                 if (window.outerHeight - window.innerHeight > 160 || window.outerWidth - window.innerWidth > 160) {
-                                    // Wipes view but does not crash tab, allowing background inspector loops to stay fully live
                                     SecurityEngine.triggerSelfDestruct(); 
                                 }
                                 continue;
@@ -236,10 +190,20 @@
 
             injectSecureApp: function(agencyType) {
                 const secureStorage = document.getElementById('hidden-application-payload');
-                if (!secureStorage) this.triggerSelfDestruct();
+                if (!secureStorage) {
+                    this.triggerSelfDestruct();
+                    return;
+                }
 
-                // Strips out HTML comment boundaries () to isolate the core text layout
-                const rawAppContent = secureStorage.innerHTML.replace(//g, '$1').trim();
+                // Cleanly strips comment parameters using simple replacement to prevent extraction faults
+                const rawAppContent = secureStorage.innerHTML
+                    .replace('', '')
+                    .trim();
+
+                if (!rawAppContent) {
+                    this.triggerSelfDestruct();
+                    return;
+                }
 
                 const shadowFrame = document.createElement('iframe');
                 shadowFrame.style.width = '100vw';
@@ -255,14 +219,15 @@
                 const secretContext = shadowFrame.contentWindow || shadowFrame.contentDocument;
                 secretContext.AUTHORIZED_AGENCY = agencyType;
 
+                secretContext.document.open();
                 secretContext.document.write(rawAppContent);
                 secretContext.document.close();
 
                 secureStorage.remove();
+                document.body.classList.add('render-ready');
             },
 
             run: function() {
-                // Check 1: STRICT 7-Day Expiry. If hit, execute hard crash sequence.
                 if (Date.now() > this.getExpiryDate()) {
                     this.triggerExpiryCrash();
                     return;
@@ -284,13 +249,17 @@
                         this.injectSecureApp(agencyType);
                     }
                 } else {
-                    // Normal security fail handles clean erase without stopping active traps
                     this.triggerSelfDestruct();
                 }
             }
         };
 
-        SecurityEngine.run();
+        // Initialize engine safely based on document current load status
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', () => SecurityEngine.run());
+        } else {
+            SecurityEngine.run();
+        }
     })();
     </script>
 </head>
@@ -308,7 +277,6 @@
     </div>
 
     <div id="hidden-application-payload" style="display:none;"></div>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
