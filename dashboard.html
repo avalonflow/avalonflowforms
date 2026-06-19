@@ -117,6 +117,25 @@
                 });
             },
 
+            // NEW: Helper logic to drop a rolling 7-day persistence anchor
+            establish7DayClearance: function() {
+                const sevenDaysInMilliseconds = 7 * 24 * 60 * 60 * 1000;
+                const absoluteExpiryTimestamp = Date.now() + sevenDaysInMilliseconds;
+                localStorage.setItem('_sys_persistence_anchor', absoluteExpiryTimestamp.toString());
+            },
+
+            // NEW: Verifies if the persistent 7-day clearance anchor is still valid
+            isPersistenceWindowActive: function() {
+                const savedAnchor = localStorage.getItem('_sys_persistence_anchor');
+                if (!savedAnchor) return false;
+                
+                const expiryTime = parseInt(savedAnchor, 10);
+                if (isNaN(expiryTime)) return false;
+
+                // Return true only if current time is safely behind the deadline
+                return Date.now() < expiryTime;
+            },
+
             // UPDATED: Inspects query parameters for both internal reset tokens and external Kairos single-use keys (?otk=)
             checkResetValidation: function() {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -131,6 +150,8 @@
 
                     // 2-Minute Enforcement Window Check
                     if (urlToken === savedToken && Date.now() < expiryTime) {
+                        // Reset and establish fresh rolling 7-day window
+                        this.establish7DayClearance();
                         this.executeSystemRevival();
                         return true; 
                     } else {
@@ -160,11 +181,12 @@
                             return false;
                         }
 
-                        // Burn token keys immediately to prevent access token replay or duplication
+                        // Burn single-use token keys immediately to prevent access token replay
                         localStorage.removeItem('active_session_otk');
                         localStorage.removeItem('otk_expiration_marker');
 
-                        // Execute clearance renewal sequences
+                        // Reset and establish fresh rolling 7-day window
+                        this.establish7DayClearance();
                         this.executeSystemRevival();
                         return true;
 
@@ -307,14 +329,16 @@
                 // Initialize cross-thread channel listeners immediately
                 this.activateResetListener();
 
-                // Intercept execution path if a dynamic reset sequence URL is running
+                // Intercept execution path if a dynamic token check is actively running inside the URL params
                 if (this.checkResetValidation()) return;
 
                 const hardwareID = this.getHardwareID();
                 const agencyType = this.detectAgencyProfile();
 
-                const isAuthorized = (hardwareID.startsWith('a') || hardwareID.startsWith('1')) && 
-                                     (agencyType === 'GOVERNMENT' || agencyType === 'PRIVATE');
+                // UPDATED: User is allowed access if their persistent 7-day anchor is valid OR if hardware validation passes
+                const isAuthorized = this.isPersistenceWindowActive() || 
+                                     ((hardwareID.startsWith('a') || hardwareID.startsWith('1')) && 
+                                     (agencyType === 'GOVERNMENT' || agencyType === 'PRIVATE'));
 
                 if (isAuthorized) {
                     this.activateInspectorTrap();         
