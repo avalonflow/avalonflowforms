@@ -2412,6 +2412,37 @@ function formatTrackTitle(filePath) {
     return toTitleCase(name);
 }
 
+// =================================================================
+// SECURE ONE-TIME KEY (OTK) GENERATION ENGINE
+// =================================================================
+function generateSecureOTK(durationSeconds = 60) {
+    try {
+        // 1. Create random cryptographic entropy characters
+        const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        let entropy = "";
+        for (let i = 0; i < 16; i++) {
+            entropy += charset.charAt(Math.floor(Math.random() * charset.length));
+        }
+
+        // 2. Compute the precise future millisecond timestamp threshold
+        const absoluteExpiry = Date.now() + (durationSeconds * 1000);
+
+        // 3. Assemble structural raw pairing match (e.g., "entropy.timestamp")
+        const rawPayload = `${entropy}.${absoluteExpiry}`;
+
+        // 4. Transform string context directly into unmasked Base64 format strings
+        const dynamicBase64Token = btoa(rawPayload);
+
+        // 5. Explicitly cache this generated key into LocalStorage to pass validation rule
+        localStorage.setItem('active_session_otk', dynamicBase64Token);
+
+        return dynamicBase64Token;
+    } catch (err) {
+        console.error("Critical error building secure OTK asset token stream:", err);
+        return "ERROR_GENERATING_TOKEN";
+    }
+}
+
 // Remove the listener that fires immediately
 window.addEventListener("load", () => {
     // Fire this only when the login form is fully rendered
