@@ -547,6 +547,8 @@ function speakAndTypeResponse(fullTextResponse) {
 
   utterance.onend = () => {
     setWaveAnimationSpeed(false);
+    
+    // CRITICAL: Clear processing state before closing UI caps or triggering restarts
     isProcessingCommand = false;
     
     const transcriptCanvas = document.getElementById('kairosTranscript');
@@ -668,7 +670,7 @@ async function processUserCommandLocally(commandText) {
     let replyText = "I hear you clearly. I am holding space for your queries right here in your dashboard layout.";
     
     if (dynamicCommand.includes('hello') || dynamicCommand.includes('hi')) {
-      replyText = "Hello. I am Kairos, your intuitive assistant. I am monitoring your workspace stability smoothly.";
+      replyText = "Hello. I am Kairos, your intuitive local assistant. I am monitoring your workspace stability smoothly.";
     } else if (dynamicCommand.includes('how are you') || dynamicCommand.includes('status')) {
       replyText = "I am operating optimally, resting cleanly within your design structures. How is your energy holding up today?";
     } else if (dynamicCommand.includes('thank you') || dynamicCommand.includes('thanks')) {
@@ -692,14 +694,22 @@ function stopActiveKairosVoice() {
 }
 
 /**
- * Helper to safely restart recognition stream without throw exceptions
+ * Helper to safely restart recognition stream without throwing exceptions
  */
 function restartSpeechEngineSafety() {
-  if (isKairosListeningActive && !kairosVoiceEngine.speaking && !isProcessingCommand) {
+  // CRITICAL PROTECTION: Force engine silence if a command is processing or audio is actively outputting
+  if (isProcessingCommand || (kairosVoiceEngine && kairosVoiceEngine.speaking)) {
+    console.log("🤫 Muting background audio stream while Kairos responds...");
+    return;
+  }
+
+  if (isKairosListeningActive) {
     try { 
       kairosSpeechRecognizer.start(); 
       console.log("🎙️ Re-ignited background environment watch...");
-    } catch(e){}
+    } catch(e){
+      // Intercepts instance if it's already running safely
+    }
   }
 }
 
@@ -781,13 +791,23 @@ function initAmbientVoiceEngine() {
     if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
     
     voiceSilenceTimer = setTimeout(() => {
-      console.log("⏱️ Silence threshold reached. Handing over command:", gatheredUserCommand);
-      
-      isProcessingCommand = true;
+      // Lock the pipeline instantly before handling any state executions
+      isProcessingCommand = true; 
       try {
         kairosSpeechRecognizer.stop(); 
       } catch(e) {}
+
+      // INTERCEPT VERBAL FALLBACK: If wake word fired but no further query was captured
+      if (!gatheredUserCommand || gatheredUserCommand.trim().length === 0) {
+        console.log("⏱️ Silence window closed with no verbal instruction. Triggering audible prompt.");
+        gatheredUserCommand = ""; // Clear out any stray spaces cleanly
+        
+        // Let Kairos say something supportive and natural out loud instead of shutting down silently
+        speakAndTypeResponse("I'm listening, but I didn't catch that. Tell me what you need.");
+        return;
+      }
       
+      console.log("⏱️ Silence threshold reached. Handing over command:", gatheredUserCommand);
       processUserCommandLocally(gatheredUserCommand);
       gatheredUserCommand = ""; 
     }, SILENCE_WAIT_TIME);
@@ -816,6 +836,7 @@ function initAmbientVoiceEngine() {
 window.addEventListener('DOMContentLoaded', () => {
   initAmbientVoiceEngine();
 });
+
 
 
         /* ---------- Floating Particles ---------- */
