@@ -424,8 +424,14 @@ let isKairosListeningActive = false;
 let kairosVoiceEngine = window.speechSynthesis;
 let selectedFemaleVoice = null;
 
+// Silence and command tracking variables
+let voiceSilenceTimer = null;
+let gatheredUserCommand = "";
+let isProcessingCommand = false;
+
 // Configuration Constants
 const WAKE_WORDS = ['hey kairos', 'hello kairos', 'hi kairos', 'kairos'];
+const SILENCE_WAIT_TIME = 2500; // 2.5 seconds window to wait for user commands
 
 /**
  * Picks a high-quality female voice natively available in the browser system.
@@ -442,7 +448,6 @@ function loadFemaleVoice() {
   ) || voices.find(voice => voice.lang.startsWith('en')) || voices[0];
 }
 
-// Execute voice loader (handles async voice loading quirks in Chrome/Safari)
 if (window.speechSynthesis) {
   if (window.speechSynthesis.onvoiceschanged !== undefined) {
     window.speechSynthesis.onvoiceschanged = loadFemaleVoice;
@@ -474,12 +479,16 @@ function toggleDock(forcedState = null) {
       expandedView.classList.remove('d-none');
     }, 150);
   } else {
-    // Turning off the dock resets speech systems
     stopActiveKairosVoice();
     dockWrap.classList.remove('expanded');
     expandedView.classList.add('d-none');
     collapsedView.classList.remove('d-none');
     collapsedView.style.display = ''; 
+    
+    // Explicitly reset states back to rest
+    isProcessingCommand = false;
+    gatheredUserCommand = "";
+    if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
     
     if (statusText) {
       statusText.innerText = "Kairos Assistant...";
@@ -489,7 +498,6 @@ function toggleDock(forcedState = null) {
 
 /**
  * Dynamic UI Feedback Control
- * Adjusts the kinetic speed of your CSS strokes to match voice activity.
  */
 function setWaveAnimationSpeed(isSpeaking) {
   const strokes = document.querySelectorAll('.audio-wave-pill .stroke');
@@ -504,7 +512,6 @@ function setWaveAnimationSpeed(isSpeaking) {
 
 /**
  * Client-Side Text-To-Speech Player
- * Speaks text using a local female voice and mimics word-by-word streaming on the UI canvas.
  */
 function speakAndTypeResponse(fullTextResponse) {
   stopActiveKairosVoice();
@@ -512,25 +519,19 @@ function speakAndTypeResponse(fullTextResponse) {
   const transcriptCanvas = document.getElementById('kairosTranscript');
   if (!transcriptCanvas) return;
   
-  transcriptCanvas.innerText = ""; // Clear canvas
-  
-  // Split response into individual words to recreate the "streaming text" illusion
+  transcriptCanvas.innerText = ""; 
   const words = fullTextResponse.split(" ");
   let wordIndex = 0;
   
-  // Setup native browser speech configuration
   const utterance = new SpeechSynthesisUtterance(fullTextResponse);
   if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
   
-  // Tweak speed parameters to sound elegant and calm
-  utterance.rate = 1.0;  // Normal human speed
-  utterance.pitch = 1.1; // Slightly higher tone for clear female vocal presence
+  utterance.rate = 1.0;  
+  utterance.pitch = 1.1; 
 
-  // When Kairos starts physically speaking out loud
   utterance.onstart = () => {
     setWaveAnimationSpeed(true);
     
-    // Smoothly paint words onto screen in sync with typical vocal pacing
     const typingInterval = setInterval(() => {
       if (wordIndex < words.length) {
         transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
@@ -541,44 +542,49 @@ function speakAndTypeResponse(fullTextResponse) {
       } else {
         clearInterval(typingInterval);
       }
-    }, 180); // roughly 180ms per word pacing
+    }, 180);
   };
 
-  // Reset animations when she finishes speaking
   utterance.onend = () => {
     setWaveAnimationSpeed(false);
+    // Smoothly turn off processing state and restart listener loop after speaking concludes
+    isProcessingCommand = false;
+    restartSpeechEngineSafety();
   };
 
   utterance.onerror = () => {
     setWaveAnimationSpeed(false);
+    isProcessingCommand = false;
+    restartSpeechEngineSafety();
   };
 
-  // Instruct browser to execute speaking
   kairosVoiceEngine.speak(utterance);
 }
 
 /**
- * Simulates or routes client-side processing logic.
- * This is where Kairos determines what to say based on the user's voice input.
+ * Local Command Processor
  */
 async function processUserCommandLocally(commandText) {
   const transcriptCanvas = document.getElementById('kairosTranscript');
+  const dynamicCommand = commandText.trim();
+
   if (transcriptCanvas) transcriptCanvas.innerText = "Thinking...";
 
-  // Placeholder responses for testing local client mechanics. 
-  // You can connect this to window.ai or a standard local fetch function later.
-  let replyText = "I heard you say: '" + commandText + "'. I am running entirely in your browser view right now.";
+  let replyText = "I'm here. I noticed you activated me, but I didn't catch a specific command. How can I help you today?";
   
-  if (commandText.includes('hello') || commandText.includes('hi')) {
-    replyText = "Hello! I am Kairos, your intelligent local assistant. Your system is fully operational.";
-  } else if (commandText.includes('music') || commandText.includes('play')) {
-    replyText = "Understood. Synchronizing audio configurations and launching player structures.";
+  if (dynamicCommand.length > 0) {
+    replyText = "I heard you say: '" + dynamicCommand + "'. I am running entirely in your browser view right now.";
+    
+    if (dynamicCommand.includes('hello') || dynamicCommand.includes('hi')) {
+      replyText = "Hello! I am Kairos, your intelligent local assistant. Your system is fully operational.";
+    } else if (dynamicCommand.includes('music') || dynamicCommand.includes('play')) {
+      replyText = "Understood. Synchronizing audio configurations and launching player structures.";
+    }
   }
 
-  // Speak response out loud and stream text
   setTimeout(() => {
     speakAndTypeResponse(replyText);
-  }, 600);
+  }, 400);
 }
 
 /**
@@ -589,6 +595,18 @@ function stopActiveKairosVoice() {
     kairosVoiceEngine.cancel();
   }
   setWaveAnimationSpeed(false);
+}
+
+/**
+ * Helper to safely restart recognition stream without throw exceptions
+ */
+function restartSpeechEngineSafety() {
+  if (isKairosListeningActive && !kairosVoiceEngine.speaking && !isProcessingCommand) {
+    try { 
+      kairosSpeechRecognizer.start(); 
+      console.log("🎙️ Re-ignited background environment watch...");
+    } catch(e){}
+  }
 }
 
 /**
@@ -604,52 +622,85 @@ function initAmbientVoiceEngine() {
 
   kairosSpeechRecognizer = new SpeechRecognition();
   kairosSpeechRecognizer.continuous = true;
-  kairosSpeechRecognizer.interimResults = false; // Set to false to capture fully formed sentences cleanly
+  
+  // FIX: Switched to true so the engine updates immediately word-by-word without hanging!
+  kairosSpeechRecognizer.interimResults = true; 
   kairosSpeechRecognizer.lang = 'en-US';
 
   kairosSpeechRecognizer.onresult = (event) => {
+    if (isProcessingCommand) return; // Ignore input processing blocks while she speaks
+
     const statusText = document.getElementById('dockStatusText');
-    let latestTranscript = '';
+    const transcriptCanvas = document.getElementById('kairosTranscript');
+    
+    let currentSpeechChunk = '';
 
     for (let i = event.resultIndex; i < event.results.length; ++i) {
-      if (event.results[i].isFinal) {
-        latestTranscript += event.results[i][0].transcript;
-      }
+      currentSpeechChunk += event.results[i][0].transcript;
     }
 
-    const lowerTranscript = latestTranscript.toLowerCase().trim();
-    
-    // Scan transcript block for target wake words
-    const wakeWordDetected = WAKE_WORDS.some(word => lowerTranscript.includes(word));
+    const lowerTranscript = currentSpeechChunk.toLowerCase().trim();
+    const isDockExpanded = document.querySelector('.assistant-dock-wrap').classList.contains('expanded');
 
-    if (wakeWordDetected) {
-      // Temporarily pause speech detection while Kairos processes and responds
-      kairosSpeechRecognizer.stop();
+    // STATE A: Pill is closed, looking purely for Wake Words
+    if (!isDockExpanded) {
+      const wakeWordDetected = WAKE_WORDS.some(word => lowerTranscript.includes(word));
 
-      if (statusText) statusText.innerText = "Kairos is listening...";
-      toggleDock(true);
+      if (wakeWordDetected) {
+        console.log("⚡ Wake word recognized dynamically!");
+        
+        if (statusText) statusText.innerText = "Kairos is listening...";
+        toggleDock(true);
+        
+        if (transcriptCanvas) transcriptCanvas.innerText = "I'm listening, go ahead...";
+        
+        // Isolate any extra command spoken immediately in the same breath
+        let directIntent = lowerTranscript.replace(/hey kairos|hello kairos|hi kairos|kairos/, '').trim();
+        gatheredUserCommand = directIntent;
+
+        // Start the 2.5-second countdown timer right now
+        resetSilenceTimer();
+        
+        if (navigator.vibrate) navigator.vibrate(40);
+      }
+    } 
+    // STATE B: Pill is wide open, actively collecting the command words
+    else {
+      // Clear the countdown timer because the user is still talking
+      resetSilenceTimer();
       
-      // Extract intent by stripping away the spoken wake phrase
-      const explicitCommand = lowerTranscript.replace(/hey kairos|hello kairos|hi kairos|kairos/, '').trim();
-      
-      if (explicitCommand.length > 1) {
-        processUserCommandLocally(explicitCommand);
-      } else {
-        const transcriptCanvas = document.getElementById('kairosTranscript');
-        if (transcriptCanvas) transcriptCanvas.innerText = "I'm listening, tell me what you need...";
+      // Strip out wake words if they repeat them, collect the core request
+      let filteredText = lowerTranscript.replace(/hey kairos|hello kairos|hi kairos|kairos/, '').trim();
+      if (filteredText.length > 0) {
+        gatheredUserCommand = filteredText;
+        if (transcriptCanvas && transcriptCanvas.innerText === "I'm listening, tell me what you need...") {
+          transcriptCanvas.innerText = "...";
+        }
       }
     }
   };
 
-  // Automatic recovery system loop to ensure permanent background safety monitoring
+  /**
+   * Resets the silence threshold countdown window.
+   * If the user stops talking for 2.5 seconds, wrap up and execute response!
+   */
+  function resetSilenceTimer() {
+    if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
+    
+    voiceSilenceTimer = setTimeout(() => {
+      console.log("⏱️ Silence threshold reached. Executing gathered command:", gatheredUserCommand);
+      
+      isProcessingCommand = true;
+      kairosSpeechRecognizer.stop(); // Turn off mic input so she doesn't hear herself talk
+      
+      processUserCommandLocally(gatheredUserCommand);
+      gatheredUserCommand = ""; // Wipe input cache block clear
+    }, SILENCE_WAIT_TIME);
+  }
+
+  // Automatic recovery loop parameters
   kairosSpeechRecognizer.onend = () => {
-    // If the browser stopped listening because Kairos is busy speaking, let it stay resting.
-    // Otherwise, keep looking for wake activations.
-    setTimeout(() => {
-      if (isKairosListeningActive && !kairosVoiceEngine.speaking) {
-        try { kairosSpeechRecognizer.start(); } catch(e){}
-      }
-    }, 400);
+    restartSpeechEngineSafety();
   };
 
   kairosSpeechRecognizer.onerror = (err) => {
@@ -657,18 +708,21 @@ function initAmbientVoiceEngine() {
       console.warn("🎙️ Mic permission denied.");
       isKairosListeningActive = false;
     }
+    // Automatically reset processing filters on casual error drops
+    if (err.error === 'no-speech') {
+      restartSpeechEngineSafety();
+    }
   };
 
   isKairosListeningActive = true;
   kairosSpeechRecognizer.start();
-  setWaveAnimationSpeed(false); // Rest waves initially
+  setWaveAnimationSpeed(false); 
+  console.log("🎙️ Ambient audio pipeline activated: Resting on 'Kairos Assistant...' state.");
 }
 
-// Spin up on landing load boundaries
 window.addEventListener('DOMContentLoaded', () => {
   initAmbientVoiceEngine();
 });
-
 
 
         /* ---------- Floating Particles ---------- */
