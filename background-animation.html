@@ -518,14 +518,47 @@ function getTypingDelay(text) {
   return Math.min(400 + text.length * 20, 3000);
 }
 
+/**
+ * Refactored Mobile-First Voice Selector
+ * Forces Android devices to latch onto high-quality Google engines.
+ */
 function loadFemaleVoice() {
   if (!kairosVoiceEngine) return;
+  
   const voices = kairosVoiceEngine.getVoices();
+  
+  // 1. Tier A: Target the premium Google English voices built into Android browsers
   selectedFemaleVoice = voices.find(voice => 
-    (voice.name.includes('Google') || voice.name.includes('Natural')) && 
-    (voice.name.includes('Female') || voice.name.includes('Zira') || voice.name.includes('Google US English') || voice.name.includes('UK English Female'))
-  ) || voices.find(voice => voice.lang.startsWith('en')) || voices[0];
+    voice.name.includes('Google US English') || 
+    voice.name.includes('Google UK English Female') ||
+    voice.name.includes('Google UK English')
+  );
+
+  // 2. Tier B: If not on Android, hunt for Premium Natural/Neural Desktop voices
+  if (!selectedFemaleVoice) {
+    selectedFemaleVoice = voices.find(voice => 
+      voice.lang.startsWith('en') && 
+      (voice.name.includes('Natural') || voice.name.includes('Neural') || voice.name.includes('Multilingual')) &&
+      (voice.name.includes('Female') || voice.name.includes('Aria') || voice.name.includes('Jenny'))
+    );
+  }
+
+  // 3. Tier C: Standard device fallbacks (Zira, Samantha, etc.)
+  if (!selectedFemaleVoice) {
+    selectedFemaleVoice = voices.find(voice => 
+      voice.lang.startsWith('en') && 
+      (voice.name.includes('Zira') || voice.name.includes('Samantha') || voice.name.includes('Female'))
+    );
+  }
+
+  // 4. Ultimate Emergency Safe Catch
+  if (!selectedFemaleVoice) {
+    selectedFemaleVoice = voices.find(voice => voice.lang.startsWith('en')) || voices[0];
+  }
+
+  console.log(`🎙️ Kairos Voice Engine mapped to: ${selectedFemaleVoice ? selectedFemaleVoice.name : 'Default'}`);
 }
+
 
 if (window.speechSynthesis) {
   if (window.speechSynthesis.onvoiceschanged !== undefined) {
