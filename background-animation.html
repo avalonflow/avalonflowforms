@@ -415,7 +415,7 @@
 
 /**
  * Kairos Intelligent Voice & UI Controller (Serverless Client-Side Edition)
- * Handles Wake-Word Detection, Client-side Text-to-Speech (Female Voice), and Card Morphing
+ * Handles On-Demand Mic Activation, Client-side Text-to-Speech (Female Voice), and Card Morphing
  */
 
 // Global state variables for the audio engines
@@ -430,7 +430,6 @@ let gatheredUserCommand = "";
 let isProcessingCommand = false;
 
 // Configuration Constants
-const WAKE_WORDS = ['hey kairos', 'hello kairos', 'hi kairos', 'kairos'];
 const SILENCE_WAIT_TIME = 2500; // 2.5 seconds window to wait for user commands
 
 /**
@@ -441,7 +440,6 @@ function loadFemaleVoice() {
   
   const voices = kairosVoiceEngine.getVoices();
   
-  // Look for highly natural-sounding built-in female voices
   selectedFemaleVoice = voices.find(voice => 
     (voice.name.includes('Google') || voice.name.includes('Natural')) && 
     (voice.name.includes('Female') || voice.name.includes('Zira') || voice.name.includes('Google US English') || voice.name.includes('UK English Female'))
@@ -480,12 +478,15 @@ function toggleDock(forcedState = null) {
     }, 150);
   } else {
     stopActiveKairosVoice();
+    
+    // HARD KILL: Shut down microphone completely when dock closes
+    killSpeechEngineCompletely();
+    
     dockWrap.classList.remove('expanded');
     expandedView.classList.add('d-none');
     collapsedView.classList.remove('d-none');
     collapsedView.style.display = ''; 
     
-    // Explicitly reset states back to rest
     isProcessingCommand = false;
     gatheredUserCommand = "";
     if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
@@ -515,6 +516,7 @@ function setWaveAnimationSpeed(isSpeaking) {
  */
 function speakAndTypeResponse(fullTextResponse) {
   stopActiveKairosVoice();
+  killSpeechEngineCompletely(); // Keep mic totally dead while she speaks
 
   const transcriptCanvas = document.getElementById('kairosTranscript');
   if (!transcriptCanvas) return;
@@ -547,8 +549,6 @@ function speakAndTypeResponse(fullTextResponse) {
 
   utterance.onend = () => {
     setWaveAnimationSpeed(false);
-    
-    // CRITICAL: Clear processing state before closing UI caps or triggering restarts
     isProcessingCommand = false;
     
     const transcriptCanvas = document.getElementById('kairosTranscript');
@@ -560,17 +560,15 @@ function speakAndTypeResponse(fullTextResponse) {
       setTimeout(() => setWaveAnimationSpeed(true), 400); 
     } else {
       setTimeout(() => {
-        toggleDock(false);
+        toggleDock(false); // Closes dock and destroys mic streams cleanly
       }, 1500);
     }
-
-    restartSpeechEngineSafety();
   };
 
   utterance.onerror = () => {
     setWaveAnimationSpeed(false);
     isProcessingCommand = false;
-    restartSpeechEngineSafety();
+    toggleDock(false);
   };
 
   kairosVoiceEngine.speak(utterance);
@@ -578,7 +576,6 @@ function speakAndTypeResponse(fullTextResponse) {
 
 /**
  * Intelligent Multi-Tier Command Processor
- * Prioritizes custom commands -> Drops to Gemini Nano -> Falls back to Free Gemini Cloud API -> Safe Route Manual Context
  */
 async function processUserCommandLocally(commandText) {
   const transcriptCanvas = document.getElementById('kairosTranscript');
@@ -586,7 +583,6 @@ async function processUserCommandLocally(commandText) {
 
   if (transcriptCanvas) transcriptCanvas.innerText = "Thinking...";
 
-  // TIER 1: Core System Intercepts (Music & Play Controls)
   if (dynamicCommand.includes('music') || dynamicCommand.includes('play')) {
     setTimeout(() => {
       speakAndTypeResponse("Understood. Synchronizing audio configurations and launching player structures.");
@@ -596,43 +592,31 @@ async function processUserCommandLocally(commandText) {
 
   if (dynamicCommand.length === 0) {
     setTimeout(() => {
-      speakAndTypeResponse("I'm right here. I noticed you activated me, but I didn't catch a specific command. How can I help you?");
+      speakAndTypeResponse("I'm right here. Tell me what you need.");
     }, 400);
     return;
   }
 
-  // TIER 2: Browser-Native AI Session (On-Device Gemini Nano Spec)
+  // Gemini Nano Engine
   if (window.ai && window.ai.languageModel) {
     try {
-      console.log("🧠 Creating local Gemini Nano session...");
       const capabilities = await window.ai.languageModel.capabilities();
-      
       if (capabilities.available !== 'no') {
         const session = await window.ai.languageModel.create({
-          systemPrompt: "You are Kairos, a deeply intuitive, calm, and emotionally supportive AI assistant. " +
-                        "Respond with genuine empathy, grounded support, and concise warmth. Do not act like a cold machine. " +
-                        "Keep your response strictly under two sentences so it reads beautifully on a small capsule canvas."
+          systemPrompt: "You are Kairos, a deeply intuitive, calm, and supportive assistant. Respond with genuine empathy and concise warmth under two sentences."
         });
-        
         const aiReply = await session.prompt(commandText);
-        session.destroy(); // Free hardware RAM immediately
-
-        setTimeout(() => {
-          speakAndTypeResponse(aiReply.trim());
-        }, 400);
+        session.destroy();
+        setTimeout(() => speakAndTypeResponse(aiReply.trim()), 400);
         return;
       }
     } catch (aiError) {
-      console.warn("⚠️ Local AI standard dropped. Transferring processing to fallback matrix.", aiError);
+      console.warn("⚠️ Local AI standard dropped.", aiError);
     }
   }
 
-  // TIER 3: Direct Client-Side Gemini Cloud API Fallback (Free Tier Protocol)
-  console.log("☁️ Native AI missing. Dispatching direct cloud fetch request...");
+  // Cloud Fallback
   try {
-    if (transcriptCanvas) transcriptCanvas.innerText = "Connecting...";
-
-    // PASTE YOUR GOOGLE AI STUDIO API KEY HERE
     const GEMINI_API_KEY = "PASTE_YOUR_GEMINI_API_KEY_HERE"; 
     const MODEL_NAME = "gemini-3.5-flash"; 
     const URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`;
@@ -643,49 +627,23 @@ async function processUserCommandLocally(commandText) {
       body: JSON.stringify({
         contents: [{ parts: [{ text: commandText }] }],
         systemInstruction: {
-          parts: [{ 
-            text: "You are Kairos, a deeply intuitive, calm, and emotionally supportive AI assistant. " +
-                  "Respond with genuine empathy, grounded support, and concise warmth. Do not act like a cold machine. " +
-                  "Keep your response strictly under two sentences so it reads beautifully on a small capsule canvas." 
-          }]
+          parts: [{ text: "You are Kairos, a deeply intuitive, calm, and supportive assistant. Respond with genuine empathy and concise warmth under two sentences." }]
         },
         generationConfig: { maxOutputTokens: 80 }
       })
     });
 
-    if (!response.ok) throw new Error("Cloud request failed or rejected.");
-    
+    if (!response.ok) throw new Error("Cloud request failed.");
     const data = await response.json();
     const replyText = data.candidates[0].content.parts[0].text;
     
-    setTimeout(() => {
-      speakAndTypeResponse(replyText.trim());
-    }, 400);
-    return;
-
+    setTimeout(() => speakAndTypeResponse(replyText.trim()), 400);
   } catch (cloudError) {
-    console.error("⚠️ Direct cloud API execution halted:", cloudError);
-    
-    // TIER 4: Ultimate Safe-Mode Recovery (Zero-connection static safety net)
     let replyText = "I hear you clearly. I am holding space for your queries right here in your dashboard layout.";
-    
-    if (dynamicCommand.includes('hello') || dynamicCommand.includes('hi')) {
-      replyText = "Hello. I am Kairos, your intuitive local assistant. I am monitoring your workspace stability smoothly.";
-    } else if (dynamicCommand.includes('how are you') || dynamicCommand.includes('status')) {
-      replyText = "I am operating optimally, resting cleanly within your design structures. How is your energy holding up today?";
-    } else if (dynamicCommand.includes('thank you') || dynamicCommand.includes('thanks')) {
-      replyText = "You are completely welcome. I am always happy to keep things running beautifully for you.";
-    }
-
-    setTimeout(() => {
-      speakAndTypeResponse(replyText);
-    }, 400);
+    setTimeout(() => speakAndTypeResponse(replyText), 400);
   }
 }
 
-/**
- * Safely stops active local voice playback
- */
 function stopActiveKairosVoice() {
   if (kairosVoiceEngine) {
     kairosVoiceEngine.cancel();
@@ -694,35 +652,45 @@ function stopActiveKairosVoice() {
 }
 
 /**
- * Helper to safely restart recognition stream without throwing exceptions
+ * Completely releases hardware mic resource streams to kill the recording indicators
  */
-function restartSpeechEngineSafety() {
-  // CRITICAL PROTECTION: Force engine silence if a command is processing or audio is actively outputting
-  if (isProcessingCommand || (kairosVoiceEngine && kairosVoiceEngine.speaking)) {
-    console.log("🤫 Muting background audio stream while Kairos responds...");
-    return;
+function killSpeechEngineCompletely() {
+  isKairosListeningActive = false;
+  if (kairosSpeechRecognizer) {
+    try {
+      kairosSpeechRecognizer.abort();
+      kairosSpeechRecognizer.onresult = null;
+      kairosSpeechRecognizer.onend = null;
+      kairosSpeechRecognizer.onerror = null;
+    } catch (e) {}
+    kairosSpeechRecognizer = null;
   }
-
-  if (isKairosListeningActive) {
-    try { 
-      kairosSpeechRecognizer.start(); 
-      console.log("🎙️ Re-ignited background environment watch...");
-    } catch(e){
-      // Intercepts instance if it's already running safely
-    }
-  }
+  console.log("🔒 Microphone hardware turned completely OFF.");
 }
 
 /**
- * Initializes the ambient background audio microphone stream
+ * Instantly spins up microphone engine when requested via user intent click
  */
-function initAmbientVoiceEngine() {
+function activateKairosVoiceOnDemand() {
+  if (isProcessingCommand || (kairosVoiceEngine && kairosVoiceEngine.speaking)) return;
+
+  stopActiveKairosVoice();
+  killSpeechEngineCompletely(); // Clean slate
+
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  
   if (!SpeechRecognition) {
-    console.error("❌ Ambient speech infrastructure not supported on this browser viewport.");
+    console.error("❌ Ambient speech infrastructure not supported.");
     return;
   }
+
+  const statusText = document.getElementById('dockStatusText');
+  const transcriptCanvas = document.getElementById('kairosTranscript');
+
+  if (statusText) statusText.innerText = "Kairos is listening...";
+  toggleDock(true);
+  if (transcriptCanvas) transcriptCanvas.innerText = "Listening for your command...";
+
+  if (navigator.vibrate) navigator.vibrate(40);
 
   kairosSpeechRecognizer = new SpeechRecognition();
   kairosSpeechRecognizer.continuous = true;
@@ -732,9 +700,6 @@ function initAmbientVoiceEngine() {
   kairosSpeechRecognizer.onresult = (event) => {
     if (isProcessingCommand) return; 
 
-    const statusText = document.getElementById('dockStatusText');
-    const transcriptCanvas = document.getElementById('kairosTranscript');
-    
     let interimTranscript = '';
     let finalTranscript = '';
 
@@ -747,94 +712,61 @@ function initAmbientVoiceEngine() {
       }
     }
 
-    const currentTextWindow = (finalTranscript + interimTranscript).toLowerCase().trim();
-    const isDockExpanded = document.querySelector('.assistant-dock-wrap').classList.contains('expanded');
-
-    // STATE A: Pill is closed, looking purely for Wake Words
-    if (!isDockExpanded) {
-      const wakeWordDetected = WAKE_WORDS.some(word => currentTextWindow.includes(word));
-
-      if (wakeWordDetected) {
-        console.log("⚡ Wake word recognized correctly:", currentTextWindow);
-        
-        if (statusText) statusText.innerText = "Kairos is listening...";
-        toggleDock(true);
-        
-        if (transcriptCanvas) transcriptCanvas.innerText = "Listening for your command...";
-        
-        let directIntent = currentTextWindow.replace(/key kairos|hey kairos|hello kairos|hi kairos|kairos/, '').trim();
-        gatheredUserCommand = directIntent;
-
-        resetSilenceTimer();
-        if (navigator.vibrate) navigator.vibrate(40);
+    let processedText = (finalTranscript + interimTranscript).trim();
+    if (processedText.length > 0) {
+      gatheredUserCommand = processedText;
+      if (transcriptCanvas) {
+        transcriptCanvas.innerText = processedText + "...";
       }
-    } 
-    // STATE B: Card is wide open, capturing speech instructions stably
-    else {
       resetSilenceTimer();
-      
-      let processedText = currentTextWindow.replace(/key kairos|hey kairos|hello kairos|hi kairos|kairos/, '').trim();
-      if (processedText.length > 0) {
-        gatheredUserCommand = processedText;
-        
-        if (transcriptCanvas) {
-          transcriptCanvas.innerText = processedText + "...";
-        }
-      }
     }
   };
 
-  /**
-   * Resets the silence threshold countdown window.
-   */
   function resetSilenceTimer() {
     if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
     
     voiceSilenceTimer = setTimeout(() => {
-      // Lock the pipeline instantly before handling any state executions
       isProcessingCommand = true; 
-      try {
-        kairosSpeechRecognizer.stop(); 
-      } catch(e) {}
+      killSpeechEngineCompletely(); // Immediately close the hardware mic path
 
-      // INTERCEPT VERBAL FALLBACK: If wake word fired but no further query was captured
       if (!gatheredUserCommand || gatheredUserCommand.trim().length === 0) {
-        console.log("⏱️ Silence window closed with no verbal instruction. Triggering audible prompt.");
-        gatheredUserCommand = ""; // Clear out any stray spaces cleanly
-        
-        // Let Kairos say something supportive and natural out loud instead of shutting down silently
         speakAndTypeResponse("I'm listening, but I didn't catch that. Tell me what you need.");
         return;
       }
       
-      console.log("⏱️ Silence threshold reached. Handing over command:", gatheredUserCommand);
       processUserCommandLocally(gatheredUserCommand);
       gatheredUserCommand = ""; 
     }, SILENCE_WAIT_TIME);
   }
 
-  kairosSpeechRecognizer.onend = () => {
-    restartSpeechEngineSafety();
-  };
+  // First touch fallback sequence if user immediately stays silent
+  resetSilenceTimer();
 
   kairosSpeechRecognizer.onerror = (err) => {
-    if (err.error === 'not-allowed') {
-      console.warn("🎙️ Mic permission denied.");
-      isKairosListeningActive = false;
-    }
     if (err.error === 'no-speech') {
-      restartSpeechEngineSafety();
+      // Don't auto-loop crash, simply reset or let timeout handle
     }
   };
 
   isKairosListeningActive = true;
   kairosSpeechRecognizer.start();
-  setWaveAnimationSpeed(false); 
-  console.log("🎙️ Ambient audio pipeline activated successfully.");
+  console.log("🎙️ Microphone hardware turned ON via click interaction.");
 }
 
+/**
+ * Setup Click/Tap triggers on your custom pill triggers
+ */
 window.addEventListener('DOMContentLoaded', () => {
-  initAmbientVoiceEngine();
+  const collapsedView = document.getElementById('collapsedView');
+  const audioWavePill = document.querySelector('.audio-wave-pill');
+
+  // Activate microphone ONLY when user explicitly targets the controller layouts
+  if (collapsedView) {
+    collapsedView.addEventListener('click', activateKairosVoiceOnDemand);
+  }
+  if (audioWavePill) {
+    audioWavePill.addEventListener('click', activateKairosVoiceOnDemand);
+  }
 });
 
 
