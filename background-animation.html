@@ -413,36 +413,114 @@
 
     <script>
 /**
- * Kairos Intelligent Voice & UI Controller (Serverless Client-Side Edition)
- * Handles On-Demand Mic Activation, Client-side Text-to-Speech (Female Voice), Card Morphing,
- * and Persistent Session Memory.
+ * AvalonFlow: Kairos Intelligent Voice, Text & UI Controller
+ * Core Integrated Edition (Speech Synthesis, Ambient Dictation, Client-Side FAQ Matching, and AI Fail-safes)
  */
 
-// Global state variables for the audio engines
+// ==========================================
+// 1. GLOBAL ENGINE CONFIGURATIONS & STATE
+// ==========================================
 let kairosSpeechRecognizer = null;
 let isKairosListeningActive = false;
 let kairosVoiceEngine = window.speechSynthesis;
 let selectedFemaleVoice = null;
 
-// Silence and command tracking variables
 let voiceSilenceTimer = null;
 let gatheredUserCommand = "";
 let isProcessingCommand = false;
 
-// Session Conversational Memory Array
-let kairosChatHistory = [];
+// Shared Session Memory Array
+let kairosChatHistory = []; 
+let conversationMemory = []; // Keeps track of text-to-bot turns (Max 10)
 
-// Configuration Constants
-const SILENCE_WAIT_TIME = 2500; // 2.5 seconds window to wait for user commands
+const SILENCE_WAIT_TIME = 2500; 
 
-/**
- * Picks a high-quality female voice natively available in the browser system.
- */
+// Dom elements references
+const botMessagesContainer = document.getElementById('botMessagesContainer');
+const botInput = document.getElementById('botInput');
+const botSendBtn = document.getElementById('botSendBtn');
+
+const personality = {
+    tone: "neutral", // friendly | calm | professional
+    lastIntent: null,
+    userMood: "unknown"
+};
+
+// Data Structures
+const quotes = [ 
+  "Believe in yourself and all that you are.", "Small steps each day lead to big results.", 
+  "Life is about moments, not things.", "Consistency is the key to success.", "Every day is a fresh start.", 
+  "Faith is the compass that guides you through life’s storms.", "Pray not just for what you want, but for the strength to receive it.", 
+  "Trust God’s timing; He never runs late.", "Your faith can move mountains, but your actions must build the path.", 
+  "Don’t chase money; build systems that make money chase you.", "Financial freedom begins when you learn to control your money, not your lifestyle.", 
+  "Save like a pessimist, invest like an optimist.", "Wealth grows when patience waters it daily.", 
+  "Your income is limited only by your imagination and action.", "Make your money work harder than you do.", 
+  "Dream big, start small, move consistently." 
+];
+
+const faqs = [
+  { q: "How do I reset my password?", a: "Click 'Forgot password' on the login page and follow instructions.", tags: ["password", "reset", "login", "signin", "account access"] },
+  { q: "How can I update my billing info?", a: "Navigate to your Sidebar, then 'Withdrawals' to update payment methods.", tags: ["billing", "payment", "withdrawal", "card", "update payment", "finance"] },
+  { q: "Where can I view my ticket history?", a: "All your submitted tickets and their status are visible under 'Support > My Tickets'.", tags: ["ticket", "history", "support", "track ticket", "previous issues"] },
+  { q: "How do I contact live support?", a: "Generate a ticket and email support at avalonflowsystem.helpdesk@gmail.com including your reference.", tags: ["support", "contact", "help", "email", "customer service", "agent"] },
+  { q: "What are the support hours?", a: "Support is online Monday–Sunday, 9 AM to 6 PM EST.", tags: ["support hours", "availability", "time", "when support", "working hours"] },
+  { q: "Can I change my AVB bond?", a: "Sadly you can't go to 'AVB > Protection' and select your preferred bond.", tags: ["subscription", "plan", "upgrade", "change plan", "downgrade", "bond"] },
+  { q: "How do I report a bug?", a: "Generate a ticket under 'Technical' category and describe the issue in detail.", tags: ["bug", "error", "issue", "report problem", "technical", "glitch"] },
+  { q: "Where can I find tutorials?", a: "Tutorials are available in the 'Ecosystem > Guides & Tutorials' section.", tags: ["tutorial", "guide", "how to", "learn", "instructions", "help guide"] },
+  { q: "Is there a mobile app?", a: "No, AvalonFlow app isn't available on iOS and Android currently.", tags: ["app", "mobile", "ios", "android", "phone", "download app"] },
+  { q: "How do I track my rewards?", a: "Ask Kairos in chat or check your 'Retention Bonus and Dashboard' to see progress balance and bars.", tags: ["rewards", "earnings", "cashback", "progress cycle", "balance", "profit"] },
+  { q: "How secure is my data?", a: "AvalonFlow uses industry-standard encryption and secure storage protocols.", tags: ["security", "data", "privacy", "safe", "encryption", "protection"] },
+  { 
+    q: "How is my transaction verified on AvalonFlow Custom?", 
+    a: "Unlike our standard tiers, AvalonFlow Custom utilizes Compliance Verification. A regulatory body oversees the fund-hold release to verify user intent and readiness before assets move.", 
+    tags: ["custom", "escrow", "verification", "manual verification", "transaction", "secure payment", "fund hold", "high value", "avalonflow custom"] 
+  },
+  {
+    q: "Why do Premium, Basic, and Lite have a Cycle Rate while Custom does not?",
+    a: "Automated bonds use a 'Cycle Rate' cooling-off period to batch payments. AvalonFlow Custom is designed for high-value transactions ($500+) and bypasses queues entirely for priority settlement.",
+    tags: ["cycle", "cycle rate", "premium", "basic", "lite", "custom", "difference", "bond tiers"]
+  }
+];
+
+// ==========================================
+// 2. TEXT & UTILITY HELPER LOGIC
+// ==========================================
+function normalize(text) {
+  return text.toLowerCase().replace(/[^\w\s]/g, '');
+}
+
+function findFAQByIntent(input) {
+  const text = input.toLowerCase();
+  let best = null;
+  let bestScore = 0;
+
+  for (const f of faqs) {
+    let score = 0;
+    f.tags.forEach(tag => {
+      if (text.includes(tag)) score += 2;
+      else if (tag.split(" ").some(word => text.includes(word))) score += 1;
+    });
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = f;
+    }
+  }
+  return bestScore > 1 ? best : null;
+}
+
+function getTime() {
+  const now = new Date();
+  return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function getTypingDelay(text) {
+  return Math.min(400 + text.length * 20, 3000);
+}
+
 function loadFemaleVoice() {
   if (!kairosVoiceEngine) return;
-  
   const voices = kairosVoiceEngine.getVoices();
-  
   selectedFemaleVoice = voices.find(voice => 
     (voice.name.includes('Google') || voice.name.includes('Natural')) && 
     (voice.name.includes('Female') || voice.name.includes('Zira') || voice.name.includes('Google US English') || voice.name.includes('UK English Female'))
@@ -456,10 +534,9 @@ if (window.speechSynthesis) {
   loadFemaleVoice();
 }
 
-/**
- * Toggles the local assistant dock layout between a compact audio pill 
- * and an expanded streaming text canvas.
- */
+// ==========================================
+// 3. CORE UI CONTROLLER FUNCTIONS
+// ==========================================
 function toggleDock(forcedState = null) {
   const dockWrap = document.querySelector('.assistant-dock-wrap');
   const collapsedView = document.getElementById('collapsedView');
@@ -481,8 +558,6 @@ function toggleDock(forcedState = null) {
     }, 150);
   } else {
     stopActiveKairosVoice();
-    
-    // HARD KILL: Shut down microphone completely when dock closes
     killSpeechEngineCompletely();
     
     dockWrap.classList.remove('expanded');
@@ -500,139 +575,261 @@ function toggleDock(forcedState = null) {
   }
 }
 
-/**
- * Dynamic UI Feedback Control
- */
 function setWaveAnimationSpeed(isSpeaking) {
   const strokes = document.querySelectorAll('.audio-wave-pill .stroke');
   strokes.forEach((stroke) => {
-    if (isSpeaking) {
-      stroke.style.animationPlayState = 'running';
-    } else {
-      stroke.style.animationPlayState = 'paused';
-    }
+    stroke.style.animationPlayState = isSpeaking ? 'running' : 'paused';
   });
 }
 
-/**
- * Client-Side Text-To-Speech Player
- */
-function speakAndTypeResponse(fullTextResponse) {
-  stopActiveKairosVoice();
-  killSpeechEngineCompletely(); // Keep mic totally dead while she speaks
+// ==========================================
+// 4. MESSAGING & TYPING RENDERING (DOM)
+// ==========================================
+function addMessage(text, sender = "bot", status = "delivered") {
+  if (!botMessagesContainer) return null;
+  const wrap = document.createElement("div");
+  wrap.className = "msgWrap";
 
-  const transcriptCanvas = document.getElementById('kairosTranscript');
-  if (!transcriptCanvas) return;
-  
-  transcriptCanvas.innerText = ""; 
-  const words = fullTextResponse.split(" ");
-  let wordIndex = 0;
-  
-  const utterance = new SpeechSynthesisUtterance(fullTextResponse);
-  if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
-  
-  utterance.rate = 1.0;  
-  utterance.pitch = 1.1; 
+  const msg = document.createElement("div");
+  msg.className = `${sender} message`;
+  msg.textContent = text;
+  wrap.appendChild(msg);
 
-  utterance.onstart = () => {
-    setWaveAnimationSpeed(true);
-    
-    const typingInterval = setInterval(() => {
-      if (wordIndex < words.length) {
-        transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
-        wordIndex++;
-        
-        const canvasContainer = document.querySelector('.voice-transcript-canvas');
-        if (canvasContainer) canvasContainer.scrollTop = canvasContainer.scrollHeight;
+  if (sender === "user") {
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    const time = document.createElement("span");
+    time.className = "timestamp";
+    time.textContent = getTime();
+    const tick = document.createElement("span");
+    tick.className = `tick ${status}`;
+
+    meta.appendChild(time);
+    meta.appendChild(tick);
+    wrap.appendChild(meta);
+  }
+
+  botMessagesContainer.appendChild(wrap);
+  botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
+  return wrap;
+}
+
+function markAsSeen(wrap) {
+  if (!wrap) return;
+  const tick = wrap.querySelector(".tick");
+  if (tick) {
+    tick.classList.remove("delivered");
+    tick.classList.add("seen");
+  }
+}
+
+function showTyping() {
+  if (!botMessagesContainer) return;
+  if (document.getElementById('typingIndicator')) return;
+  const t = document.createElement("div");
+  t.className = "typing";
+  t.id = "typingIndicator";
+  t.innerHTML = "<span></span><span></span><span></span>";
+  botMessagesContainer.appendChild(t);
+  botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typingIndicator');
+  if (t) t.remove();
+}
+
+// ==========================================
+// 5. UNIFIED BRAIN & INTENT ENGINE
+// ==========================================
+function generateFollowUp(msg) {
+  const text = msg.toLowerCase();
+  if (text.length < 5) return "Can you tell me a bit more about what you need?";
+  if (/help|issue|problem|error|not working/.test(text)) return "Got you. Is this about a payment, account access, or something else?";
+  if (text.includes("?")) return "Are you asking about support, rewards, or your account?";
+  if (/money|earn|profit/.test(text)) return "Do you want to check your reward progress or understand how it works?";
+  return "What would you like help with—support, tickets, rewards, or settings?";
+}
+
+function generateSmartReply(msg) {
+  // Tier 1: Local Tagged FAQ Check
+  const faq = findFAQByIntent(msg);
+  if (faq) {
+    personality.lastIntent = "faq";
+    const variations = [
+      faq.a,
+      `${faq.a} Let me know if you want me to walk you through it.`,
+      `Here’s what you need: ${faq.a}`
+    ];
+    return variations[Math.floor(Math.random() * variations.length)];
+  }
+
+  // Tier 2: Check Conversation State Memory
+  const last = conversationMemory.slice(-2).map(m => m.content).join(" ").toLowerCase();
+  const lastBot = conversationMemory.filter(m => m.role === "bot").slice(-1)[0]?.content.toLowerCase() || "";
+  const text = msg.toLowerCase();
+
+  if (last.includes("password") && text.includes("not working")) {
+    return "Got it—you’re having trouble resetting your password. Are you seeing an error or just not receiving the link?";
+  }
+  if (last.includes("ticket") && /not working|failed|error/.test(text)) {
+    return "Is the ticket not generating or are you not seeing it in your dashboard?";
+  }
+
+  if (/yes|yeah|sure|ok/.test(text) && lastBot.includes("ticket")) {
+    if (typeof generateTicket === "function") generateTicket();
+    return "Done. Your support ticket has been created seamlessly.";
+  }
+
+  if (/no|not really/.test(text)) return "Alright. What would you like help with instead?";
+
+  // Tier 3: Local LocalStorage Balance Checking Structures
+  if (/reward balance|progress|earnings balance|cashback/.test(text)) {
+    let unlocked = JSON.parse(localStorage.getItem('unlockedPlans')) || {};
+    let unlockTimes = JSON.parse(localStorage.getItem('unlockTimes')) || {};
+    let res = "Bond Progress Matrix:\n";
+    let activeAny = false;
+
+    ['premium', 'basic', 'lite', 'custom'].forEach(plan => {
+      if (unlocked[plan]) {
+        activeAny = true;
+        const now = Date.now();
+        const elapsed = now - (unlockTimes[plan] || now);
+        const total = plan === 'premium' ? 14 * 86400000 : plan === 'basic' ? 28 * 86400000 : 42 * 86400000;
+        const percent = Math.min(100, Math.round((elapsed / total) * 100));
+        res += `• ${plan.toUpperCase()}: ${percent}%\n`;
       } else {
-        clearInterval(typingInterval);
+        res += `• ${plan.toUpperCase()}: Locked\n`;
       }
-    }, 180);
-  };
+    });
+    return activeAny ? res : "You do not have any active tracking bonds currently.";
+  }
 
-  utterance.onend = () => {
-    setWaveAnimationSpeed(false);
-    isProcessingCommand = false;
-    
-    const transcriptCanvas = document.getElementById('kairosTranscript');
-    const statusText = document.getElementById('dockStatusText');
-    
-    // Smooth Handoff for music features: hide panel, keep wave visualizer pulsing
-    if (transcriptCanvas && (transcriptCanvas.innerText.includes("music") || transcriptCanvas.innerText.includes("player"))) {
-      toggleDock(false); 
-      if (statusText) statusText.innerText = "Playing Audio Stream...";
-      setTimeout(() => setWaveAnimationSpeed(true), 400); 
-    } else {
-      setTimeout(() => {
-        toggleDock(false); // Closes dock cleanly
-      }, 1500);
-    }
-  };
+  return generateFollowUp(msg);
+}
 
-  utterance.onerror = () => {
-    setWaveAnimationSpeed(false);
-    isProcessingCommand = false;
-    toggleDock(false);
-  };
+function adaptTone(msg) {
+  const text = msg.toLowerCase();
+  if (/frustrated|angry|not working|annoying|stupid/.test(text)) {
+    personality.tone = "calm";
+    personality.userMood = "frustrated";
+  } else if (/thanks|nice|good|perfect/.test(text)) {
+    personality.tone = "friendly";
+    personality.userMood = "positive";
+  } else {
+    personality.tone = "neutral";
+  }
+}
 
-  kairosVoiceEngine.speak(utterance);
+function humanize(text) {
+  if (personality.tone === "calm") return "I get how that can be frustrating. " + text;
+  const fillers = ["", "", "Alright... ", "Okay, so ", "Got it. ", "Hmm, "];
+  let prefix = fillers[Math.floor(Math.random() * fillers.length)];
+  return prefix + text;
 }
 
 /**
- * Intelligent Multi-Tier Command Processor
+ * UNIFIED SYSTEM HUB: Handles logic execution from both spoken speech & typed text inputs
  */
 async function processUserCommandLocally(commandText) {
   const transcriptCanvas = document.getElementById('kairosTranscript');
-  const dynamicCommand = commandText.trim().toLowerCase();
+  const lowerCommand = commandText.trim().toLowerCase();
 
   if (transcriptCanvas) transcriptCanvas.innerText = "Thinking...";
+  showTyping();
 
-  // Music Intent Pipeline
-  if (dynamicCommand.includes('music') || dynamicCommand.includes('play')) {
+  // 1. Direct Local Command Overrides
+  if (/^(hi|hello|hey|yo)\b/.test(lowerCommand)) {
+    const lines = ["Hey there! I’m Kairos. What can I do for you?", "Hello. Tell me what you're working on, I'll guide you."];
+    speakAndTypeResponse(lines[Math.floor(Math.random() * lines.length)]);
+    return;
+  }
+
+  if (lowerCommand.includes('music') || lowerCommand.includes('play')) {
     speakAndTypeResponse("Understood. Synchronizing audio configurations and launching player structures.");
     return;
   }
 
-  if (dynamicCommand.length === 0) {
-    setTimeout(() => {
-      speakAndTypeResponse("I'm right here. Tell me what you need.");
-    }, 400);
+  if (lowerCommand.includes('light mode') || /too dark|increase brightness/.test(lowerCommand)) {
+    if (typeof setTheme === "function") setTheme('light');
+    speakAndTypeResponse("Switched to light mode appearance layout.");
     return;
   }
 
-  // TIER 2: Gemini Nano Engine (Local Session Engine is stateless by hardware spec)
+  if (lowerCommand.includes('dark mode') || /too bright|hurt.*eyes/.test(lowerCommand)) {
+    if (typeof setTheme === "function") setTheme('dark');
+    speakAndTypeResponse("Switched to dark mode. Keeping things sleek.");
+    return;
+  }
+
+  if (/ticket|complaint|report issue/.test(lowerCommand)) {
+    personality.lastIntent = "ticket";
+    if (typeof generateTicket === "function") generateTicket();
+    speakAndTypeResponse("Your automated support reference ticket has been cleanly generated.");
+    return;
+  }
+
+  if (/logout|sign out|exit/.test(lowerCommand)) {
+    speakAndTypeResponse("Logging you out of your session securely...");
+    setTimeout(() => { if (typeof logout === "function") logout(); }, 1200);
+    return;
+  }
+
+  if (/quote|motivate|inspire/.test(lowerCommand)) {
+    const targetQuote = quotes[Math.floor(Math.random() * quotes.length)];
+    speakAndTypeResponse(targetQuote);
+    return;
+  }
+
+  if (/help|issue|problem/.test(lowerCommand)) {
+    speakAndTypeResponse("I can help with that. Do you want me to create a support ticket for you, or are you looking for guidance?");
+    return;
+  }
+
+  if (commandText.trim().length === 0) {
+    speakAndTypeResponse("I'm right here. Let me know what you need.");
+    return;
+  }
+
+  // 2. Try Local Smart Brain System (FAQ / State Matchers)
+  adaptTone(commandText);
+  const coreReplyText = generateSmartReply(commandText);
+  
+  // If matched with structured local response, process and output it
+  if (coreReplyText && coreReplyText !== generateFollowUp(commandText)) {
+    speakAndTypeResponse(coreReplyText);
+    return;
+  }
+
+  // 3. Fallback Tier A: Chrome Gemini Nano
   if (window.ai && window.ai.languageModel) {
     try {
-      const capabilities = await window.ai.languageModel.capabilities();
-      if (capabilities.available !== 'no') {
+      const caps = await window.ai.languageModel.capabilities();
+      if (caps.available !== 'no') {
         const session = await window.ai.languageModel.create({
           systemPrompt: "You are Kairos, a deeply intuitive, calm, and supportive assistant. Respond with genuine empathy and concise warmth under two sentences."
         });
-        
         const aiReply = await session.prompt(commandText);
         session.destroy();
-        
-        // Commit turn to session memory array
+
         kairosChatHistory.push({ role: "user", parts: [{ text: commandText }] });
         kairosChatHistory.push({ role: "model", parts: [{ text: aiReply.trim() }] });
-
-        setTimeout(() => speakAndTypeResponse(aiReply.trim()), 400);
+        
+        speakAndTypeResponse(aiReply.trim());
         return;
       }
-    } catch (aiError) {
-      console.warn("⚠️ Local AI standard dropped.", aiError);
+    } catch (e) {
+      console.warn("Local AI dropped out.", e);
     }
   }
 
-  // TIER 3: Cloud Fallback with Structured Session History Injection
+  // 4. Fallback Tier B: Cloud Endpoint Session
   try {
     const GEMINI_API_KEY = "PASTE_YOUR_GEMINI_API_KEY_HERE"; 
     const MODEL_NAME = "gemini-3.5-flash"; 
     const URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`;
 
-    // Append current instruction cleanly to history array clone
     const requestContents = [...kairosChatHistory, { role: "user", parts: [{ text: commandText }] }];
-
     const response = await fetch(URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -645,36 +842,94 @@ async function processUserCommandLocally(commandText) {
       })
     });
 
-    if (!response.ok) throw new Error("Cloud request failed.");
+    if (!response.ok) throw new Error();
     const data = await response.json();
     const replyText = data.candidates[0].content.parts[0].text.trim();
-    
-    // Save successful multi-turn tracking history
+
     kairosChatHistory.push({ role: "user", parts: [{ text: commandText }] });
     kairosChatHistory.push({ role: "model", parts: [{ text: replyText }] });
+    if (kairosChatHistory.length > 20) kairosChatHistory = kairosChatHistory.slice(-20);
 
-    // Prevent history array from scaling out of memory bounds (Keep last 10 interactions)
-    if (kairosChatHistory.length > 20) {
-      kairosChatHistory = kairosChatHistory.slice(-20);
-    }
+    speakAndTypeResponse(replyText);
+  } catch (err) {
+    // True Fallback Default Text
+    speakAndTypeResponse(coreReplyText || "I hear you clearly. I am holding space for your queries inside your dashboard framework.");
+  }
+}
+
+// ==========================================
+// 6. DUAL TEXT-TO-SPEECH & TYPING EXECUTION
+// ==========================================
+function speakAndTypeResponse(rawResponseText) {
+  stopActiveKairosVoice();
+  killSpeechEngineCompletely(); // Mic down while she speaks
+
+  removeTyping();
+  
+  // Clean clean voice text (no fillers for speech)
+  const spokenText = rawResponseText;
+  // Humanize only text logs if processed directly from message systems
+  const typedChatText = humanize(rawResponseText);
+
+  // Sync back into standard text layout logs
+  addMessage(typedChatText, "bot");
+  conversationMemory.push({ role: "bot", content: typedChatText, time: Date.now() });
+  if (conversationMemory.length > 10) conversationMemory.shift();
+
+  const transcriptCanvas = document.getElementById('kairosTranscript');
+  if (!transcriptCanvas) return;
+  
+  transcriptCanvas.innerText = ""; 
+  const words = spokenText.split(" ");
+  let wordIndex = 0;
+  
+  const utterance = new SpeechSynthesisUtterance(spokenText);
+  if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
+  
+  utterance.rate = 1.0;  
+  utterance.pitch = 1.1; 
+
+  utterance.onstart = () => {
+    setWaveAnimationSpeed(true);
+    const typingInterval = setInterval(() => {
+      if (wordIndex < words.length) {
+        transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
+        wordIndex++;
+        const canvasContainer = document.querySelector('.voice-transcript-canvas');
+        if (canvasContainer) canvasContainer.scrollTop = canvasContainer.scrollHeight;
+      } else {
+        clearInterval(typingInterval);
+      }
+    }, 180);
+  };
+
+  utterance.onend = () => {
+    setWaveAnimationSpeed(false);
+    isProcessingCommand = false;
     
-    setTimeout(() => speakAndTypeResponse(replyText), 400);
-  } catch (cloudError) {
-    let replyText = "I hear you clearly. I am holding space for your queries right here in your dashboard layout.";
-    setTimeout(() => speakAndTypeResponse(replyText), 400);
-  }
+    const statusText = document.getElementById('dockStatusText');
+    
+    if (transcriptCanvas.innerText.includes("music") || transcriptCanvas.innerText.includes("player")) {
+      toggleDock(false); 
+      if (statusText) statusText.innerText = "Playing Audio Stream...";
+      setTimeout(() => setWaveAnimationSpeed(true), 400); 
+    } else {
+      setTimeout(() => { toggleDock(false); }, 1500);
+    }
+  };
+
+  utterance.onerror = () => {
+    setWaveAnimationSpeed(false);
+    isProcessingCommand = false;
+    toggleDock(false);
+  };
+
+  kairosVoiceEngine.speak(utterance);
 }
 
-function stopActiveKairosVoice() {
-  if (kairosVoiceEngine) {
-    kairosVoiceEngine.cancel();
-  }
-  setWaveAnimationSpeed(false);
-}
-
-/**
- * Completely releases hardware mic resource streams to kill the recording indicators
- */
+// ==========================================
+// 7. HARDWARE VOICE RECOGNITION (DICTATION)
+// ==========================================
 function killSpeechEngineCompletely() {
   isKairosListeningActive = false;
   if (kairosSpeechRecognizer) {
@@ -689,20 +944,14 @@ function killSpeechEngineCompletely() {
   console.log("🔒 Microphone hardware turned completely OFF.");
 }
 
-/**
- * Instantly spins up microphone engine when requested via user intent click
- */
 function activateKairosVoiceOnDemand() {
   if (isProcessingCommand || (kairosVoiceEngine && kairosVoiceEngine.speaking)) return;
 
   stopActiveKairosVoice();
-  killSpeechEngineCompletely(); // Clean slate
+  killSpeechEngineCompletely();
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    console.error("❌ Ambient speech infrastructure not supported.");
-    return;
-  }
+  if (!SpeechRecognition) return;
 
   const statusText = document.getElementById('dockStatusText');
   const transcriptCanvas = document.getElementById('kairosTranscript');
@@ -726,71 +975,65 @@ function activateKairosVoiceOnDemand() {
 
     for (let i = event.resultIndex; i < event.results.length; ++i) {
       const text = event.results[i][0].transcript;
-      if (event.results[i].isFinal) {
-        finalTranscript += text;
-      } else {
-        interimTranscript += text;
-      }
+      if (event.results[i].isFinal) finalTranscript += text;
+      else interimTranscript += text;
     }
 
     let processedText = (finalTranscript + interimTranscript).trim();
     if (processedText.length > 0) {
       gatheredUserCommand = processedText;
-      if (transcriptCanvas) {
-        transcriptCanvas.innerText = processedText + "...";
-      }
+      if (transcriptCanvas) transcriptCanvas.innerText = processedText + "...";
       resetSilenceTimer();
     }
   };
 
   function resetSilenceTimer() {
     if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
-    
     voiceSilenceTimer = setTimeout(() => {
       isProcessingCommand = true; 
-      killSpeechEngineCompletely(); // Immediately close the hardware mic path
+      killSpeechEngineCompletely();
 
       if (!gatheredUserCommand || gatheredUserCommand.trim().length === 0) {
         speakAndTypeResponse("I'm listening, but I didn't catch that. Tell me what you need.");
         return;
       }
       
+      // Send speech directly to user feed before brain runs
+      addMessage(gatheredUserCommand, "user", "seen");
+      conversationMemory.push({ role: "user", content: gatheredUserCommand, time: Date.now() });
+
       processUserCommandLocally(gatheredUserCommand);
+      recordChatMessage();
       gatheredUserCommand = ""; 
     }, SILENCE_WAIT_TIME);
   }
 
   resetSilenceTimer();
-
-  kairosSpeechRecognizer.onerror = (err) => {
-    if (err.error === 'no-speech') {
-      // Catch empty frames safely
-    }
-  };
-
   isKairosListeningActive = true;
   kairosSpeechRecognizer.start();
-  console.log("🎙️ Microphone hardware turned ON.");
+  console.log("🎙️ Microphone hardware active.");
 }
 
-/**
- * Handle Unified Wake/Greeting State Sequence
- * Prevents overlapping synthesis loops & handles exact 2-click toggle logic
- */
+function stopActiveKairosVoice() {
+  if (kairosVoiceEngine) kairosVoiceEngine.cancel();
+  setWaveAnimationSpeed(false);
+}
+
+// ==========================================
+// 8. INITIALIZATION & REFACTORED EVENTS
+// ==========================================
 function wakeUpKairosWithGreeting() {
   const dockWrap = document.querySelector('.assistant-dock-wrap');
   const isExpanded = dockWrap ? dockWrap.classList.contains('expanded') : false;
 
-  // Click #2 Logic: If it's already open, act as a hard close/kill switch
   if (isExpanded) {
     toggleDock(false);
     return;
   }
 
-  // Click #1 Logic: Clean slate open & vocal welcome
   toggleDock(true);
-  
   const greetingText = "Hi, I'm Kairos. Tell me what you need.";
+  
   stopActiveKairosVoice();
   killSpeechEngineCompletely();
 
@@ -820,8 +1063,7 @@ function wakeUpKairosWithGreeting() {
 
   utterance.onend = () => {
     setWaveAnimationSpeed(false);
-    // Chain Reaction: Start tracking human voice only after greeting finishes
-    activateKairosVoiceOnDemand();
+    activateKairosVoiceOnDemand(); // Start recording cleanly
   };
 
   utterance.onerror = () => {
@@ -832,21 +1074,81 @@ function wakeUpKairosWithGreeting() {
   kairosVoiceEngine.speak(utterance);
 }
 
-/**
- * Unified Event Controller (Eliminates event bubbling duplicates)
- */
+function sendTextMessage() {
+  if (!botInput) return;
+  const text = botInput.value.trim();
+  if (!text) return;
+
+  removeUserTyping();
+  const userMsg = addMessage(text, "user", "delivered");
+  botInput.value = "";
+  setTimeout(() => markAsSeen(userMsg), 800);
+
+  conversationMemory.push({ role: "user", content: text, time: Date.now() });
+  if (conversationMemory.length > 10) conversationMemory.shift();
+
+  // Run through unified brain engine
+  processUserCommandLocally(text);
+  recordChatMessage();
+}
+
+function recordChatMessage() {
+  let chats = parseInt(localStorage.getItem("messagesSent") || 0);
+  chats++;
+  localStorage.setItem("messagesSent", chats);
+  if (typeof updateEngagementUI === "function") updateEngagementUI();
+}
+
+// Native event loop hookups
 window.addEventListener('DOMContentLoaded', () => {
   const collapsedView = document.getElementById('collapsedView');
+  let typingTimeout;
 
   if (collapsedView) {
-    // Single parent layout handler to resolve the triple-click glitch
     collapsedView.addEventListener('click', (e) => {
       e.stopPropagation();
       wakeUpKairosWithGreeting();
     });
   }
-});
 
+  if (botSendBtn) {
+    botSendBtn.addEventListener('click', sendTextMessage);
+  }
+
+  if (botInput) {
+    botInput.addEventListener('keypress', e => {
+      if (e.key === 'Enter') sendTextMessage();
+    });
+
+    botInput.addEventListener("input", () => {
+      if (botMessagesContainer && !document.getElementById('userAmbientTyping')) {
+        const typingIndicatorEl = document.createElement("div");
+        typingIndicatorEl.className = "ambient";
+        typingIndicatorEl.id = "userAmbientTyping";
+        typingIndicatorEl.textContent = "User is typing...";
+        botMessagesContainer.appendChild(typingIndicatorEl);
+      }
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        const el = document.getElementById('userAmbientTyping');
+        if (el) el.remove();
+      }, 1200);
+    });
+
+    // Integrated Auto suggestions listener loop
+    const autoSuggest = [
+      { keywords: ['ticket', 'issue'], suggestion: "You can say 'generate ticket'." },
+      { keywords: ['faq'], suggestion: "Ask your question directly." },
+      { keywords: ['quote'], suggestion: "Type 'quote' for motivation." }
+    ];
+
+    botInput.addEventListener('input', e => {
+      const msg = e.target.value.toLowerCase();
+      const found = autoSuggest.find(s => s.keywords.some(k => msg.includes(k)));
+      if (found && typeof notify === "function") notify(`💡 ${found.suggestion}`);
+    });
+  }
+});
 
         /* ---------- Floating Particles ---------- */
         const bg = document.getElementById('floating-bg');
