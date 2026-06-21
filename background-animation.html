@@ -116,7 +116,7 @@
   /* Gemini Live Cloud inspired base variables */
   --glass-bg: rgba(15, 23, 42, 0.35); /* Deeper Slate-Blue tint to anchor the glowing cloud colors */
   --glass-border: rgba(255, 255, 255, 0.08);
-  
+
   /* The iconic Gemini multi-chromatic glow palette */
   --gemini-blue: #3b82f6;
   --gemini-purple: #a855f7;
@@ -127,7 +127,7 @@
 /* 1. Master Container & Sizing Controllers */
 .assistant-dock-wrap {
   position: fixed;
-  bottom: 40px;
+  bottom: 40px; /* Kept your adjusted alignment clear of the footer */
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
@@ -136,7 +136,6 @@
   padding: 0 16px;
   box-sizing: border-box;
   transition: max-width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-
 }
 
 /* Active Expanded State via JS */
@@ -198,7 +197,6 @@
     background-position: 0% 50%;
   }
 }
-
 
 /* Hover glow depth over background ambient gradients */
 .glass-dock:hover {
@@ -296,7 +294,23 @@
   letter-spacing: -0.1px;
 }
 
-/* 5. Kinetic Audio Wave Engine */
+/* Smooth internal text entry to match expanding container curve */
+.dock-expanded-view {
+  animation: contentReveal 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes contentReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 5. Kinetic Audio Wave Engine (Refined Fluid Motion) */
 .audio-wave-pill {
   display: flex;
   align-items: center;
@@ -309,38 +323,35 @@
 
 .audio-wave-pill .stroke {
   display: block;
-  position: relative;
   background: linear-gradient(to top, var(--gemini-cyan), var(--gemini-blue), var(--gemini-purple));
   height: 100%;
   width: 3px;
   border-radius: 10px;
-  animation: bounce 1.2s ease-in-out infinite;
+  animation: dynamicPulse 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transform-origin: center;
 }
 
-/* Staggering the animation parameters to establish fluid, organic frequency imitation */
-.audio-wave-pill .stroke:nth-child(1) { animation-delay: 0.3s; animation-duration: 0.8s; }
-.audio-wave-pill .stroke:nth-child(2) { animation-delay: 0.1s; animation-duration: 1.1s; }
-.audio-wave-pill .stroke:nth-child(3) { animation-delay: 0.6s; animation-duration: 0.9s; }
-.audio-wave-pill .stroke:nth-child(4) { animation-delay: 0.2s; animation-duration: 1.3s; }
-.audio-wave-pill .stroke:nth-child(5) { animation-delay: 0.4s; animation-duration: 0.7s; }
+/* Staggering target heights and cycles for voice realism without layout thrashing */
+.audio-wave-pill .stroke:nth-child(1) { --max-h: 0.5; animation-delay: 0.1s; animation-duration: 0.75s; }
+.audio-wave-pill .stroke:nth-child(2) { --max-h: 0.9; animation-delay: 0.25s; animation-duration: 0.9s; }
+.audio-wave-pill .stroke:nth-child(3) { --max-h: 0.6; animation-delay: 0.0s; animation-duration: 0.7s; }
+.audio-wave-pill .stroke:nth-child(4) { --max-h: 1.0; animation-delay: 0.4s; animation-duration: 1.1s; }
+.audio-wave-pill .stroke:nth-child(5) { --max-h: 0.4; animation-delay: 0.15s; animation-duration: 0.65s; }
 
-/* Cloud Background Ambient Motion Shift */
-@keyframes cloudShift {
-  0%, 100% { transform: translate(0px, 0px) rotate(0deg) scale(1); }
-  33% { transform: translate(30px, -20px) rotate(120deg) scale(1.15); }
-  66% { transform: translate(-20px, 40px) rotate(240deg) scale(0.9); }
-}
-
-/* The kinetic bounce animation */
-@keyframes bounce {
-  0%, 100% { height: 4px; }
-  50% { height: 20px; }
+@keyframes dynamicPulse {
+  0%, 100% { 
+    transform: scaleY(0.2); 
+    opacity: 0.6;
+  }
+  50% { 
+    transform: scaleY(var(--max-h)); 
+    opacity: 1;
+  }
 }
 
 .d-none {
   display: none !important;
 }
-
 
 
 
