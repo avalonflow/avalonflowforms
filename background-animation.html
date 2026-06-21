@@ -1171,16 +1171,16 @@ async function processUserCommandLocally(commandText) {
 }
 
 // ==========================================
-// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX
+// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (FAILOVER)
 // ==========================================
-function speakResponse(rawResponseText) {
+async function speakResponse(rawResponseText) {
   stopActiveKairosVoice();
-  killSpeechEngineCompletely(); 
+  killSpeechEngineCompletely();
 
   const typedChatText = humanize(rawResponseText);
   const spokenText = rawResponseText.replace(/[^\x00-\x7F]/g, "").trim();
 
-  // Maintain conversation memory and logs
+  // Maintain logs
   conversationMemory.push({ role: "bot", content: typedChatText, time: Date.now() });
   chatHistory.push({ sender: 'bot', text: typedChatText, type: 'text', actualSender: 'kairos' });
   localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
@@ -1188,37 +1188,43 @@ function speakResponse(rawResponseText) {
   const transcriptCanvas = document.getElementById('kairosTranscript');
   if (transcriptCanvas) transcriptCanvas.innerText = typedChatText;
 
-  // Streaming Salli exclusively
   const encodedText = encodeURIComponent(spokenText);
-  const salliAudioUrl = `https://api.tts-proxy.com/speak?voice=Salli&text=${encodedText}`;
+  
+  // A collection of reliable community-hosted Edge TTS endpoints
+  const endpoints = [
+    `https://edge-tts.vercel.app/api/speak?text=${encodedText}&voice=en-US-JennyNeural`,
+    `https://tts.cyb3r.us/api/speak?text=${encodedText}&voice=en-US-JennyNeural`
+  ];
 
-  console.log("💎 Streaming Salli engine directly...");
-  const audio = new Audio(salliAudioUrl);
+  let audio = null;
+  let success = false;
 
-  audio.onplay = () => {
+  // Try endpoints one by one
+  for (const url of endpoints) {
+    try {
+      audio = new Audio(url);
+      await audio.play();
+      success = true;
+      break; // Found a working proxy
+    } catch (e) {
+      console.warn(`Proxy ${url} failed, trying next...`);
+    }
+  }
+
+  if (success) {
     setWaveAnimationSpeed(true);
-  };
-
-  audio.onended = () => {
+    audio.onended = () => {
+      setWaveAnimationSpeed(false);
+      isProcessingCommand = false;
+      setTimeout(() => activateKairosVoiceOnDemand(), 400);
+    };
+  } else {
+    console.warn("All voice proxies failed. Maintaining silence.");
     setWaveAnimationSpeed(false);
     isProcessingCommand = false;
-    
-    // Resume cycle
-    setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
-  };
-
-  audio.onerror = (e) => {
-    console.warn("Salli stream failed. Staying silent as per configuration.");
-    setWaveAnimationSpeed(false);
-    isProcessingCommand = false;
-  };
-
-  audio.play().catch(e => {
-    console.warn("Autoplay blocked. Staying silent as per configuration.");
-    setWaveAnimationSpeed(false);
-    isProcessingCommand = false;
-  });
+  }
 }
+
 
 // ==========================================
 // 8. MULTI-DECK 10s CROSSFADE ENGINE WORKFLOW
