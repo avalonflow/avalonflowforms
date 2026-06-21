@@ -1178,10 +1178,9 @@ function speakResponse(rawResponseText) {
   killSpeechEngineCompletely(); 
 
   const typedChatText = humanize(rawResponseText);
-
-  // Filter emojis out of the voice track to ensure Kairos doesn't read them aloud
   const spokenText = rawResponseText.replace(/[^\x00-\x7F]/g, "").trim();
 
+  // Maintain conversation memory and history
   conversationMemory.push({ role: "bot", content: typedChatText, time: Date.now() });
   if (conversationMemory.length > 10) conversationMemory.shift();
 
@@ -1190,10 +1189,7 @@ function speakResponse(rawResponseText) {
 
   const transcriptCanvas = document.getElementById('kairosTranscript');
   if (!transcriptCanvas) return;
-
-  transcriptCanvas.innerText = ""; 
-  const words = typedChatText.split(" ");
-  let wordIndex = 0;
+  transcriptCanvas.innerText = typedChatText;
 
   if (!spokenText) {
     isProcessingCommand = false;
@@ -1201,57 +1197,55 @@ function speakResponse(rawResponseText) {
     return;
   }
 
-  const utterance = new SpeechSynthesisUtterance(spokenText);
-  if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
+  // 💎 STREAMING BRIDGE: Salli Neural Engine
+  const encodedText = encodeURIComponent(spokenText);
+  const salliAudioUrl = `https://api.tts-proxy.com/speak?voice=Salli&text=${encodedText}`;
 
-  // Calibrate speech pace frameworks beautifully for emotional delivery profiles
-  if (personality.tone === "calm" || personality.userMood === "frustrated") {
-    utterance.rate = 0.92;  
-    utterance.pitch = 0.95; 
-  } else if (personality.tone === "friendly") {
-    utterance.rate = 1.02;  
-    utterance.pitch = 1.05; 
-  } else {
-    utterance.rate = 0.88;  
-    utterance.pitch = 0.98; 
-  }
+  console.log("💎 Streaming Salli engine directly...");
+  const audio = new Audio(salliAudioUrl);
 
-  utterance.onstart = () => {
+  audio.onplay = () => {
     setWaveAnimationSpeed(true);
-    const typingInterval = setInterval(() => {
-      if (wordIndex < words.length) {
-        transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
-        wordIndex++;
-      } else {
-        clearInterval(typingInterval);
-      }
-    }, 80);
   };
 
-  utterance.onend = () => {
+  audio.onended = () => {
     setWaveAnimationSpeed(false);
     isProcessingCommand = false;
-
-    const dockStatusText = document.getElementById('dockStatusText');
-
-    if (transcriptCanvas.innerText.includes("music") || transcriptCanvas.innerText.includes("player") || transcriptCanvas.innerText.includes("Playing")) {
-      toggleDock(false); 
-      if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
-      if (statusText) statusText.innerText = "Playing Audio Stream...";
-      setTimeout(() => setWaveAnimationSpeed(true), 200); 
+    
+    // Logic to switch view if music-related
+    if (transcriptCanvas.innerText.includes("music") || transcriptCanvas.innerText.includes("player")) {
+      toggleDock(false);
+      setTimeout(() => setWaveAnimationSpeed(true), 200);
     } else {
-      setTimeout(() => { 
-        activateKairosVoiceOnDemand(); 
-      }, 400);
+      setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
     }
   };
 
-  utterance.onerror = () => {
+  audio.onerror = (e) => {
+    console.warn("Salli stream failed, falling back to system engine.");
     setWaveAnimationSpeed(false);
-    isProcessingCommand = false;
-    toggleDock(false);
+    // Fallback to original browser synthesis if stream is blocked
+    runOriginalSystemVoice(spokenText);
   };
 
+  audio.play().catch(e => {
+    console.warn("Autoplay blocked, falling back to system engine.");
+    runOriginalSystemVoice(spokenText);
+  });
+}
+
+/**
+ * Fallback function if the network stream fails
+ */
+function runOriginalSystemVoice(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
+  utterance.rate = 0.9;
+  utterance.onend = () => {
+    setWaveAnimationSpeed(false);
+    isProcessingCommand = false;
+    activateKairosVoiceOnDemand();
+  };
   kairosVoiceEngine.speak(utterance);
 }
 
