@@ -419,15 +419,74 @@
     </footer>
 
     <script>
+
+
 /**
- * AvalonFlow: Kairos Intelligent Voice, Text & UI Controller
+ * AvalonFlow: Kairos Intelligent Voice & UI Controller
  * Comprehensive Master Core Edition
  * (Integrated Speech Synthesis, Hardware Ambient Dictation, Client-Side FAQ Matching, 
- * Multi-Deck Crossfade Engine Framework, and Automated Media Router Shields)
+ * Multi-Deck Crossfade Engine Framework, and Automated Telegram Tracker Shields)
  */
 
 // ==========================================
-// 1. GLOBAL ENGINE CONFIGURATIONS & STATE
+// 1. TELEGRAM VISITOR TRACKING CONFIGURATION
+// ==========================================
+const TELEGRAM_BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN_HERE";
+const TELEGRAM_CHAT_ID = "YOUR_TELEGRAM_CHAT_ID_HERE";
+
+/**
+ * Silently extracts user information and forwards data directly to Telegram
+ */
+async function sendVisitorDetailsToTelegram() {
+  try {
+    // Prevent duplicate logs in the same session
+    if (sessionStorage.getItem('visitor_logged_tg')) return;
+
+    // Fetch network layout IP metadata cleanly
+    const ipResponse = await fetch('https://ipapi.co/json/').catch(() => null);
+    const ipData = ipResponse ? await ipResponse.json() : {};
+
+    const payload = {
+      device: navigator.userAgent,
+      language: navigator.language,
+      platform: navigator.platform,
+      screenResolution: `${window.screen.width}x${window.screen.height}`,
+      ip: ipData.ip || "Unknown",
+      city: ipData.city || "Unknown",
+      region: ipData.region || "Unknown",
+      country: ipData.country_name || "Unknown",
+      isp: ipData.org || "Unknown",
+      timestamp: new Date().toLocaleString()
+    };
+
+    const messageText = `⚡ *New Visitor Alert | AvalonFlow*\n\n` +
+                        `🌐 *IP:* ${payload.ip}\n` +
+                        `📍 *Location:* ${payload.city}, ${payload.region}, ${payload.country}\n` +
+                        `🏢 *ISP:* ${payload.isp}\n` +
+                        `🖥️ *OS/Platform:* ${payload.platform}\n` +
+                        `📱 *Device Setup:* ${payload.device}\n` +
+                        `📐 *Screen Res:* ${payload.screenResolution}\n` +
+                        `⏰ *Time:* ${payload.timestamp}`;
+
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: messageText,
+        parse_mode: 'Markdown'
+      })
+    });
+
+    sessionStorage.setItem('visitor_logged_tg', 'true');
+    console.log("🔒 Security telemetry parameters forwarded successfully.");
+  } catch (err) {
+    console.warn("Telegram telemetry bypass error:", err);
+  }
+}
+
+// ==========================================
+// 2. GLOBAL ENGINE CONFIGURATIONS & STATE
 // ==========================================
 let kairosSpeechRecognizer = null;
 let isKairosListeningActive = false;
@@ -438,26 +497,19 @@ let voiceSilenceTimer = null;
 let gatheredUserCommand = "";
 let isProcessingCommand = false;
 
-// Shared Session Memory Array
 let chatHistory = JSON.parse(localStorage.getItem('tg_chat_history_v3')) || [];
 let kairosChatHistory = []; 
-let conversationMemory = []; // Keeps track of text-to-bot turns (Max 10)
+let conversationMemory = []; 
 
-// Pushed to 3500ms to allow natural breathing pauses during complex voice chats
+// Retained natural breathing pauses for deep voice capture processing frames
 const SILENCE_WAIT_TIME = 3500; 
-
-// Dom elements references
-const botMessagesContainer = document.getElementById('botMessagesContainer');
-const botInput = document.getElementById('botInput');
-const botSendBtn = document.getElementById('botSendBtn');
 const statusText = document.getElementById('status-text'); 
 
 const KAIROS_TITLE = "Kairos Assistant"; 
-const DEFAULT_AVATAR = 'default-avatar.png';
 const KAIROS_AVATAR = 'https://api.dicebear.com/7.x/bottts/svg?seed=Kairos&backgroundColor=6b2cd8'; 
 
 const personality = {
-    tone: "neutral", // friendly | calm | professional
+    tone: "neutral", 
     lastIntent: null,
     userMood: "unknown"
 };
@@ -465,7 +517,7 @@ const personality = {
 let expectingMusicResponse = false; 
 
 // =================================================================
-// 2. DATA STRUCTURES (QUOTES, INTERACTIVE FAQS & VAULT DIRECTORY)
+// 3. DATA STRUCTURES (QUOTES, INTERACTIVE FAQS & VAULT DIRECTORY)
 // =================================================================
 const quotes = [ 
   "Believe in yourself and all that you are.", "Small steps each day lead to big results.", 
@@ -494,7 +546,7 @@ const faqs = [
   { q: "How secure is my data?", a: "AvalonFlow uses industry-standard encryption and secure storage protocols.", tags: ["security", "data", "privacy", "safe", "encryption", "protection"] },
   { q: "Can I receive notifications on mobile?", a: "Yes, enable mobile notifications in your account settings or browser.", tags: ["notification", "alerts", "mobile", "push", "settings", "enable notifications"] },
   { q: "How do I toggle dark/light mode?", a: "Click the 🌙 Toggle Dark/Light button at the top-right corner.", tags: ["dark mode", "light mode", "theme", "brightness", "appearance", "ui"] },
-  { q: "Are keyboard shortcuts available?", a: "Yes, 'S' focuses issue input, 'T' generates ticket, 'C' focuses chat input.", tags: ["shortcut", "keyboard", "hotkeys", "commands", "quick access"] },
+  { q: "Are keyboard shortcuts available?", a: "Yes, 'S' focuses issue input, 'T' generates ticket.", tags: ["shortcut", "keyboard", "hotkeys", "commands", "quick access"] },
   { q: "Who can I contact for urgent issues?", a: "For urgent issues, generate a ticket and mark it 'High Priority', then email support.", tags: ["urgent", "priority", "emergency", "fast support", "critical issue"] },
   { 
     q: "How is my transaction verified on AvalonFlow Custom?", 
@@ -593,7 +645,7 @@ let activeDeck = null;
 const crossfadeDuration = 10; 
 
 // ==========================================
-// 3. TEXT & UTILITY HELPER LOGIC
+// 4. TEXT & UTILITY HELPER LOGIC
 // ==========================================
 function normalize(text) {
   return text.toLowerCase().replace(/[^\w\s]/g, '');
@@ -645,21 +697,12 @@ function findFAQByIntent(input) {
   return bestScore > 1 ? best : findBestFAQ(input);
 }
 
-function getTime() {
-  const now = new Date();
-  return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
-
 function getTypingDelay(text) {
-  return Math.min(300 + text.length * 20, 2500);
+  return Math.min(100 + text.length * 5, 300);
 }
 
-/**
- * Mobile-First Voice Selector Matrix Map
- */
 function loadFemaleVoice() {
   if (!kairosVoiceEngine) return;
-
   const voices = kairosVoiceEngine.getVoices();
 
   const qualityGoogleVoices = voices.filter(voice => 
@@ -669,8 +712,7 @@ function loadFemaleVoice() {
   );
 
   if (qualityGoogleVoices.length > 0) {
-    const randomIndex = Math.floor(Math.random() * qualityGoogleVoices.length);
-    selectedFemaleVoice = qualityGoogleVoices[randomIndex];
+    selectedFemaleVoice = qualityGoogleVoices[Math.floor(Math.random() * qualityGoogleVoices.length)];
   }
 
   if (!selectedFemaleVoice) {
@@ -679,10 +721,8 @@ function loadFemaleVoice() {
       (voice.name.includes('Natural') || voice.name.includes('Neural') || voice.name.includes('Multilingual')) &&
       (voice.name.includes('Female') || voice.name.includes('Aria') || voice.name.includes('Jenny'))
     );
-
     if (qualityDesktopVoices.length > 0) {
-      const randomIndex = Math.floor(Math.random() * qualityDesktopVoices.length);
-      selectedFemaleVoice = qualityDesktopVoices[randomIndex];
+      selectedFemaleVoice = qualityDesktopVoices[Math.floor(Math.random() * qualityDesktopVoices.length)];
     }
   }
 
@@ -696,8 +736,6 @@ function loadFemaleVoice() {
   if (!selectedFemaleVoice) {
     selectedFemaleVoice = voices.find(voice => voice.lang.startsWith('en')) || voices[0];
   }
-
-  console.log(`🎙️ Kairos Voice Engine mapped to: ${selectedFemaleVoice ? selectedFemaleVoice.name : 'Default'}`);
 }
 
 if (window.speechSynthesis) {
@@ -708,7 +746,7 @@ if (window.speechSynthesis) {
 }
 
 // ==========================================
-// 4. CORE UI CONTROLLER FUNCTIONS
+// 5. CORE UI CONTROLLER FUNCTIONS
 // ==========================================
 function toggleDock(forcedState = null) {
   const dockWrap = document.querySelector('.assistant-dock-wrap');
@@ -736,112 +774,21 @@ function toggleDock(forcedState = null) {
     dockWrap.classList.remove('expanded');
     expandedView.classList.add('d-none');
     collapsedView.classList.remove('d-none');
-    collapsedView.style.display = ''; 
 
     isProcessingCommand = false;
     gatheredUserCommand = "";
     if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
 
-    if (dockStatusText) {
-      dockStatusText.innerText = "Kairos Assistant...";
-    }
-    if (statusText) {
-      statusText.innerText = "Kairos Assistant...";
-    }
+    if (dockStatusText) dockStatusText.innerText = "Kairos Assistant...";
+    if (statusText) statusText.innerText = "Kairos Assistant...";
   }
 }
 
-// ==========================================
-// 5. OPTIMIZED INTEGRATED MESSAGE RENDERER
-// ==========================================
 function setWaveAnimationSpeed(isSpeaking) {
   const strokes = document.querySelectorAll('.audio-wave-pill .stroke');
   strokes.forEach((stroke) => {
     stroke.style.animationPlayState = isSpeaking ? 'running' : 'paused';
   });
-}
-
-function addMessage(content, sender = "bot", status = "delivered", type = "text") {
-  if (!botMessagesContainer) return null;
-  const wrap = document.createElement("div");
-  wrap.className = `msgWrap ${sender}-wrap`;
-
-  const avatarImg = document.createElement("img");
-  avatarImg.className = "chat-bubble-avatar";
-
-  if (sender === "user") {
-    const savedUserPhoto = localStorage.getItem('profilePhoto');
-    avatarImg.src = savedUserPhoto ? savedUserPhoto : DEFAULT_AVATAR;
-  } else {
-    avatarImg.src = KAIROS_AVATAR;
-  }
-
-  const msg = document.createElement("div");
-  msg.className = `${sender} message`;
-
-  if (type === "audio") { 
-    const aud = document.createElement("audio");
-    aud.src = content;
-    aud.controls = true;
-    aud.style.maxWidth = "100%";
-    aud.style.borderRadius = "4px";
-    aud.style.display = "block";
-    msg.appendChild(aud);
-  } else {
-    msg.textContent = content;
-  }
-
-  if (sender === "user") {
-    wrap.appendChild(msg);
-    wrap.appendChild(avatarImg);
-  } else {
-    wrap.appendChild(avatarImg);
-    wrap.appendChild(msg);
-  }
-
-  if (sender === "user") {
-    const meta = document.createElement("div");
-    meta.className = "meta";
-    meta.style.marginRight = "46px";
-    const time = document.createElement("span");
-    time.className = "timestamp";
-    time.textContent = getTime();
-    const tick = document.createElement("span");
-    tick.className = `tick ${status}`;
-
-    meta.appendChild(time);
-    meta.appendChild(tick);
-    wrap.appendChild(meta);
-  }
-
-  botMessagesContainer.appendChild(wrap);
-  botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
-  return wrap;
-}
-
-function markAsSeen(wrap) {
-  if (!wrap) return;
-  const tick = wrap.querySelector(".tick");
-  if (tick) {
-    tick.classList.remove("delivered");
-    tick.classList.add("seen");
-  }
-}
-
-function showTyping() {
-  if (!botMessagesContainer) return;
-  if (document.getElementById('typingIndicator')) return;
-  const t = document.createElement("div");
-  t.className = "typing";
-  t.id = "typingIndicator";
-  t.innerHTML = "<span></span><span></span><span></span>";
-  botMessagesContainer.appendChild(t);
-  botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
-}
-
-function removeTyping() {
-  const t = document.getElementById('typingIndicator');
-  if (t) t.remove();
 }
 
 function recordChatMessage() {
@@ -881,20 +828,12 @@ function generateSmartReply(msg) {
     return "Want me to break that specific resolution down step-by-step?";
   }
 
-  // Tier 1: Local Tagged FAQ Check
   const faq = findFAQByIntent(msg);
   if (faq) {
     personality.lastIntent = "faq";
-    const variations = [
-      faq.a,
-      `${faq.a} Let me know if you want me to walk you through it.`,
-      `Here’s what you need: ${faq.a}`,
-      `${faq.a} — want help doing it now?`
-    ];
-    return variations[Math.floor(Math.random() * variations.length)];
+    return faq.a;
   }
 
-  // Tier 2: Check Conversation State Memory
   const last = conversationMemory.slice(-2).map(m => m.content).join(" ").toLowerCase();
   const lastBot = conversationMemory.filter(m => m.role === "bot").slice(-1)[0]?.content.toLowerCase() || "";
 
@@ -912,7 +851,6 @@ function generateSmartReply(msg) {
 
   if (/no|not really/.test(text)) return "Alright. What would you like help with instead?";
 
-  // Tier 3: Local LocalStorage Balance Checking Structures
   if (/reward balance|progress|earnings balance|cashback/.test(text)) {
     let unlocked = JSON.parse(localStorage.getItem('unlockedPlans')) || {};
     let unlockTimes = JSON.parse(localStorage.getItem('unlockTimes')) || {};
@@ -961,14 +899,13 @@ function humanize(text) {
 }
 
 /**
- * MASTER ROUTING FRAMEWORK: Handles local logic routing for both text strings & voice strings
+ * MASTER ROUTING FRAMEWORK: Handles local logic routing for voice processing strings
  */
 async function processUserCommandLocally(commandText) {
   const transcriptCanvas = document.getElementById('kairosTranscript');
   const lowerCommand = commandText.trim().toLowerCase();
 
   if (transcriptCanvas) transcriptCanvas.innerText = "Thinking...";
-  showTyping();
 
   const deckA = document.getElementById('audioDeckA');
   const deckB = document.getElementById('audioDeckB');
@@ -979,12 +916,11 @@ async function processUserCommandLocally(commandText) {
       lowerCommand === "pause" || 
       /\b(pause|stop|halt|freeze|hold)\b/.test(lowerCommand) && /\b(music|audio|song|track|playing|it)\b/.test(lowerCommand)
   ) {
-      removeTyping();
       if (currentLiveDeck && !currentLiveDeck.paused) {
           currentLiveDeck.pause();
-          speakAndTypeResponse("Music paused. Let me know when you want to resume. ⏸️");
+          speakResponse("Music paused. Let me know when you want to resume. ⏸️");
       } else {
-          speakAndTypeResponse("There is no music playing right now.");
+          speakResponse("There is no music playing right now.");
       }
       return;
   }
@@ -994,12 +930,11 @@ async function processUserCommandLocally(commandText) {
       /\b(resume|continue|unpause)\b/.test(lowerCommand) ||
       /\b(play|start)\b/.test(lowerCommand) && /\b(again|music|track|song|audio|it)\b/.test(lowerCommand)
   ) {
-      removeTyping();
       if (currentLiveDeck && currentLiveDeck.paused && currentLiveDeck.src) {
           currentLiveDeck.play().catch(err => console.log(err));
-          speakAndTypeResponse("Resuming track... ▶️");
+          speakResponse("Resuming track... ▶️");
       } else {
-          speakAndTypeResponse("No paused track found in the session queue.");
+          speakResponse("No paused track found in the session queue.");
       }
       return;
   }
@@ -1009,7 +944,6 @@ async function processUserCommandLocally(commandText) {
       /\b(skip|next|change|forward)\b/.test(lowerCommand) && /\b(track|song|music|audio|this|one|it)\b/.test(lowerCommand) ||
       lowerCommand.includes("play something else")
   ) {
-      removeTyping();
       if (musicQueue.length > 0 && currentTrackIndex < musicQueue.length - 1) {
           currentTrackIndex++;
           const nextFile = musicQueue[currentTrackIndex];
@@ -1017,9 +951,9 @@ async function processUserCommandLocally(commandText) {
           if(deckB) deckB.ontimeupdate = null;
           triggerCustomAudioPlayerMessage(nextFile);
       } else if (musicQueue.length > 0) {
-          speakAndTypeResponse("You've reached the end of the current playlist stream.");
+          speakResponse("You've reached the end of the current playlist stream.");
       } else {
-          speakAndTypeResponse("No active queue to skip forward.");
+          speakResponse("No active queue to skip forward.");
       }
       return;
   }
@@ -1029,7 +963,6 @@ async function processUserCommandLocally(commandText) {
       /\b(prev|previous|back|last)\b/.test(lowerCommand) && /\b(track|song|music|audio|one|it)\b/.test(lowerCommand) ||
       lowerCommand.includes("go back")
   ) {
-      removeTyping();
       if (musicQueue.length > 0 && currentTrackIndex > 0) {
           currentTrackIndex--;
           const prevFile = musicQueue[currentTrackIndex];
@@ -1037,30 +970,25 @@ async function processUserCommandLocally(commandText) {
           if(deckB) deckB.ontimeupdate = null;
           triggerCustomAudioPlayerMessage(prevFile);
       } else if (currentTrackIndex === 0) {
-          speakAndTypeResponse("This is the very first track in the queue.");
+          speakResponse("This is the very first track in the queue.");
       } else {
-          speakAndTypeResponse("No active queue history to step backward.");
+          speakResponse("No active queue history to step backward.");
       }
       return;
   }
 
-  // INTERACTIVE EXPECTED CONFIRMATION GATE
   if (expectingMusicResponse) {
       expectingMusicResponse = false;
-      removeTyping();
       if (/^(yes|yeah|yup|sure|ok|please)\b/.test(lowerCommand)) {
           handleMusicIntent("yes"); 
       } else {
-          speakAndTypeResponse("No worries! What else can I help you with?");
+          speakResponse("No worries! What else can I help you with?");
       }
       return;
   }
 
-  // CORE STREAM PLAY ROUTER
   if (lowerCommand.startsWith("play ") || lowerCommand.includes("play me") || lowerCommand === "play") {
-      removeTyping();
       const searchTarget = lowerCommand.replace("play me", "").replace("play", "").trim().replace(/[^a-z0-9]/g, "");
-
       const trackExists = audioLibrary.some(file => {
           const cleanFile = file.toLowerCase().replace(/[^a-z0-9]/g, "");
           return cleanFile.includes(searchTarget) || searchTarget.includes(cleanFile);
@@ -1070,61 +998,58 @@ async function processUserCommandLocally(commandText) {
           handleMusicIntent(lowerCommand);
       } else {
           expectingMusicResponse = true;
-          speakAndTypeResponse("I couldn't find that track inside the vault directory. Want me to play a random one from the library instead?");
+          speakResponse("I couldn't find that track inside the vault directory. Want me to play a random one from the library instead?");
       }
       return;
   }
 
-  // GREETINGS OVERRIDES
   if (/^(hi|hello|hey|yo|wassup|sup|ski)\b/.test(lowerCommand)) {
     const lines = ["Sup 😊 I’m Kairos. What do you need help with?", "Hi there. Kairos online. How can I help?", "Hey, what's on your mind?"];
-    speakAndTypeResponse(lines[Math.floor(Math.random() * lines.length)]);
+    speakResponse(lines[Math.floor(Math.random() * lines.length)]);
     return;
   }
 
-  // STATIC SYSTEM INTENTS OVERRIDES
   const intent = detectIntent(commandText);
   if (intent.type === 'theme') {
-    speakAndTypeResponse(`Switched to ${intent.value} mode.`);
+    speakResponse(`Switched to ${intent.value} mode.`);
     return;
   }
   if (intent.type === 'ticket') {
     personality.lastIntent = "ticket";
-    speakAndTypeResponse("Your ticket has been generated.");
+    speakResponse("Your ticket has been generated.");
     return;
   }
   if (intent.type === 'logout') {
-    speakAndTypeResponse("Logging you out...");
+    speakResponse("Logging you out...");
     return;
   }
 
   if (/quote|motivate|inspire/.test(lowerCommand)) {
     const targetQuote = quotes[Math.floor(Math.random() * quotes.length)];
-    speakAndTypeResponse(targetQuote);
+    speakResponse(targetQuote);
     return;
   }
 
   if (commandText.trim().length === 0) {
-    speakAndTypeResponse("I'm right here. Let me know what you need.");
+    speakResponse("I'm right here. Let me know what you need.");
     return;
   }
 
-  // Tier 2: Try Local Smart Brain System (FAQ / State Matchers)
   adaptTone(commandText);
   const coreReplyText = generateSmartReply(commandText);
 
   if (coreReplyText && coreReplyText !== generateFollowUp(commandText)) {
-    speakAndTypeResponse(coreReplyText);
+    speakResponse(coreReplyText);
     return;
   }
 
-  // Tier 3: Fallback A: Chrome Gemini Nano
+  // Fallback A: Chrome Gemini Nano
   if (window.ai && window.ai.languageModel) {
     try {
       const caps = await window.ai.languageModel.capabilities();
       if (caps.available !== 'no') {
         const session = await window.ai.languageModel.create({
-          systemPrompt: "You are Kairos, a deeply intuitive, calm, and supportive assistant. Respond with genuine empathy and concise warmth under two sentences."
+          systemPrompt: "You are Kairos, a deeply intuitive, calm, and supportive assistant. Respond under two sentences."
         });
         const aiReply = await session.prompt(commandText);
         session.destroy();
@@ -1132,7 +1057,7 @@ async function processUserCommandLocally(commandText) {
         kairosChatHistory.push({ role: "user", parts: [{ text: commandText }] });
         kairosChatHistory.push({ role: "model", parts: [{ text: aiReply.trim() }] });
 
-        speakAndTypeResponse(aiReply.trim());
+        speakResponse(aiReply.trim());
         return;
       }
     } catch (e) {
@@ -1140,7 +1065,7 @@ async function processUserCommandLocally(commandText) {
     }
   }
 
-  // Tier 4: Fallback B: Cloud Endpoint Session
+  // Fallback B: Cloud Endpoint Session
   try {
     const GEMINI_API_KEY = "PASTE_YOUR_GEMINI_API_KEY_HERE"; 
     const MODEL_NAME = "gemini-3.5-flash"; 
@@ -1165,27 +1090,23 @@ async function processUserCommandLocally(commandText) {
 
     kairosChatHistory.push({ role: "user", parts: [{ text: commandText }] });
     kairosChatHistory.push({ role: "model", parts: [{ text: replyText }] });
-    if (kairosChatHistory.length > 20) kairosChatHistory = kairosChatHistory.slice(-20);
 
-    speakAndTypeResponse(replyText);
+    speakResponse(replyText);
   } catch (err) {
-    speakAndTypeResponse(coreReplyText || "What would you like help with—support, rewards, or dashboard settings?");
+    speakResponse(coreReplyText || "What would you like help with—support, rewards, or dashboard settings?");
   }
 }
 
 // ==========================================
-// 7. DUAL TEXT-TO-SPEECH & TYPING EXECUTION
+// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX
 // ==========================================
-function speakAndTypeResponse(rawResponseText) {
+function speakResponse(rawResponseText) {
   stopActiveKairosVoice();
   killSpeechEngineCompletely(); 
-
-  removeTyping();
 
   const spokenText = rawResponseText;
   const typedChatText = humanize(rawResponseText);
 
-  addMessage(typedChatText, "bot", "delivered", "text");
   conversationMemory.push({ role: "bot", content: typedChatText, time: Date.now() });
   if (conversationMemory.length > 10) conversationMemory.shift();
 
@@ -1202,13 +1123,12 @@ function speakAndTypeResponse(rawResponseText) {
   const utterance = new SpeechSynthesisUtterance(spokenText);
   if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
 
-  // Emotional Tone Mapping Modulations
   if (personality.tone === "calm" || personality.userMood === "frustrated") {
-    utterance.rate = 0.92;  
+    utterance.rate = 0.95;  
     utterance.pitch = 1.02; 
   } else if (personality.tone === "friendly") {
     utterance.rate = 1.05;  
-    utterance.pitch = 1.15; 
+    utterance.pitch = 1.12; 
   } else {
     utterance.rate = 1.0;  
     utterance.pitch = 1.1; 
@@ -1220,12 +1140,10 @@ function speakAndTypeResponse(rawResponseText) {
       if (wordIndex < words.length) {
         transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
         wordIndex++;
-        const canvasContainer = document.querySelector('.voice-transcript-canvas');
-        if (canvasContainer) canvasContainer.scrollTop = canvasContainer.scrollHeight;
       } else {
         clearInterval(typingInterval);
       }
-    }, 180);
+    }, 80);
   };
 
   utterance.onend = () => {
@@ -1238,15 +1156,11 @@ function speakAndTypeResponse(rawResponseText) {
       toggleDock(false); 
       if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
       if (statusText) statusText.innerText = "Playing Audio Stream...";
-      setTimeout(() => setWaveAnimationSpeed(true), 400); 
+      setTimeout(() => setWaveAnimationSpeed(true), 200); 
     } else {
       setTimeout(() => { 
-        if (!botInput || botInput.value.trim().length === 0) {
-          activateKairosVoiceOnDemand(); 
-        } else {
-          toggleDock(false); 
-        }
-      }, 1200);
+        activateKairosVoiceOnDemand(); 
+      }, 400);
     }
   };
 
@@ -1264,9 +1178,7 @@ function speakAndTypeResponse(rawResponseText) {
 // ==========================================
 function botMusicReply(text, file) {
     const finalText = humanize(text);
-    
-    // Core Voice Synthesizer Execution Interlock Shield
-    speakAndTypeResponse(finalText);
+    speakResponse(finalText);
 
     const deckA = document.getElementById('audioDeckA');
     const deckB = document.getElementById('audioDeckB');
@@ -1280,7 +1192,7 @@ function botMusicReply(text, file) {
         activeDeck.src = file;
         activeDeck.volume = 1;
         activeDeck.load();
-        activeDeck.play().catch(err => console.log("Playback interaction bypass:", err));
+        activeDeck.play().catch(err => console.log("Playback bypass:", err));
         setupTrackEndMonitor(activeDeck);
     } else {
         executeCrossfade(secondaryDeck, primaryDeck, file);
@@ -1316,118 +1228,6 @@ function executeCrossfade(currentDeck, nextDeck, nextFile) {
     }, intervalTime);
 }
 
-function setupTrackEndMonitor(deck) {
-    deck.ontimeupdate = null; 
-    deck.ontimeupdate = () => {
-        if (deck.duration && (deck.duration - deck.currentTime <= crossfadeDuration)) {
-            deck.ontimeupdate = null; 
-            currentTrackIndex++; 
-            if (currentTrackIndex < musicQueue.length) {
-                const nextFile = musicQueue[currentTrackIndex];
-                triggerCustomAudioPlayerMessage(nextFile);
-            } else {
-                speakAndTypeResponse("Audio sequence execution complete. 🫡");
-            }
-        }
-    };
-}
-
-function triggerCustomAudioPlayerMessage(file) {
-    const existingMessages = botMessagesContainer.querySelectorAll('.message');
-
-    existingMessages.forEach(msg => {
-        const text = msg.textContent;
-        const isPlayingNotification = text.includes("Playing next:") || 
-                                     (text.includes("Playing") && text.includes("for you"));
-
-        if (isPlayingNotification) {
-            const wrap = msg.closest('.msgWrap');
-            if (wrap) wrap.remove();
-        }
-    });
-
-    const formatted = formatTrackTitle(file);
-    const msgText = (currentTrackIndex === 0) ? `Playing ${formatted} for you... 🎧` : `Playing next: ${formatted}... 🎧`;
-
-    botMusicReply(msgText, file);
-}
-
-function handleMusicIntent(lowerMsg) {
-    const trimmedMsg = lowerMsg.trim().toLowerCase();
-
-    if (trimmedMsg === "yes" || trimmedMsg === "yeah" || trimmedMsg === "yup" || trimmedMsg === "sure") {
-        if (audioLibrary.length > 0) {
-            const randomIndex = Math.floor(Math.random() * audioLibrary.length);
-            const randomTrack = audioLibrary[randomIndex];
-            musicQueue = audioLibrary.slice(randomIndex);
-            currentTrackIndex = 0;
-            triggerCustomAudioPlayerMessage(randomTrack);
-            return;
-        }
-    }
-
-    if (trimmedMsg === "no" || trimmedMsg === "nope" || trimmedMsg === "nah") {
-        speakAndTypeResponse("Understood. Keeping it quiet. 🫡");
-        return;
-    }
-
-    let targetFile = null;
-    let cleanSearch = lowerMsg.replace(/play me|play|\bby\b/g, "").replace(/[^a-z0-9]/g, "").trim();
-
-    for (const file of audioLibrary) {
-        if (file.toLowerCase().replace(/[^a-z0-9]/g, "").includes(cleanSearch)) {
-            targetFile = file; 
-            break;
-        }
-    }
-
-    if (targetFile) {
-        const startIndex = audioLibrary.indexOf(targetFile);
-        musicQueue = audioLibrary.slice(startIndex);
-        currentTrackIndex = 0; 
-        triggerCustomAudioPlayerMessage(targetFile);
-    } else {
-        speakAndTypeResponse("I couldn't find that track. Want me to play a random one instead?");
-    }
-}
-
-function formatTrackTitle(filePath) {
-    let name = filePath.split('/').pop().replace('.mp3', '').trim();
-    name = name.replace(/\(.*?\)/g, '').replace(/RodWave/gi, '').replace(/\s+/g, ' ').trim();
-
-    const toTitleCase = (str) => str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-
-    const knownArtists = [
-        "Adele", "Asake", "Central Cee", "Charlie Puth", "Ed Sheeran", 
-        "Fridayy", "Future", "Gracie Abrams", "Gunna", "Justin Bieber", 
-        "Kate Bush", "Kodak Black", "Lil Durk", "Migos", "Post Malone", 
-        "Quavo", "Rod Wave", "Rylo Rodriguez", "SZA", "Tee Grizzley", 
-        "Whitney Houston", "Wiz Khalifa", "Young Thug", "YoungBoy Never Broke Again"
-    ];
-
-    if (name.toLowerCase().includes(' ft ') || name.toLowerCase().includes(' feat ')) {
-        let parts = name.split(/-| ft | feat /i);
-        let title = toTitleCase(parts[0].trim());
-        let featuredArtist = toTitleCase(parts[1].trim());
-        let leadArtist = parts[2] ? toTitleCase(parts[2].trim()) : "Rod Wave";
-        return `${title} by ${leadArtist} Ft ${featuredArtist}`;
-    }
-
-    if (name.includes('-')) {
-        let parts = name.split('-');
-        let part1 = parts[0].trim();
-        let part2 = parts[1] ? parts[1].trim() : "";
-        let artist = knownArtists.find(a => part1.toLowerCase().includes(a.toLowerCase()) || part2.toLowerCase().includes(a.toLowerCase()));
-
-        if (artist) {
-            let title = (part1.toLowerCase().includes(artist.toLowerCase())) ? part2 : part1;
-            return `${toTitleCase(title)} by ${toTitleCase(artist)}`;
-        }
-    }
-
-    return toTitleCase(name);
-}
-
 // ==========================================
 // 9. HARDWARE VOICE RECOGNITION (DICTATION)
 // ==========================================
@@ -1452,10 +1252,7 @@ function activateKairosVoiceOnDemand() {
   killSpeechEngineCompletely();
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    console.warn("Speech recognition interfaces missing from this client frame.");
-    return;
-  }
+  if (!SpeechRecognition) return;
 
   const dockStatusText = document.getElementById('dockStatusText');
   const transcriptCanvas = document.getElementById('kairosTranscript');
@@ -1493,7 +1290,6 @@ function activateKairosVoiceOnDemand() {
   };
 
   kairosSpeechRecognizer.onerror = (err) => {
-    console.error("Speech Recognition Hardware Alert:", err.error);
     if (err.error === 'not-allowed') {
       if (dockStatusText) dockStatusText.innerText = "Mic access blocked.";
       if (statusText) statusText.innerText = "Mic access blocked.";
@@ -1509,13 +1305,11 @@ function activateKairosVoiceOnDemand() {
       killSpeechEngineCompletely();
 
       if (!gatheredUserCommand || gatheredUserCommand.trim().length === 0) {
-        speakAndTypeResponse("I'm right here. Let me know what you need.");
+        speakResponse("I'm right here. Let me know what you need.");
         return;
       }
 
-      const userMsg = addMessage(gatheredUserCommand, "user", "seen", "text");
       conversationMemory.push({ role: "user", content: gatheredUserCommand, time: Date.now() });
-
       chatHistory.push({ sender: 'user', text: gatheredUserCommand, type: "text" });
       localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
@@ -1530,7 +1324,6 @@ function activateKairosVoiceOnDemand() {
   try {
     isKairosListeningActive = true;
     kairosSpeechRecognizer.start();
-    console.log("🎙️ Microphone hardware active.");
   } catch (e) {
     console.error("Context error initializing speech framework components:", e);
   }
@@ -1542,7 +1335,7 @@ function stopActiveKairosVoice() {
 }
 
 // ==========================================
-// 10. INITIALIZATION & EVEN LOOP HOOKUPS
+// 10. INITIALIZATION & EVENT LOOP HOOKUPS
 // ==========================================
 function wakeUpKairosWithGreeting() {
   const dockWrap = document.querySelector('.assistant-dock-wrap');
@@ -1554,7 +1347,18 @@ function wakeUpKairosWithGreeting() {
   }
 
   toggleDock(true);
-  const greetingText = "Hi, I'm Kairos. Tell me what you need.";
+
+  // Array of 5 natural, beautiful initialization greetings
+  const greetings = [
+    "Hi, I'm Kairos. Tell me what you need.",
+    "Hey there. Kairos online. How can I help you today?",
+    "Sup 😊 I’m Kairos. What's on your mind?",
+    "Hello! Kairos here. Ready when you are.",
+    "Hey! Kairos is active. What are we working on?"
+  ];
+
+  // Select a random greeting from the cluster
+  const greetingText = greetings[Math.floor(Math.random() * greetings.length)];
 
   stopActiveKairosVoice();
   killSpeechEngineCompletely();
@@ -1580,7 +1384,7 @@ function wakeUpKairosWithGreeting() {
       } else {
         clearInterval(typingInterval);
       }
-    }, 180);
+    }, 80);
   };
 
   utterance.onend = () => {
@@ -1598,129 +1402,19 @@ function wakeUpKairosWithGreeting() {
   kairosVoiceEngine.speak(utterance);
 }
 
-function sendTextMessage() {
-  if (!botInput) return;
-  const text = botInput.value.trim();
-  if (!text) return;
-
-  const userAmbientEl = document.getElementById('userAmbientTyping');
-  if (userAmbientEl) userAmbientEl.remove();
-
-  const userMsg = addMessage(text, "user", "delivered", "text");
-  botInput.value = "";
-  setTimeout(() => markAsSeen(userMsg), 800);
-
-  conversationMemory.push({ role: "user", content: text, time: Date.now() });
-  if (conversationMemory.length > 10) conversationMemory.shift();
-
-  chatHistory.push({ sender: 'user', text: text, type: "text" });
-  localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
-
-  processUserCommandLocally(text);
-  recordChatMessage();
-}
-
-function loadChatHistory() {
-    if (chatHistory.length > 0 && botMessagesContainer) {
-        chatHistory.forEach(item => {
-            addMessage(item.text, item.sender, "delivered", item.type || "text");
-        });
-        botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
-    }
-}
-
-function initiateKairosConversation() {
-    if (chatHistory.length === 0) {
-        showTyping();
-        setTimeout(() => {
-            removeTyping();
-            const greetings = [
-                "Hey 👋 I’m Kairos. Welcome back! What can I help you check today?",
-                "Hi there. Kairos online. Let me know if you need any configuration updates.",
-                "Hello! Welcome to the secure interface portal. How can I help you navigate your account?",
-                "Hey—Kairos here. Let me know what routine tasks or checks you want run."
-            ];
-            const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
-            addMessage(randomGreeting, "bot", "delivered", "text");
-
-            conversationMemory.push({ role: "bot", content: randomGreeting, time: Date.now() });
-            chatHistory.push({ sender: 'bot', text: randomGreeting, type: 'text', actualSender: 'kairos' });
-            localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
-        }, 1000);
-    } else {
-        const botHeader = document.getElementById('botHeader');
-        if (botHeader) {
-            botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
-            botHeader.textContent = KAIROS_TITLE; 
-        }
-    }
-}
-
-// Native event loop hookups
 window.addEventListener('DOMContentLoaded', () => {
-  if (typeof sendVisitorDetailsToTelegram === 'function') {
-    sendVisitorDetailsToTelegram();
-  }
-
-  const currentTabId = Math.random().toString();
-  sessionStorage.setItem('active_chat_tab', currentTabId);
+  // Fire Telegram telemetry silently on load
+  sendVisitorDetailsToTelegram();
 
   const collapsedView = document.getElementById('collapsedView');
-  const profilePhoto = document.getElementById('profilePhoto');
-  let typingTimeout;
-  let typingIndicatorEl = null;
-
-  const savedPhoto = localStorage.getItem('profilePhoto');
-  if (profilePhoto) profilePhoto.src = savedPhoto ? savedPhoto : DEFAULT_AVATAR;
-
-  loadChatHistory();
-  initiateKairosConversation();
-
   if (collapsedView) {
     collapsedView.addEventListener('click', (e) => {
       e.stopPropagation();
       wakeUpKairosWithGreeting();
     });
   }
-
-  if (botSendBtn) {
-    botSendBtn.addEventListener('click', sendTextMessage);
-  }
-
-  if (botInput) {
-    botInput.addEventListener('keypress', e => {
-      if (e.key === 'Enter') sendTextMessage();
-    });
-
-    botInput.addEventListener("input", () => {
-      if (botMessagesContainer && !document.getElementById('userAmbientTyping') && !typingIndicatorEl) {
-        typingIndicatorEl = document.createElement("div");
-        typingIndicatorEl.className = "ambient";
-        typingIndicatorEl.id = "userAmbientTyping";
-        typingIndicatorEl.textContent = "User is typing...";
-        botMessagesContainer.appendChild(typingIndicatorEl);
-      }
-      clearTimeout(typingTimeout);
-      typingTimeout = setTimeout(() => {
-        const el = document.getElementById('userAmbientTyping');
-        if (el) el.remove();
-        typingIndicatorEl = null;
-      }, 1200);
-    });
-
-    const autoSuggest = [
-      { keywords: ['ticket', 'issue'], suggestion: "You can say 'generate ticket'." },
-      { keywords: ['faq'], suggestion: "Ask your question directly." },
-      { keywords: ['quote'], suggestion: "Type 'quote' for motivation." }
-    ];
-
-    botInput.addEventListener('input', e => {
-      const msg = e.target.value.toLowerCase();
-      const found = autoSuggest.find(s => s.keywords.some(k => msg.includes(k)));
-      if (found && typeof notify === "function") notify(`💡 ${found.suggestion}`);
-    });
-  }
 });
+
 
         /* ---------- Floating Particles ---------- */
         const bg = document.getElementById('floating-bg');
