@@ -455,8 +455,7 @@
         © 2026 AvalonFlow • Powered by Centrical™
     </footer>
 
-    <script>
-
+    <script> 
 
 /**
  * AvalonFlow: Kairos Intelligent Voice & UI Controller
@@ -738,46 +737,41 @@ function getTypingDelay(text) {
   return Math.min(100 + text.length * 5, 300);
 }
 
-/**
- * Upgraded Neural & High-Tier Voice Matrix Scanner
- * Actively filters system voice structures for soft, emotional, natural female cadences
- */
 function loadFemaleVoice() {
   if (!kairosVoiceEngine) return;
   const voices = kairosVoiceEngine.getVoices();
 
-  // 1. Target Premium Natural/Neural Voice Engines First
-  let premiumVoices = voices.filter(voice => 
-    voice.lang.startsWith('en') && 
-    (voice.name.includes('Natural') || 
-     voice.name.includes('Neural') || 
-     voice.name.includes('wls') || 
-     voice.name.includes('Google US English Premium') || 
-     voice.name.includes('en-US-x'))
+  const qualityGoogleVoices = voices.filter(voice => 
+    voice.name.includes('Google US English') || 
+    voice.name.includes('Google UK English Female') ||
+    voice.name.includes('Google UK English')
   );
 
-  // 2. Filter specifically for the softest female identifiers
-  let femalePremium = premiumVoices.filter(voice => 
-    voice.name.includes('Female') || 
-    voice.name.includes('Aria') || 
-    voice.name.includes('Jenny') || 
-    voice.name.includes('Samantha') ||
-    voice.name.includes('Zira')
-  );
+  if (qualityGoogleVoices.length > 0) {
+    selectedFemaleVoice = qualityGoogleVoices[Math.floor(Math.random() * qualityGoogleVoices.length)];
+  }
 
-  if (femalePremium.length > 0) {
-    selectedFemaleVoice = femalePremium[0];
-  } else if (premiumVoices.length > 0) {
-    selectedFemaleVoice = premiumVoices[0];
-  } else {
-    // 3. Absolute safety baseline fallback if device lacks high-end neural packages
+  if (!selectedFemaleVoice) {
+    const qualityDesktopVoices = voices.filter(voice => 
+      voice.lang.startsWith('en') && 
+      (voice.name.includes('Natural') || voice.name.includes('Neural') || voice.name.includes('Multilingual')) &&
+      (voice.name.includes('Female') || voice.name.includes('Aria') || voice.name.includes('Jenny'))
+    );
+    if (qualityDesktopVoices.length > 0) {
+      selectedFemaleVoice = qualityDesktopVoices[Math.floor(Math.random() * qualityDesktopVoices.length)];
+    }
+  }
+
+  if (!selectedFemaleVoice) {
     selectedFemaleVoice = voices.find(voice => 
       voice.lang.startsWith('en') && 
       (voice.name.includes('Zira') || voice.name.includes('Samantha') || voice.name.includes('Female'))
-    ) || voices.find(voice => voice.lang.startsWith('en')) || voices[0];
+    );
   }
-  
-  console.log("🎙️ Kairos vocal profile calibrated to:", selectedFemaleVoice ? selectedFemaleVoice.name : "Default System");
+
+  if (!selectedFemaleVoice) {
+    selectedFemaleVoice = voices.find(voice => voice.lang.startsWith('en')) || voices[0];
+  }
 }
 
 if (window.speechSynthesis) {
@@ -1104,6 +1098,7 @@ async function processUserCommandLocally(commandText) {
   }
 
   if (commandText.trim().length === 0) {
+    // Left pure for fallback closing checks
     toggleDock(false);
     return;
   }
@@ -1171,60 +1166,89 @@ async function processUserCommandLocally(commandText) {
 }
 
 // ==========================================
-// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (FAILOVER)
+// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX
 // ==========================================
-async function speakResponse(rawResponseText) {
+function speakResponse(rawResponseText) {
   stopActiveKairosVoice();
-  killSpeechEngineCompletely();
+  killSpeechEngineCompletely(); 
 
   const typedChatText = humanize(rawResponseText);
+
+  // Filter emojis out of the voice track to ensure Kairos doesn't read them aloud
   const spokenText = rawResponseText.replace(/[^\x00-\x7F]/g, "").trim();
 
-  // Maintain logs
   conversationMemory.push({ role: "bot", content: typedChatText, time: Date.now() });
+  if (conversationMemory.length > 10) conversationMemory.shift();
+
   chatHistory.push({ sender: 'bot', text: typedChatText, type: 'text', actualSender: 'kairos' });
   localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
   const transcriptCanvas = document.getElementById('kairosTranscript');
-  if (transcriptCanvas) transcriptCanvas.innerText = typedChatText;
+  if (!transcriptCanvas) return;
 
-  const encodedText = encodeURIComponent(spokenText);
-  
-  // A collection of reliable community-hosted Edge TTS endpoints
-  const endpoints = [
-    `https://edge-tts.vercel.app/api/speak?text=${encodedText}&voice=en-US-JennyNeural`,
-    `https://tts.cyb3r.us/api/speak?text=${encodedText}&voice=en-US-JennyNeural`
-  ];
+  transcriptCanvas.innerText = ""; 
+  const words = typedChatText.split(" ");
+  let wordIndex = 0;
 
-  let audio = null;
-  let success = false;
-
-  // Try endpoints one by one
-  for (const url of endpoints) {
-    try {
-      audio = new Audio(url);
-      await audio.play();
-      success = true;
-      break; // Found a working proxy
-    } catch (e) {
-      console.warn(`Proxy ${url} failed, trying next...`);
-    }
+  // Fallback safety if the string became completely blank after filtering emojis
+  if (!spokenText) {
+    isProcessingCommand = false;
+    activateKairosVoiceOnDemand();
+    return;
   }
 
-  if (success) {
-    setWaveAnimationSpeed(true);
-    audio.onended = () => {
-      setWaveAnimationSpeed(false);
-      isProcessingCommand = false;
-      setTimeout(() => activateKairosVoiceOnDemand(), 400);
-    };
+  const utterance = new SpeechSynthesisUtterance(spokenText);
+  if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
+
+  if (personality.tone === "calm" || personality.userMood === "frustrated") {
+    utterance.rate = 0.95;  
+    utterance.pitch = 1.02; 
+  } else if (personality.tone === "friendly") {
+    utterance.rate = 1.05;  
+    utterance.pitch = 1.12; 
   } else {
-    console.warn("All voice proxies failed. Maintaining silence.");
+    utterance.rate = 1.0;  
+    utterance.pitch = 1.1; 
+  }
+
+  utterance.onstart = () => {
+    setWaveAnimationSpeed(true);
+    const typingInterval = setInterval(() => {
+      if (wordIndex < words.length) {
+        transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
+        wordIndex++;
+      } else {
+        clearInterval(typingInterval);
+      }
+    }, 80);
+  };
+
+  utterance.onend = () => {
     setWaveAnimationSpeed(false);
     isProcessingCommand = false;
-  }
-}
 
+    const dockStatusText = document.getElementById('dockStatusText');
+
+    if (transcriptCanvas.innerText.includes("music") || transcriptCanvas.innerText.includes("player") || transcriptCanvas.innerText.includes("Playing")) {
+      toggleDock(false); 
+      if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
+      if (statusText) statusText.innerText = "Playing Audio Stream...";
+      setTimeout(() => setWaveAnimationSpeed(true), 200); 
+    } else {
+      setTimeout(() => { 
+        activateKairosVoiceOnDemand(); 
+      }, 400);
+    }
+  };
+
+  utterance.onerror = () => {
+    setWaveAnimationSpeed(false);
+    isProcessingCommand = false;
+    toggleDock(false);
+  };
+
+  kairosVoiceEngine.speak(utterance);
+}
 
 // ==========================================
 // 8. MULTI-DECK 10s CROSSFADE ENGINE WORKFLOW
@@ -1236,10 +1260,12 @@ function botMusicReply(text, file) {
     const deckB = document.getElementById('audioDeckB');
     if (!deckA || !deckB) return;
 
+    // Interrupt with vocal confirmation ONLY if both decks are currently dead/paused
     const isMusicCurrentlyPlaying = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
     if (!isMusicCurrentlyPlaying) {
         speakResponse(finalText);
     } else {
+        // If a track is running, completely bypass vocal interruptions to keep crossfade pristine
         const transcriptCanvas = document.getElementById('kairosTranscript');
         if (transcriptCanvas) transcriptCanvas.innerText = text;
     }
@@ -1338,6 +1364,7 @@ function activateKairosVoiceOnDemand() {
   if (statusText) statusText.innerText = "Kairos is listening...";
   toggleDock(true);
 
+  // Clean UI structural loop formatting layout updates
   if (transcriptCanvas) {
     transcriptCanvas.innerHTML = "I'm right here let me know what you need<br><br><span style='opacity:0.6; font-size:0.9em;'>Listening</span>";
   }
@@ -1384,9 +1411,10 @@ function activateKairosVoiceOnDemand() {
       isProcessingCommand = true; 
       killSpeechEngineCompletely();
 
+      // Clear structural pill frame fallback check
       if (!gatheredUserCommand || gatheredUserCommand.trim().length === 0) {
         isProcessingCommand = false;
-        toggleDock(false); 
+        toggleDock(false); // Seamlessly drops pill down without looping voice threads
         return;
       }
 
@@ -1418,7 +1446,7 @@ function stopActiveKairosVoice() {
 // ==========================================
 // 10. INITIALIZATION & EVENT LOOP HOOKUPS
 // ==========================================
-async function wakeUpKairosWithGreeting() {
+function wakeUpKairosWithGreeting() {
   const dockWrap = document.querySelector('.assistant-dock-wrap');
   const isExpanded = dockWrap ? dockWrap.classList.contains('expanded') : false;
 
@@ -1429,28 +1457,70 @@ async function wakeUpKairosWithGreeting() {
 
   toggleDock(true);
 
+  // Array of 5 natural, beautiful initialization greetings
   const greetings = [
     "Hi, I'm Kairos. Tell me what you need.",
     "Hey there. Kairos online. How can I help you today?",
-    "Sup, I’m Kairos. What's on your mind?",
+    "Sup 😊 I’m Kairos. What's on your mind?",
     "Hello! Kairos here. Ready when you are.",
     "Hey! Kairos is active. What are we working on?"
   ];
 
+  // Select a random greeting from the cluster
   const greetingText = greetings[Math.floor(Math.random() * greetings.length)];
-  
-  // This now uses your new streaming matrix and handles the flow
-  await speakResponse(greetingText);
+
+  stopActiveKairosVoice();
+  killSpeechEngineCompletely();
+
+  const transcriptCanvas = document.getElementById('kairosTranscript');
+  if (transcriptCanvas) transcriptCanvas.innerText = "";
+
+  const words = greetingText.split(" ");
+  let wordIndex = 0;
+
+  // Filter emojis out of structural initializer greeting utterance
+  const cleanGreetingText = greetingText.replace(/[^\x00-\x7F]/g, "").trim();
+  const utterance = new SpeechSynthesisUtterance(cleanGreetingText);
+  if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
+
+  utterance.rate = 1.0;  
+  utterance.pitch = 1.1; 
+
+  utterance.onstart = () => {
+    setWaveAnimationSpeed(true);
+    const typingInterval = setInterval(() => {
+      if (wordIndex < words.length) {
+        if (transcriptCanvas) transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
+        wordIndex++;
+      } else {
+        clearInterval(typingInterval);
+      }
+    }, 80);
+  };
+
+  utterance.onend = () => {
+    setWaveAnimationSpeed(false);
+    if (window.speechSynthesis.speaking === false) {
+      activateKairosVoiceOnDemand(); 
+    }
+  };
+
+  utterance.onerror = () => {
+    setWaveAnimationSpeed(false);
+    toggleDock(false);
+  };
+
+  kairosVoiceEngine.speak(utterance);
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+  // Fire Telegram telemetry silently on load
   sendVisitorDetailsToTelegram();
 
   const collapsedView = document.getElementById('collapsedView');
   if (collapsedView) {
     collapsedView.addEventListener('click', (e) => {
       e.stopPropagation();
-      // Keep this as a standard call since the function now handles its own async logic
       wakeUpKairosWithGreeting();
     });
   }
