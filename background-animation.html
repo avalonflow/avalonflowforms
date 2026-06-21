@@ -505,7 +505,7 @@ let conversationMemory = [];
 const SILENCE_WAIT_TIME = 3500; 
 const statusText = document.getElementById('status-text'); 
 
-const KAIROS_TITLE = "Kairos Assistant"; 
+const KAIROS_TITLE = "Kairos Intelligence"; 
 const KAIROS_AVATAR = 'https://api.dicebear.com/7.x/bottts/svg?seed=Kairos&backgroundColor=6b2cd8'; 
 
 const personality = {
@@ -779,8 +779,19 @@ function toggleDock(forcedState = null) {
     gatheredUserCommand = "";
     if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
 
-    if (dockStatusText) dockStatusText.innerText = "Kairos Assistant...";
-    if (statusText) statusText.innerText = "Kairos Assistant...";
+    // Monitor crossfade deck operations before modifying core visual targets
+    const deckA = document.getElementById('audioDeckA');
+    const deckB = document.getElementById('audioDeckB');
+    const isMusicPlaying = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
+
+    if (isMusicPlaying) {
+      if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
+      if (statusText) statusText.innerText = "Playing Audio Stream...";
+      setTimeout(() => setWaveAnimationSpeed(true), 200); 
+    } else {
+      if (dockStatusText) dockStatusText.innerText = KAIROS_TITLE + "...";
+      if (statusText) statusText.innerText = KAIROS_TITLE + "...";
+    }
   }
 }
 
@@ -1051,7 +1062,8 @@ async function processUserCommandLocally(commandText) {
   }
 
   if (commandText.trim().length === 0) {
-    speakResponse("I'm right here. Let me know what you need.");
+    // Left pure for fallback closing checks
+    toggleDock(false);
     return;
   }
 
@@ -1124,8 +1136,10 @@ function speakResponse(rawResponseText) {
   stopActiveKairosVoice();
   killSpeechEngineCompletely(); 
 
-  const spokenText = rawResponseText;
   const typedChatText = humanize(rawResponseText);
+
+  // Filter emojis out of the voice track to ensure Kairos doesn't read them aloud
+  const spokenText = rawResponseText.replace(/[^\x00-\x7F]/g, "").trim();
 
   conversationMemory.push({ role: "bot", content: typedChatText, time: Date.now() });
   if (conversationMemory.length > 10) conversationMemory.shift();
@@ -1137,8 +1151,15 @@ function speakResponse(rawResponseText) {
   if (!transcriptCanvas) return;
 
   transcriptCanvas.innerText = ""; 
-  const words = spokenText.split(" ");
+  const words = typedChatText.split(" ");
   let wordIndex = 0;
+
+  // Fallback safety if the string became completely blank after filtering emojis
+  if (!spokenText) {
+    isProcessingCommand = false;
+    activateKairosVoiceOnDemand();
+    return;
+  }
 
   const utterance = new SpeechSynthesisUtterance(spokenText);
   if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
@@ -1198,11 +1219,20 @@ function speakResponse(rawResponseText) {
 // ==========================================
 function botMusicReply(text, file) {
     const finalText = humanize(text);
-    speakResponse(finalText);
-
+    
     const deckA = document.getElementById('audioDeckA');
     const deckB = document.getElementById('audioDeckB');
     if (!deckA || !deckB) return;
+
+    // Interrupt with vocal confirmation ONLY if both decks are currently dead/paused
+    const isMusicCurrentlyPlaying = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
+    if (!isMusicCurrentlyPlaying) {
+        speakResponse(finalText);
+    } else {
+        // If a track is running, completely bypass vocal interruptions to keep crossfade pristine
+        const transcriptCanvas = document.getElementById('kairosTranscript');
+        if (transcriptCanvas) transcriptCanvas.innerText = text;
+    }
 
     let primaryDeck = activeDeck === deckA ? deckB : deckA;
     let secondaryDeck = activeDeck === deckA ? deckA : deckB;
@@ -1259,8 +1289,8 @@ function setupTrackEndMonitor(audioDeck) {
             console.log("🎵 Active audio system directory play queue has finished execution.");
             setWaveAnimationSpeed(false);
             const dockStatusText = document.getElementById('dockStatusText');
-            if (dockStatusText) dockStatusText.innerText = "Kairos Assistant...";
-            if (statusText) statusText.innerText = "Kairos Assistant...";
+            if (dockStatusText) dockStatusText.innerText = KAIROS_TITLE + "...";
+            if (statusText) statusText.innerText = KAIROS_TITLE + "...";
         }
     };
 }
@@ -1297,7 +1327,11 @@ function activateKairosVoiceOnDemand() {
   if (dockStatusText) dockStatusText.innerText = "Kairos is listening...";
   if (statusText) statusText.innerText = "Kairos is listening...";
   toggleDock(true);
-  if (transcriptCanvas) transcriptCanvas.innerText = "Listening for your command...";
+
+  // Clean UI structural loop formatting layout updates
+  if (transcriptCanvas) {
+    transcriptCanvas.innerHTML = "I'm right here let me know what you need<br><br><span style='opacity:0.6; font-size:0.9em;'>Listening</span>";
+  }
 
   if (navigator.vibrate) navigator.vibrate(40);
 
@@ -1341,8 +1375,10 @@ function activateKairosVoiceOnDemand() {
       isProcessingCommand = true; 
       killSpeechEngineCompletely();
 
+      // Clear structural pill frame fallback check
       if (!gatheredUserCommand || gatheredUserCommand.trim().length === 0) {
-        speakResponse("I'm right here. Let me know what you need.");
+        isProcessingCommand = false;
+        toggleDock(false); // Seamlessly drops pill down without looping voice threads
         return;
       }
 
@@ -1406,7 +1442,9 @@ function wakeUpKairosWithGreeting() {
   const words = greetingText.split(" ");
   let wordIndex = 0;
 
-  const utterance = new SpeechSynthesisUtterance(greetingText);
+  // Filter emojis out of structural initializer greeting utterance
+  const cleanGreetingText = greetingText.replace(/[^\x00-\x7F]/g, "").trim();
+  const utterance = new SpeechSynthesisUtterance(cleanGreetingText);
   if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
 
   utterance.rate = 1.0;  
@@ -1451,6 +1489,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
 
 
 
