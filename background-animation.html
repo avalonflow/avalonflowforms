@@ -949,7 +949,9 @@ async function processUserCommandLocally(commandText) {
           const nextFile = musicQueue[currentTrackIndex];
           if(deckA) deckA.ontimeupdate = null;
           if(deckB) deckB.ontimeupdate = null;
-          triggerCustomAudioPlayerMessage(nextFile);
+          
+          let trackTitle = nextFile.split('/').pop().replace('.mp3', '');
+          botMusicReply(`Skipping forward. Playing ${trackTitle}.`, nextFile);
       } else if (musicQueue.length > 0) {
           speakResponse("You've reached the end of the current playlist stream.");
       } else {
@@ -968,7 +970,9 @@ async function processUserCommandLocally(commandText) {
           const prevFile = musicQueue[currentTrackIndex];
           if(deckA) deckA.ontimeupdate = null;
           if(deckB) deckB.ontimeupdate = null;
-          triggerCustomAudioPlayerMessage(prevFile);
+          
+          let trackTitle = prevFile.split('/').pop().replace('.mp3', '');
+          botMusicReply(`Going back. Playing ${trackTitle}.`, prevFile);
       } else if (currentTrackIndex === 0) {
           speakResponse("This is the very first track in the queue.");
       } else {
@@ -980,7 +984,11 @@ async function processUserCommandLocally(commandText) {
   if (expectingMusicResponse) {
       expectingMusicResponse = false;
       if (/^(yes|yeah|yup|sure|ok|please)\b/.test(lowerCommand)) {
-          handleMusicIntent("yes"); 
+          musicQueue = [...audioLibrary];
+          currentTrackIndex = Math.floor(Math.random() * audioLibrary.length);
+          const randomFile = musicQueue[currentTrackIndex];
+          let trackTitle = randomFile.split('/').pop().replace('.mp3', '');
+          botMusicReply(`Playing a random track from your library: ${trackTitle}.`, randomFile);
       } else {
           speakResponse("No worries! What else can I help you with?");
       }
@@ -989,13 +997,25 @@ async function processUserCommandLocally(commandText) {
 
   if (lowerCommand.startsWith("play ") || lowerCommand.includes("play me") || lowerCommand === "play") {
       const searchTarget = lowerCommand.replace("play me", "").replace("play", "").trim().replace(/[^a-z0-9]/g, "");
-      const trackExists = audioLibrary.some(file => {
+      
+      const matchedFile = audioLibrary.find(file => {
           const cleanFile = file.toLowerCase().replace(/[^a-z0-9]/g, "");
           return cleanFile.includes(searchTarget) || searchTarget.includes(cleanFile);
       });
 
-      if (trackExists || searchTarget === "") {
-          handleMusicIntent(lowerCommand);
+      if (matchedFile) {
+          const trackIdx = audioLibrary.indexOf(matchedFile);
+          musicQueue = audioLibrary.slice(trackIdx);
+          currentTrackIndex = 0;
+          
+          let trackTitle = matchedFile.split('/').pop().replace('.mp3', '');
+          botMusicReply(`Playing ${trackTitle} for you.`, matchedFile);
+      } else if (searchTarget === "") {
+          musicQueue = [...audioLibrary];
+          currentTrackIndex = Math.floor(Math.random() * audioLibrary.length);
+          const randomFile = musicQueue[currentTrackIndex];
+          let trackTitle = randomFile.split('/').pop().replace('.mp3', '');
+          botMusicReply(`Playing a random track from your library: ${trackTitle}.`, randomFile);
       } else {
           expectingMusicResponse = true;
           speakResponse("I couldn't find that track inside the vault directory. Want me to play a random one from the library instead?");
@@ -1228,6 +1248,23 @@ function executeCrossfade(currentDeck, nextDeck, nextFile) {
     }, intervalTime);
 }
 
+function setupTrackEndMonitor(audioDeck) {
+    if (!audioDeck) return;
+    audioDeck.onended = () => {
+        if (musicQueue.length > 0 && currentTrackIndex < musicQueue.length - 1) {
+            currentTrackIndex++;
+            const nextFile = musicQueue[currentTrackIndex];
+            botMusicReply(`Moving to next track in queue.`, nextFile);
+        } else {
+            console.log("🎵 Active audio system directory play queue has finished execution.");
+            setWaveAnimationSpeed(false);
+            const dockStatusText = document.getElementById('dockStatusText');
+            if (dockStatusText) dockStatusText.innerText = "Kairos Assistant...";
+            if (statusText) statusText.innerText = "Kairos Assistant...";
+        }
+    };
+}
+
 // ==========================================
 // 9. HARDWARE VOICE RECOGNITION (DICTATION)
 // ==========================================
@@ -1414,6 +1451,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
 
 
         /* ---------- Floating Particles ---------- */
