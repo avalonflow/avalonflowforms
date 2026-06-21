@@ -1418,7 +1418,7 @@ function stopActiveKairosVoice() {
 // ==========================================
 // 10. INITIALIZATION & EVENT LOOP HOOKUPS
 // ==========================================
-function wakeUpKairosWithGreeting() {
+async function wakeUpKairosWithGreeting() {
   const dockWrap = document.querySelector('.assistant-dock-wrap');
   const isExpanded = dockWrap ? dockWrap.classList.contains('expanded') : false;
 
@@ -1432,55 +1432,15 @@ function wakeUpKairosWithGreeting() {
   const greetings = [
     "Hi, I'm Kairos. Tell me what you need.",
     "Hey there. Kairos online. How can I help you today?",
-    "Sup 😊 I’m Kairos. What's on your mind?",
+    "Sup, I’m Kairos. What's on your mind?",
     "Hello! Kairos here. Ready when you are.",
     "Hey! Kairos is active. What are we working on?"
   ];
 
   const greetingText = greetings[Math.floor(Math.random() * greetings.length)];
-
-  stopActiveKairosVoice();
-  killSpeechEngineCompletely();
-
-  const transcriptCanvas = document.getElementById('kairosTranscript');
-  if (transcriptCanvas) transcriptCanvas.innerText = "";
-
-  const words = greetingText.split(" ");
-  let wordIndex = 0;
-
-  const cleanGreetingText = greetingText.replace(/[^\x00-\x7F]/g, "").trim();
-  const utterance = new SpeechSynthesisUtterance(cleanGreetingText);
-  if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
-
-  // Sync initialization greetings with the deep, relaxed signature rate
-  utterance.rate = 0.88;  
-  utterance.pitch = 0.98; 
-
-  utterance.onstart = () => {
-    setWaveAnimationSpeed(true);
-    const typingInterval = setInterval(() => {
-      if (wordIndex < words.length) {
-        if (transcriptCanvas) transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
-        wordIndex++;
-      } else {
-        clearInterval(typingInterval);
-      }
-    }, 80);
-  };
-
-  utterance.onend = () => {
-    setWaveAnimationSpeed(false);
-    if (window.speechSynthesis.speaking === false) {
-      activateKairosVoiceOnDemand(); 
-    }
-  };
-
-  utterance.onerror = () => {
-    setWaveAnimationSpeed(false);
-    toggleDock(false);
-  };
-
-  kairosVoiceEngine.speak(utterance);
+  
+  // This now uses your new streaming matrix and handles the flow
+  await speakResponse(greetingText);
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -1490,6 +1450,7 @@ window.addEventListener('DOMContentLoaded', () => {
   if (collapsedView) {
     collapsedView.addEventListener('click', (e) => {
       e.stopPropagation();
+      // Keep this as a standard call since the function now handles its own async logic
       wakeUpKairosWithGreeting();
     });
   }
