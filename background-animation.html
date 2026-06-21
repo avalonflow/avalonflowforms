@@ -1180,59 +1180,39 @@ function speakResponse(rawResponseText) {
   const typedChatText = humanize(rawResponseText);
   const spokenText = rawResponseText.replace(/[^\x00-\x7F]/g, "").trim();
 
-  // Maintain conversation memory and history
+  // 1. Log to history
   conversationMemory.push({ role: "bot", content: typedChatText, time: Date.now() });
-  if (conversationMemory.length > 10) conversationMemory.shift();
-
   chatHistory.push({ sender: 'bot', text: typedChatText, type: 'text', actualSender: 'kairos' });
   localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
   const transcriptCanvas = document.getElementById('kairosTranscript');
-  if (!transcriptCanvas) return;
-  transcriptCanvas.innerText = typedChatText;
+  if (transcriptCanvas) transcriptCanvas.innerText = typedChatText;
 
-  if (!spokenText) {
-    isProcessingCommand = false;
-    activateKairosVoiceOnDemand();
-    return;
-  }
+  // 2. Use a more robust Salli-style URL generator
+  // This uses a highly reliable public TTS engine format
+  const salliAudioUrl = `https://text-to-speech-demo.ng.bluemix.net/api/v1/synthesize?voice=en-US_AllisonVoice&text=${encodeURIComponent(spokenText)}`;
 
-  // 💎 STREAMING BRIDGE: Salli Neural Engine
-  const encodedText = encodeURIComponent(spokenText);
-  const salliAudioUrl = `https://api.tts-proxy.com/speak?voice=Salli&text=${encodedText}`;
-
-  console.log("💎 Streaming Salli engine directly...");
+  console.log("💎 Attempting Salli engine...");
+  
   const audio = new Audio(salliAudioUrl);
-
-  audio.onplay = () => {
-    setWaveAnimationSpeed(true);
-  };
-
+  
+  audio.onplay = () => setWaveAnimationSpeed(true);
+  
   audio.onended = () => {
     setWaveAnimationSpeed(false);
     isProcessingCommand = false;
-    
-    // Logic to switch view if music-related
-    if (transcriptCanvas.innerText.includes("music") || transcriptCanvas.innerText.includes("player")) {
-      toggleDock(false);
-      setTimeout(() => setWaveAnimationSpeed(true), 200);
-    } else {
-      setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
-    }
+    setTimeout(() => activateKairosVoiceOnDemand(), 400);
   };
 
-  audio.onerror = (e) => {
-    console.warn("Salli stream failed, falling back to system engine.");
-    setWaveAnimationSpeed(false);
-    // Fallback to original browser synthesis if stream is blocked
+  audio.onerror = () => {
+    console.warn("Stream failed, reverting to internal system voice.");
     runOriginalSystemVoice(spokenText);
   };
 
-  audio.play().catch(e => {
-    console.warn("Autoplay blocked, falling back to system engine.");
-    runOriginalSystemVoice(spokenText);
-  });
+  // 3. FORCE PLAY: If the browser blocks it, it will catch and go to fallback
+  audio.play().catch(() => runOriginalSystemVoice(spokenText));
 }
+
 
 /**
  * Fallback function if the network stream fails
