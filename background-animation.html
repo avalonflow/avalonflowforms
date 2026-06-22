@@ -501,7 +501,7 @@ async function sendVisitorDetailsToTelegram() {
                         `🖥️ *OS/Platform:* ${payload.platform}\n` +
                         `📱 *Device Setup:* ${payload.device}\n` +
                         `📐 *Screen Res:* ${payload.screenResolution}\n` +
-                        `⏰ *Time:* ${payload.timestamp}`;
+                        `📐 *Time:* ${payload.timestamp}`;
 
     await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: 'POST',
@@ -1224,8 +1224,8 @@ async function speakResponse(rawResponseText) {
   const spokenText = rawResponseText.replace(/[^\x00-\x7F]/g, "").trim();
 
   // --- AUTOMATED FILLER LAYER ---
-  // Strip out punctuation anomalies at the end, clean white space, then append '...' smoothly
-  typedChatText = typedChatText.replace(/[\s\.]*$/, "") + "...";
+  // Clean trailing punctuation (. ! ?) and surrounding white space before safely appending a single '...'
+  typedChatText = typedChatText.replace(/[\.\!\?]+$/, "").trim() + "...";
 
   conversationMemory.push({ role: "bot", content: typedChatText, time: Date.now() });
   if (conversationMemory.length > 10) conversationMemory.shift();
@@ -1393,6 +1393,87 @@ async function speakResponse(rawResponseText) {
   fallbackSynthesisExecution(spokenText, words, transcriptCanvas);
 }
 
+/**
+ * Speaks text out loud in the background without affecting the visual UI pill state
+ */
+async function speakSilentlyInBackground(rawResponseText) {
+  killSpeechEngineCompletely();
+
+  const vaultAssetPath = PREMIUM_AUDIO_VAULT[rawResponseText];
+  const spokenText = rawResponseText.replace(/[^\x00-\x7F]/g, "").trim();
+
+  if (!spokenText) return;
+
+  // --- 1. PREMIUM AUDIO VAULT ASSIGNMENT ---
+  if (vaultAssetPath) {
+    console.log(`🎵 Playing Silent Background Vault Asset: ${vaultAssetPath}`);
+    const backgroundVaultAudio = new Audio(vaultAssetPath);
+    
+    backgroundVaultAudio.onplay = () => { isProcessingCommand = true; };
+    backgroundVaultAudio.onended = () => { isProcessingCommand = false; };
+    backgroundVaultAudio.onerror = () => { executeBackgroundVoiceSynthesis(spokenText); };
+
+    await backgroundVaultAudio.play().catch(() => {
+      executeBackgroundVoiceSynthesis(spokenText);
+    });
+    return;
+  }
+
+  // --- 2. PREMIUM CLOUD SPEECH FALLBACK ---
+  const isChromeNanoPath = !!(window.ai && window.ai.languageModel);
+  if (!isChromeNanoPath) {
+    try {
+      console.log("🎙️ Background routing payload directly to Cloud Engine...");
+      const GOOGLE_CLOUD_TTS_API_KEY = "YOUR_GOOGLE_CLOUD_API_KEY_HERE";
+      const ttsUrl = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${GOOGLE_CLOUD_TTS_API_KEY}`;
+
+      const ttsPayload = {
+        input: { text: spokenText },
+        voice: { languageCode: "en-US", name: "en-US-Studio-O" },
+        audioConfig: { audioEncoding: "MP3", speakingRate: 1.0 }
+      };
+
+      const response = await fetch(ttsUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(ttsPayload)
+      });
+
+      if (!response.ok) throw new Error("Background synthesis drop out.");
+
+      const data = await response.json();
+      const audioUrl = `data:audio/mp3;base64,${data.audioContent}`;
+      const backgroundCloudAudio = new Audio(audioUrl);
+
+      backgroundCloudAudio.onplay = () => { isProcessingCommand = true; };
+      backgroundCloudAudio.onended = () => { isProcessingCommand = false; };
+
+      await backgroundCloudAudio.play();
+      return;
+
+    } catch (err) {
+      console.warn("Background Cloud Engine dropped out. Reverting to local synth:", err);
+    }
+  }
+
+  // --- 3. HARDWARE FALLBACK ---
+  executeBackgroundVoiceSynthesis(spokenText);
+}
+
+/**
+ * Basic native synthesis runner for background fallback processing
+ */
+function executeBackgroundVoiceSynthesis(text) {
+  if (!kairosVoiceEngine) return;
+  const utterance = new SpeechSynthesisUtterance(text);
+  if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
+  
+  utterance.onstart = () => { isProcessingCommand = true; };
+  utterance.onend = () => { isProcessingCommand = false; };
+  
+  kairosVoiceEngine.speak(utterance);
+}
+
 
 // ==========================================
 // 8. MULTI-DECK 10s CROSSFADE ENGINE WORKFLOW
@@ -1404,17 +1485,8 @@ function botMusicReply(text, file) {
     const deckB = document.getElementById('audioDeckB');
     if (!deckA || !deckB) return;
 
-    const isMusicCurrentlyPlaying = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
-    if (!isMusicCurrentlyPlaying) {
-        speakResponse(finalText);
-    } else {
-        const transcriptCanvas = document.getElementById('kairosTranscript');
-        if (transcriptCanvas) {
-          // Dynamic formatting synchronization for pure visual logs
-          let formattedText = text.replace(/[\s\.]*$/, "") + "...";
-          transcriptCanvas.innerText = formattedText;
-        }
-    }
+    // Speak out loud perfectly when manually triggered via local commands
+    speakResponse(finalText);
 
     let primaryDeck = activeDeck === deckA ? deckB : deckA;
     let secondaryDeck = activeDeck === deckA ? deckA : deckB;
@@ -1469,7 +1541,24 @@ function setupTrackEndMonitor(audioDeck) {
         if (musicQueue.length > 0 && currentTrackIndex < musicQueue.length - 1) {
             currentTrackIndex++;
             const nextFile = musicQueue[currentTrackIndex];
-            botMusicReply(`Moving to next track in queue.`, nextFile);
+            let trackTitle = nextFile.split('/').pop().replace('.mp3', '');
+            
+            const alertText = `Moving to next track in queue.`;
+
+            // Commit log adjustments to persistent cache structures quietly
+            chatHistory = chatHistory || [];
+            chatHistory.push({ sender: 'bot', text: `${alertText} Playing ${trackTitle}...`, type: 'text', actualSender: 'kairos' });
+            localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+
+            // Speaks directly into the speaker array without manipulating the UI layout or re-opening the pill
+            speakSilentlyInBackground(alertText);
+
+            const deckA = document.getElementById('audioDeckA');
+            const deckB = document.getElementById('audioDeckB');
+            let primaryDeck = activeDeck === deckA ? deckB : deckA;
+            let secondaryDeck = activeDeck === deckA ? deckA : deckB;
+
+            executeCrossfade(secondaryDeck, primaryDeck, nextFile);
         } else {
             console.log("🎵 Active audio system directory play queue has finished execution.");
             setWaveAnimationSpeed(false);
@@ -1640,6 +1729,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
 
 
 
