@@ -1189,7 +1189,7 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
 }
 
 // ====================================================================
-// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (FLICKER PROTECTION LAYER)
+// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (FLICKER PROTECTION FIXED)
 // ====================================================================
 async function speakResponse(rawResponseText) {
   // Clear any existing rendering loops before changing base structure values
@@ -1226,6 +1226,23 @@ async function speakResponse(rawResponseText) {
     return;
   }
 
+  // --- FIXED TYPEWRITER INJECTION PIPELINE FUNCTION ---
+  function startSynchronizedTypewriter() {
+    if (activeTypingInterval) clearInterval(activeTypingInterval);
+    transcriptCanvas.innerText = ""; // Clear canvas EXACTLY when typing loop starts safely
+    setWaveAnimationSpeed(true);
+
+    activeTypingInterval = setInterval(() => {
+      if (wordIndex < words.length) {
+        transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
+        wordIndex++;
+      } else {
+        clearInterval(activeTypingInterval);
+        activeTypingInterval = null;
+      }
+    }, 80);
+  }
+
   // --- VAULT PIPELINE FOR HIGH QUALITY AUDIO ASSETS ---
   if (vaultAssetPath) {
     console.log(`🎵 Playing Premium Vault Audio Asset directly: ${vaultAssetPath}`);
@@ -1233,18 +1250,7 @@ async function speakResponse(rawResponseText) {
     let firedFallback = false; 
 
     nativeVaultAudio.onplay = () => {
-      setWaveAnimationSpeed(true);
-      transcriptCanvas.innerText = ""; 
-
-      activeTypingInterval = setInterval(() => {
-        if (wordIndex < words.length) {
-          transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
-          wordIndex++;
-        } else {
-          clearInterval(activeTypingInterval);
-          activeTypingInterval = null;
-        }
-      }, 80);
+      startSynchronizedTypewriter(); // Fire text generation directly synchronized to active playback audio stream
     };
 
     nativeVaultAudio.onended = () => {
@@ -1316,18 +1322,7 @@ async function speakResponse(rawResponseText) {
       const nativeCloudAudio = new Audio(audioUrl);
 
       nativeCloudAudio.onplay = () => {
-        setWaveAnimationSpeed(true);
-        transcriptCanvas.innerText = ""; 
-
-        activeTypingInterval = setInterval(() => {
-          if (wordIndex < words.length) {
-            transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
-            wordIndex++;
-          } else {
-            clearInterval(activeTypingInterval);
-            activeTypingInterval = null;
-          }
-        }, 80);
+        startSynchronizedTypewriter(); // Hook into structural play event safely
       };
 
       nativeCloudAudio.onended = () => {
@@ -1362,6 +1357,7 @@ async function speakResponse(rawResponseText) {
   console.log("💻 Local browser speech synthesis framework card initialized.");
   fallbackSynthesisExecution(spokenText, words, transcriptCanvas);
 }
+
 
 /**
  * Speaks text out loud in the background without affecting the visual UI pill state
