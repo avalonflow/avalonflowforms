@@ -1526,15 +1526,13 @@ function setupTrackEndMonitor(audioDeck) {
             currentTrackIndex++;
             const nextFile = musicQueue[currentTrackIndex];
             let trackTitle = nextFile.split('/').pop().replace('.mp3', '');
-            
+
             const alertText = `Moving to next track in queue.`;
 
-            // Commit log adjustments to persistent cache structures quietly
             chatHistory = chatHistory || [];
             chatHistory.push({ sender: 'bot', text: `${alertText} Playing ${trackTitle}...`, type: 'text', actualSender: 'kairos' });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
-            // Speaks directly into the speaker array without manipulating the UI layout or re-opening the pill
             speakSilentlyInBackground(alertText);
 
             const deckA = document.getElementById('audioDeckA');
@@ -1553,7 +1551,6 @@ function setupTrackEndMonitor(audioDeck) {
     };
 }
 
-// Global safety switch to make sure mic cuts off cleanly
 function killSpeechEngineCompletely() {
   isKairosListeningActive = false;
   if (kairosSpeechRecognizer) {
@@ -1611,7 +1608,9 @@ function activateKairosVoiceOnDemand() {
     if (processedText.length > 0) {
       gatheredUserCommand = processedText;
       if (transcriptCanvas) transcriptCanvas.innerText = processedText + "...";
-      resetSilenceTimer(SILENCE_WAIT_TIME);
+      
+      // Dynamic shift: Comfortably waits for 7 seconds during mid-speech pauses
+      resetSilenceTimer(7000);
     }
   };
 
@@ -1624,7 +1623,7 @@ function activateKairosVoiceOnDemand() {
     }
   };
 
-  function resetSilenceTimer(customWaitTime = 2000) {
+  function resetSilenceTimer(customWaitTime = 7000) {
     if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
     voiceSilenceTimer = setTimeout(() => {
       isProcessingCommand = true; 
@@ -1636,19 +1635,24 @@ function activateKairosVoiceOnDemand() {
         return;
       }
 
+      // ⚡ IMMEDIATE TRANSITION: Display "Thinking..." the exact moment silence threshold hits
+      if (transcriptCanvas) {
+        transcriptCanvas.innerText = "Thinking...";
+      }
+
       conversationMemory.push({ role: "user", content: gatheredUserCommand, time: Date.now() });
-      
-      // Clean chat logs tracking input array structures safely
+
       chatHistory = chatHistory || [];
       chatHistory.push({ sender: 'user', text: gatheredUserCommand, type: "text" });
       localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
+      // Pass along to processing functions while keeping "Thinking..." locked on the layout canvas
       processUserCommandLocally(gatheredUserCommand);
       gatheredUserCommand = ""; 
     }, customWaitTime);
   }
 
-  // Initial activation timeout padded slightly to allow 12 seconds before first syllable
+  // Keep the long 12-second initial hold open for microphone initialization
   resetSilenceTimer(12000);
 
   try {
@@ -1658,6 +1662,7 @@ function activateKairosVoiceOnDemand() {
     console.error("Context error initializing speech framework components:", e);
   }
 }
+
 
 function stopActiveKairosVoice() {
   if (kairosVoiceEngine) kairosVoiceEngine.cancel();
