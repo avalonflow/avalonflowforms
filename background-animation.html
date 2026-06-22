@@ -532,6 +532,8 @@ let voiceSilenceTimer = null;
 let gatheredUserCommand = "";
 let isProcessingCommand = false;
 
+let activeTypingInterval = null; // Global anchor tracking to stop text overlapping and duplicate generation loops
+
 let chatHistory = JSON.parse(localStorage.getItem('tg_chat_history_v3')) || [];
 let kairosChatHistory = []; 
 let conversationMemory = []; 
@@ -557,14 +559,14 @@ let expectingMusicResponse = false;
 const PREMIUM_AUDIO_VAULT = {
   // Greetings
   "Hey there, i'm online how can i help you today?": "assets/audio/vault/greeting_2.mp3",
-  "Hello, i'm here ready when you are": "assets/audio/vault/hello_kairos_here.mp3",
-  "Hey, i'm active what are we working on?": "assets/audio/vault/hey_kairos_active.mp3",
+  "Hello, i'm here ready when you are..": "assets/audio/vault/hello_kairos_here.mp3",
+  "Hey i'm active what are we working on?": "assets/audio/vault/hey_kairos_active.mp3",
   "Yo! How can I help you today?": "assets/audio/vault/greeting_1.mp3",
   "Sup. What's on your mind?": "assets/audio/vault/greeting_3.mp3",
   "Great to see you! Drop your task here and let's get it done..": "assets/audio/vault/greeting_4.mp3",
-  "What's the play for today? I'm ready when you are..": "assets/audio/vault/greeting_5.mp3",
+  "What's the play for today? I'm ready when you are": "assets/audio/vault/greeting_5.mp3",
   "Yo! How can I help make things smoother today?": "assets/audio/vault/greeting_6.mp3",
-  "Ready to assist. Please let me know what you need..": "assets/audio/vault/greeting_7.mp3",
+  "Ready to assist. Please let me know what you need.": "assets/audio/vault/greeting_7.mp3",
   "Hey! What are we diving into today?": "assets/audio/vault/greeting_8.mp3",
 
   // Core System & Media Vault Fallbacks
@@ -1096,10 +1098,10 @@ async function processUserCommandLocally(commandText) {
 
     if (needsEscalation) {
       const escalationMessage = "That requires priority authorization. Hold on a moment while I connect your session directly with Sarah from Nobu Hospitality LLC...";
-      
+
       // Speak response visually and verbally matching interface reference file 1000722474.jpg
       speakResponse(escalationMessage);
-      
+
       if (transcriptCanvas) {
         transcriptCanvas.innerHTML = `<strong>${escalationMessage}</strong><br><br><span style='opacity:0.6; font-size:0.9em;'>Connecting you with Sarah in a bit...</span>`;
       }
@@ -1180,6 +1182,12 @@ async function speakResponse(rawResponseText) {
   stopActiveKairosVoice();
   killSpeechEngineCompletely(); 
 
+  // Wipe out any overlapping intervals before initiating text render
+  if (activeTypingInterval) {
+    clearInterval(activeTypingInterval);
+    activeTypingInterval = null;
+  }
+
   // Check if the response matches a key asset inside the Premium Vault Audio Directory
   const vaultAssetPath = PREMIUM_AUDIO_VAULT[rawResponseText];
 
@@ -1210,15 +1218,20 @@ async function speakResponse(rawResponseText) {
   if (vaultAssetPath) {
     console.log(`🎵 Playing Premium Vault Audio Asset directly: ${vaultAssetPath}`);
     const nativeVaultAudio = new Audio(vaultAssetPath);
+    let firedFallback = false; // Flag safeguard to prevent dual execution paths from firing together
 
     nativeVaultAudio.onplay = () => {
       setWaveAnimationSpeed(true);
-      const typingInterval = setInterval(() => {
+      
+      if (activeTypingInterval) clearInterval(activeTypingInterval);
+      
+      activeTypingInterval = setInterval(() => {
         if (wordIndex < words.length) {
           transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
           wordIndex++;
         } else {
-          clearInterval(typingInterval);
+          clearInterval(activeTypingInterval);
+          activeTypingInterval = null;
         }
       }, 80);
     };
@@ -1239,12 +1252,17 @@ async function speakResponse(rawResponseText) {
     };
 
     nativeVaultAudio.onerror = () => {
+      if (firedFallback) return;
+      firedFallback = true;
+      if (activeTypingInterval) clearInterval(activeTypingInterval);
       console.warn("Vault asset file missed or rejected. Routing to fallback execution matrix...");
-      // Revert down to standard synthesis execution safely if file breaks
       fallbackSynthesisExecution(spokenText, words, transcriptCanvas);
     };
 
     await nativeVaultAudio.play().catch(() => {
+      if (firedFallback) return;
+      firedFallback = true;
+      if (activeTypingInterval) clearInterval(activeTypingInterval);
       fallbackSynthesisExecution(spokenText, words, transcriptCanvas);
     });
     return;
@@ -1265,10 +1283,10 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
     // ROUTE TO: Google Cloud Speech Synthesis API (Premium High-Fidelity Studio Voice Engine)
     try {
       console.log("🎙️ Routing text payload directly to Google Cloud Premium Speech Engine...");
-      
+
       const GOOGLE_CLOUD_TTS_API_KEY = "YOUR_GOOGLE_CLOUD_API_KEY_HERE";
       const ttsUrl = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${GOOGLE_CLOUD_TTS_API_KEY}`;
-      
+
       let voiceRate = 1.0;
       if (personality.tone === "calm" || personality.userMood === "frustrated") voiceRate = 0.95;
       else if (personality.tone === "friendly") voiceRate = 1.05;
@@ -1298,12 +1316,16 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
 
         nativeCloudAudio.onplay = () => {
           setWaveAnimationSpeed(true);
-          const typingInterval = setInterval(() => {
+          
+          if (activeTypingInterval) clearInterval(activeTypingInterval);
+          
+          activeTypingInterval = setInterval(() => {
             if (wordIndex < words.length) {
               transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
               wordIndex++;
             } else {
-              clearInterval(typingInterval);
+              clearInterval(activeTypingInterval);
+              activeTypingInterval = null;
             }
           }, 80);
         };
@@ -1346,12 +1368,16 @@ function runLocalSynthesisFallback(spokenText, words, transcriptCanvas) {
 
   utterance.onstart = () => {
     setWaveAnimationSpeed(true);
-    const typingInterval = setInterval(() => {
+    
+    if (activeTypingInterval) clearInterval(activeTypingInterval);
+    
+    activeTypingInterval = setInterval(() => {
       if (wordIndex < words.length) {
         transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
         wordIndex++;
       } else {
-        clearInterval(typingInterval);
+        clearInterval(activeTypingInterval);
+        activeTypingInterval = null;
       }
     }, 80);
   };
@@ -1606,7 +1632,7 @@ function wakeUpKairosWithGreeting() {
   if (transcriptCanvas) transcriptCanvas.innerText = "";
 
   const cleanGreetingText = greetingText.replace(/[^\x00-\x7F]/g, "").trim();
-  
+
   // Directly pipeline the static initializer phrase to speakResponse execution
   speakResponse(cleanGreetingText);
 }
@@ -1622,7 +1648,6 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-
 
 
 
