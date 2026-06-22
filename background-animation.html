@@ -1210,14 +1210,17 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
 }
 
 // ====================================================================
-// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (CHROME NANO / CLOUD PATHS)
+// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (FIXED DUPED TEXT BUG)
 // ====================================================================
 async function speakResponse(rawResponseText) {
   stopActiveKairosVoice();
   killSpeechEngineCompletely(); 
 
-  const typedChatText = humanize(rawResponseText);
-  // Filter emojis out of the voice track text content
+  // --- BUG FIX: Check if it's an exact vault match first before adding random humanized fillers ---
+  const vaultAssetPath = PREMIUM_AUDIO_VAULT[rawResponseText];
+  
+  // If it's a premium vault audio asset, don't double-humanize it!
+  const typedChatText = vaultAssetPath ? rawResponseText : humanize(rawResponseText);
   const spokenText = rawResponseText.replace(/[^\x00-\x7F]/g, "").trim();
 
   conversationMemory.push({ role: "bot", content: typedChatText, time: Date.now() });
@@ -1240,8 +1243,6 @@ async function speakResponse(rawResponseText) {
   }
 
   // --- VAULT PIPELINE FOR HIGH QUALITY AUDIO ASSETS ---
-  const vaultAssetPath = PREMIUM_AUDIO_VAULT[rawResponseText];
-
   if (vaultAssetPath) {
     console.log(`🎵 Playing Premium Vault Audio Asset directly: ${vaultAssetPath}`);
     const nativeVaultAudio = new Audio(vaultAssetPath);
@@ -1298,7 +1299,6 @@ async function speakResponse(rawResponseText) {
   const isChromeNanoPath = !!(window.ai && window.ai.languageModel);
 
   if (!isChromeNanoPath) {
-    // ROUTE TO: Google Cloud Speech Synthesis API (Premium High-Fidelity Studio Voice Engine)
     try {
       console.log("🎙️ Routing text payload directly to Google Cloud Premium Speech Engine...");
 
@@ -1377,10 +1377,10 @@ async function speakResponse(rawResponseText) {
     }
   }
 
-  // ROUTE TO: Standard Local Browser Synthesis Card System
   console.log("💻 Local browser speech synthesis framework card initialized.");
   fallbackSynthesisExecution(spokenText, words, transcriptCanvas);
 }
+
 
 // ==========================================
 // 8. MULTI-DECK 10s CROSSFADE ENGINE WORKFLOW
