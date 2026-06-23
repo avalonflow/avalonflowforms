@@ -1682,7 +1682,7 @@ if (nextBtn) {
 
         let hasError = false;
 
-        const locationValue = window.jQuery ? $('#location').val() : locationEl.value;
+        const locationValue = window.jQuery ? $('#location').val() : (document.getElementById('location') ? document.getElementById('location').value : '');
 
         const fields = [
             { el: fullName },
@@ -1727,9 +1727,18 @@ if (nextBtn) {
         }
 
         saveSection2();
-        window.location.href = "https://link.avalonflow.site/Kairos-System";
+
+        // 1. Get the raw full name value and trim any accidental spacing
+        const nameValue = fullName.value.trim();
+        
+        // 2. Safely encode the name for use in a URL query string
+        const encodedName = encodeURIComponent(nameValue);
+
+        // 3. Redirect with the dynamic user parameter
+        window.location.href = `https://link.avalonflow.site/Kairos-System?user=${encodedName}`;
     };
 }
+
 
 /* =========================
 FINGERPRINT
