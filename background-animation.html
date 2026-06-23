@@ -781,29 +781,29 @@ function toggleDock(forcedState = null) {
       expandedView.classList.remove('d-none');
     }, 150);
   } else {
+    const deckA = document.getElementById('audioDeckA');
+    const deckB = document.getElementById('audioDeckB');
+    const isMusicPlaying = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
+
+    // INTERCEPT SYSTEM: If music is running, bypass shutdown loop and trigger mic array
+    if (isMusicPlaying) {
+      setTimeout(() => { activateKairosVoiceOnDemand(); }, 50);
+      return;
+    }
+
     stopActiveKairosVoice();
     killSpeechEngineCompletely();
 
     dockWrap.classList.remove('expanded');
-    expandedView.classList.add('d-none');
+    expandedView.add('d-none');
     collapsedView.classList.remove('d-none');
 
     isProcessingCommand = false;
     gatheredUserCommand = "";
     if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
 
-    const deckA = document.getElementById('audioDeckA');
-    const deckB = document.getElementById('audioDeckB');
-    const isMusicPlaying = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
-
-    if (isMusicPlaying) {
-      if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
-      if (statusText) statusText.innerText = "Playing Audio Stream...";
-      setTimeout(() => setWaveAnimationSpeed(true), 200); 
-    } else {
-      if (dockStatusText) dockStatusText.innerText = KAIROS_TITLE + "...";
-      if (statusText) statusText.innerText = KAIROS_TITLE + "...";
-    }
+    if (dockStatusText) dockStatusText.innerText = KAIROS_TITLE + "...";
+    if (statusText) statusText.innerText = KAIROS_TITLE + "...";
   }
 }
 
@@ -899,7 +899,6 @@ function adaptTone(msg) {
 
 function humanize(text) {
   if (!text) return "";
-  // Check if text exists exactly inside vault to prevent corrupting lookup keys
   if (PREMIUM_AUDIO_VAULT[text]) return text;
   
   const fillers = ["", "", "Alright… ", "Okay, so ", "Got it. ", "Hmm, ", "Let me see… ", "Right, ", "Makes sense. "];
@@ -1067,9 +1066,9 @@ async function processUserCommandLocally(commandText) {
     return;
   }
 
-  // ====================================================================
+  // ==========================================
   // 6a. LIVE CHAT ESCALATION LAYER
-  // ====================================================================
+  // ==========================================
   const localFAQMatch = findFAQByIntent(commandText);
 
   if (!localFAQMatch) {
@@ -1172,7 +1171,8 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
         transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
         wordIndex++;
       } else {
-        if (!transcriptCanvas.innerText.endsWith("...")) {
+        // ELLIPSIS FIX: Append '...' only if string text does not terminate in explicit punctuation marks
+        if (!/[\.\!\?]$/.test(transcriptCanvas.innerText)) {
           transcriptCanvas.innerText += "...";
         }
         clearInterval(activeTypingInterval);
@@ -1184,13 +1184,12 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
     setWaveAnimationSpeed(false);
     isProcessingCommand = false;
     
-    // Check if music started playing while speaking was finishing up
     const deckA = document.getElementById('audioDeckA');
     const deckB = document.getElementById('audioDeckB');
     const isMusicActive = (deckA && !deckA.paused) || (deckB && !deckB.paused);
     
     if (isMusicActive) {
-      toggleDock(false); 
+      // Do not collapse UI components during running stream events
     } else {
       setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
     }
@@ -1199,9 +1198,9 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
   kairosVoiceEngine.speak(utterance);
 }
 
-// ====================================================================
+// ==========================================
 // 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX
-// ====================================================================
+// ==========================================
 async function speakResponse(rawResponseText) {
   stopActiveKairosVoice();
   killSpeechEngineCompletely(); 
@@ -1211,7 +1210,10 @@ async function speakResponse(rawResponseText) {
   const spokenText = rawResponseText.replace(/[^\x00-\x7F]/g, "").trim();
 
   if (!vaultAssetPath) {
-    typedChatText = typedChatText.replace(/[\.\!\?]+$/, "").trim() + "...";
+    // ELLIPSIS FIX: Filter terminal trailing points responsibly
+    if (!/[\.\!\?]$/.test(typedChatText)) {
+      typedChatText = typedChatText.replace(/[\.\!\?]+$/, "").trim() + "...";
+    }
   }
 
   conversationMemory.push({ role: "bot", content: typedChatText, time: Date.now() });
@@ -1265,7 +1267,6 @@ async function speakResponse(rawResponseText) {
       const isMusicActive = (deckA && !deckA.paused) || (deckB && !deckB.paused);
 
       if (isMusicActive || transcriptCanvas.innerText.includes("Playing") || transcriptCanvas.innerText.includes("track")) {
-        toggleDock(false); 
         if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
         if (statusText) statusText.innerText = "Playing Audio Stream...";
         setTimeout(() => setWaveAnimationSpeed(true), 200); 
@@ -1344,7 +1345,6 @@ async function speakResponse(rawResponseText) {
         const isMusicActive = (deckA && !deckA.paused) || (deckB && !deckB.paused);
 
         if (isMusicActive) {
-          toggleDock(false); 
           if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
           if (statusText) statusText.innerText = "Playing Audio Stream...";
           setTimeout(() => setWaveAnimationSpeed(true), 200); 
@@ -1401,7 +1401,6 @@ function botMusicReply(statusNotification, file) {
     const deckB = document.getElementById('audioDeckB');
     if (!deckA || !deckB) return;
 
-    // Use a unified string to update transcript canvases without adding duplicate strings
     speakResponse(uiDisplayMessage);
 
     let primaryDeck = activeDeck === deckA ? deckB : deckA;
@@ -1508,7 +1507,16 @@ function activateKairosVoiceOnDemand() {
 
   if (dockStatusText) dockStatusText.innerText = "Kairos is listening...";
   if (statusText) statusText.innerText = "Kairos is listening...";
-  toggleDock(true);
+  
+  // Ensure we bypass standard toggle behavior cleanly
+  const dockWrap = document.querySelector('.assistant-dock-wrap');
+  const collapsedView = document.getElementById('collapsedView');
+  const expandedView = document.getElementById('expandedView');
+  if (dockWrap && collapsedView && expandedView) {
+    dockWrap.classList.add('expanded');
+    collapsedView.classList.add('d-none');
+    expandedView.classList.remove('d-none');
+  }
 
   if (transcriptCanvas) {
     transcriptCanvas.innerHTML = "I'm right here let me know what you need<br><br><span style='opacity:0.6; font-size:0.9em;'>Listening</span>";
@@ -1518,7 +1526,6 @@ function activateKairosVoiceOnDemand() {
 
   kairosSpeechRecognizer = new SpeechRecognition();
   kairosSpeechRecognizer.continuous = true;
-  // Set interimResults to false to resolve speech cut-offs and play back duplication errors
   kairosSpeechRecognizer.interimResults = false; 
   kairosSpeechRecognizer.lang = 'en-US';
 
@@ -1536,8 +1543,6 @@ function activateKairosVoiceOnDemand() {
     if (processedText.length > 0) {
       gatheredUserCommand = processedText;
       if (transcriptCanvas) transcriptCanvas.innerText = processedText + "...";
-      
-      // Fixed: Extended the response buffer to give 2.5 seconds of silence before processing strings
       resetSilenceTimer(2500);
     }
   };
@@ -1574,7 +1579,6 @@ function activateKairosVoiceOnDemand() {
     }, customWaitTime);
   }
 
-  // Large initial time window for voice detection startup delay
   resetSilenceTimer(10000);
 
   try {
@@ -1635,10 +1639,21 @@ window.addEventListener('DOMContentLoaded', () => {
   if (collapsedView) {
     collapsedView.addEventListener('click', (e) => {
       e.stopPropagation();
-      wakeUpKairosWithGreeting();
+      
+      const deckA = document.getElementById('audioDeckA');
+      const deckB = document.getElementById('audioDeckB');
+      const isMusicPlaying = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
+
+      // INTERCEPT SYSTEM: Force active microphones over active streams directly on click
+      if (isMusicPlaying) {
+        activateKairosVoiceOnDemand();
+      } else {
+        wakeUpKairosWithGreeting();
+      }
     });
   }
 });
+
 
 
 
