@@ -51,6 +51,7 @@
     <script>
     (function() {
         const SecurityEngine = {
+
             validateExecutionEnvironment: function() {
                 const authorizedDomain = "avalonflow.site";
                 const currentHost = window.location.hostname;
@@ -65,71 +66,6 @@
 
             get404Template: function() {
                 return `
-                    <style>
-                        body { 
-                            font-family: 'Georgia', sans-serif;  
-                            background: radial-gradient(circle at 15% 25%, #4c1d95 0%, #1e1b4b 25%, transparent 60%),
-                                        radial-gradient(circle at 85% 75%, #005f73 0%, #0a2f35 30%, transparent 60%),
-                                        #05070a;
-                            background-size: 180% 180%;
-                            animation: ambientPulse 10s ease-in-out infinite;
-                            color: #c9d1d9; 
-                            display: flex;
-                            flex-direction: column;
-                            justify-content: center;
-                            align-items: center;
-                            height: 100vh;
-                            margin: 0; 
-                            padding: 20px;
-                            box-sizing: border-box;
-                            text-align: center;
-                            overflow: hidden;
-                            visibility: visible !important; 
-                        }
-                        
-                        @keyframes ambientPulse {
-                            0% { background-position: 0% 10%; }
-                            50% { background-position: 100% 90%; }
-                            100% { background-position: 0% 10%; }
-                        }
-
-                        .error-container { max-width: 500px; }
-                        
-                        .error-code-wrapper {
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 140px;
-                            font-weight: 600;
-                            line-height: 1;
-                            letter-spacing: -2px;
-                            color: #f0f6fc;
-                            user-select: none;
-                            margin-bottom: 24px;
-                            text-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
-                        }
-                        
-                        .logo-container {
-                            width: 130px;
-                            height: 130px;
-                            margin: 0 10px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            border-radius: 50%;
-                            overflow: hidden; 
-                            box-shadow: 0 0 35px rgba(168, 85, 247, 0.4);
-                            animation: logoGlow 4s ease-in-out infinite alternate;
-                        }
-                        
-                        @keyframes logoGlow {
-                            0% { box-shadow: 0 0 25px rgba(168, 85, 247, 0.3); }
-                            100% { box-shadow: 0 0 55px rgba(192, 132, 252, 0.6); }
-                        }
-
-                        .logo-img { width: 100%; height: 100%; object-fit: cover; }
-                        h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; color: #f0f6fc; }
-                    </style>
                     <div class="error-container">
                         <div class="error-code-wrapper">
                             <span>4</span>
@@ -147,7 +83,7 @@
                 localStorage.clear();
                 sessionStorage.clear();
                 document.body.innerHTML = this.get404Template();
-                document.body.style.visibility = 'visible'; 
+                document.body.classList.add('render-ready');
                 try { window.open('', '_self').close(); } catch (e) {}
                 this.activateInspectorTrap();
                 this.activateEnvironmentSabotage();
@@ -182,7 +118,8 @@
                 const incomingOTK = urlParams.get('otk');
 
                 if (urlToken) {
-                    if (urlToken === localStorage.getItem('_sys_reset_token') && Date.now() < parseInt(localStorage.getItem('_sys_reset_expiry') || 0, 10)) {
+                    if (urlToken === localStorage.getItem('_sys_reset_token') &&
+                        Date.now() < parseInt(localStorage.getItem('_sys_reset_expiry') || 0, 10)) {
                         this.establish7DayClearance();
                         this.executeSystemRevival();
                         return true; 
@@ -194,7 +131,8 @@
                 if (incomingOTK) {
                     try {
                         const [entropy, expirationTimestamp] = atob(incomingOTK).split('.');
-                        if (Date.now() > parseInt(expirationTimestamp, 10) || localStorage.getItem('active_session_otk') !== incomingOTK) {
+                        if (Date.now() > parseInt(expirationTimestamp, 10) ||
+                            localStorage.getItem('active_session_otk') !== incomingOTK) {
                             this.triggerSelfDestruct();
                             return false;
                         }
@@ -202,7 +140,10 @@
                         this.establish7DayClearance();
                         this.executeSystemRevival();
                         return true;
-                    } catch (e) { this.triggerSelfDestruct(); return false; }
+                    } catch (e) {
+                        this.triggerSelfDestruct();
+                        return false;
+                    }
                 }
                 return false;
             },
@@ -219,7 +160,8 @@
             getHardwareID: function() {
                 const components = [navigator.userAgent, navigator.platform, screen.width, screen.height].join('|');
                 let hash = 0;
-                for (let i = 0; i < components.length; i++) hash = ((hash << 5) - hash) + components.charCodeAt(i);
+                for (let i = 0; i < components.length; i++)
+                    hash = ((hash << 5) - hash) + components.charCodeAt(i);
                 return '1' + (hash | 0).toString(16); 
             },
 
@@ -227,62 +169,106 @@
                 return navigator.userAgent.includes("Corporate-Gateway") ? 'GOVERNMENT' : 'PRIVATE';
             },
 
-            activateInspectorTrap: function() { 
-                setInterval(() => { debugger; }, 50); 
+            activateInspectorTrap: function() {
+                setInterval(() => { debugger; }, 50);
             },
 
             activateEnvironmentSabotage: function() {
                 console.log = console.warn = console.error = console.info = () => {};
                 setInterval(() => {
+                    const paths = ['4|1|3|0|2'.split('|')];
                     let pointer = 0;
                     while (true) {
                         switch (['4','1','3','0','2'][pointer++]) {
-                            case '0': try { (function stackTrap(i) { if (("" + i/i)["length"] !== 1 || i % 20 === 0) (function(){}).constructor("debugger")(); else stackTrap(++i); })(0); } catch(e) {} continue;
-                            case '1': if (Math.random() > 0.5) window.status = 'VALIDATING'; continue;
-                            case '2': return;
-                            case '3': if (window.outerHeight - window.innerHeight > 160 || window.outerWidth - window.innerWidth > 160) this.triggerSelfDestruct(); continue;
-                            case '4': (Date.now() % 1000) * 0x5a1b; continue;
+                            case '0':
+                                try {
+                                    (function stackTrap(i) {
+                                        if (("" + i/i)["length"] !== 1 || i % 20 === 0)
+                                            (function(){}).constructor("debugger")();
+                                        else stackTrap(++i);
+                                    })(0);
+                                } catch(e) {}
+                                continue;
+
+                            case '1':
+                                if (Math.random() > 0.5)
+                                    window.status = 'VALIDATING';
+                                continue;
+
+                            case '2':
+                                return;
+
+                            case '3':
+                                if (window.outerHeight - window.innerHeight > 160 ||
+                                    window.outerWidth - window.innerWidth > 160)
+                                    this.triggerSelfDestruct();
+                                continue;
+
+                            case '4':
+                                (Date.now() % 1000) * 0x5a1b;
+                                continue;
                         }
                         break;
                     }
                 }, 200); 
             },
 
-            renderNativeApplication: function(agencyType) {
+            // ✅ IFRAME REMOVED — NOW DIRECT INJECTION
+            injectSecureApp: function(agencyType) {
                 const payload = document.getElementById('hidden-application-payload');
-                if (!payload || !payload.innerHTML.trim()) { this.triggerSelfDestruct(); return; }
-                
-                const applicationHTML = payload.innerHTML;
 
-                document.open();
+                if (!payload || !payload.innerHTML.trim()) {
+                    this.triggerSelfDestruct();
+                    return;
+                }
+
                 window.AUTHORIZED_AGENCY = agencyType;
-                document.write(applicationHTML);
-                document.close();
+
+                document.body.innerHTML = payload.innerHTML;
+
+                document.body.classList.add('render-ready');
             },
 
             run: function() {
                 if (!this.validateExecutionEnvironment()) return;
 
                 this.activateResetListener();
+
                 if (this.checkResetValidation()) return;
 
                 const id = this.getHardwareID();
                 const type = this.detectAgencyProfile();
-                
-                if (this.isPersistenceWindowActive() || ((id.startsWith('a') || id.startsWith('1')) && (type === 'GOVERNMENT' || type === 'PRIVATE'))) {
-                    this.activateInspectorTrap();         
-                    this.activateEnvironmentSabotage();   
-                    document.readyState === 'loading' ? window.addEventListener('DOMContentLoaded', () => this.renderNativeApplication(type)) : this.renderNativeApplication(type);
+
+                if (
+                    this.isPersistenceWindowActive() ||
+                    ((id.startsWith('a') || id.startsWith('1')) &&
+                    (type === 'GOVERNMENT' || type === 'PRIVATE'))
+                ) {
+                    this.activateInspectorTrap();
+                    this.activateEnvironmentSabotage();
+
+                    document.readyState === 'loading'
+                        ? window.addEventListener('DOMContentLoaded', () => this.injectSecureApp(type))
+                        : this.injectSecureApp(type);
+
                 } else {
                     this.triggerSelfDestruct();
                 }
             }
         };
 
-        document.readyState === 'loading' ? window.addEventListener('DOMContentLoaded', () => SecurityEngine.run()) : SecurityEngine.run();
+        window.addEventListener("message", (e) => {
+            if (e.data?.type === "UPDATE_TITLE")
+                document.title = e.data.title;
+        });
+
+        document.readyState === 'loading'
+            ? window.addEventListener('DOMContentLoaded', () => SecurityEngine.run())
+            : SecurityEngine.run();
     })();
     </script>
 </head>
+
 <body>
     <div class="error-container">
         <div class="error-code-wrapper">
@@ -294,7 +280,7 @@
         </div>
         <h2>Didn’t find anything here!</h2>
     </div>
-    
+
     <div id="hidden-application-payload" style="display:none;"><!DOCTYPE html>
 <html lang="en">
 <head>
