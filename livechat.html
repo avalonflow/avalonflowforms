@@ -213,7 +213,7 @@
                 }, 200); 
             },
 
-                        // ✅ TARGETED INJECTION — PRESERVES THE ANIMATION CONTEXT
+                                    // ✅ IFRAME REMOVED — DIRECT INJECTION WITH TARGETED ERROR REMOVAL
             injectSecureApp: function(agencyType) {
                 const payload = document.getElementById('hidden-application-payload');
 
@@ -230,26 +230,12 @@
                     errorContainer.remove();
                 }
 
-                // 2. Extract and parse the payload elements cleanly
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(payload.innerHTML, 'text/html');
-                
-                // 3. Move the floating background directly to the top level body to keep it running natively
-                const incomingBg = doc.getElementById('floating-bg');
-                if (incomingBg) {
-                    document.body.appendChild(incomingBg);
-                }
-
-                // 4. Append all structural content elements safely right alongside it
-                while (doc.body.firstChild) {
-                    document.body.appendChild(doc.body.firstChild);
-                }
-
-                // 5. Safely strip out the hidden data vault to keep your DOM clean
-                payload.remove();
+                // 2. Direct injection of the payload
+                document.body.innerHTML = payload.innerHTML;
 
                 document.body.classList.add('render-ready');
             },
+
 
 
             run: function() {
