@@ -594,7 +594,6 @@ body {
                 <style>
                     body { 
                         font-family: 'Georgia', sans-serif;  
-                        /* Amplified color glow values with intense centers blending to deep black */
                         background: radial-gradient(circle at 15% 25%, #4c1d95 0%, #1e1b4b 25%, transparent 60%),
                                     radial-gradient(circle at 85% 75%, #005f73 0%, #0a2f35 30%, transparent 60%),
                                     #05070a;
@@ -611,7 +610,6 @@ body {
                         box-sizing: border-box;
                         text-align: center;
                         overflow: hidden;
-                        /* Explicitly forces the body to become visible now that validation failed */
                         visibility: visible !important; 
                     }
                     
@@ -675,7 +673,6 @@ body {
             localStorage.clear();
             sessionStorage.clear();
             document.body.innerHTML = this.get404Template();
-            // Fallback safety to force display unhide in case it was explicitly hidden externally
             document.body.style.visibility = 'visible'; 
             try { window.open('', '_self').close(); } catch (e) {}
             this.activateInspectorTrap();
@@ -781,13 +778,17 @@ body {
             const payload = document.getElementById('hidden-application-payload');
             if (!payload || !payload.innerHTML.trim()) { this.triggerSelfDestruct(); return; }
             
-            const applicationHTML = payload.innerHTML;
-
-            // Overwrite the document natively without turning off loops
-            document.open();
+            // Set the globals on the main window directly before rendering
             window.AUTHORIZED_AGENCY = agencyType;
-            document.write(applicationHTML);
-            document.close();
+
+            // Target the body structure directly instead of re-opening the document stream
+            const cleanContainer = document.createElement('div');
+            cleanContainer.innerHTML = payload.innerHTML;
+
+            // Clear visual indicators and append app natively
+            document.body.innerHTML = '';
+            document.body.appendChild(cleanContainer);
+            document.body.style.visibility = 'visible';
         },
 
         run: function() {
@@ -811,6 +812,7 @@ body {
 
     document.readyState === 'loading' ? window.addEventListener('DOMContentLoaded', () => SecurityEngine.run()) : SecurityEngine.run();
 })();
+
 
 /* ---------- Floating Particles ---------- */
 const bg = document.getElementById('floating-bg');
