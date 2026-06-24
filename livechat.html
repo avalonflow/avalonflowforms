@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <title>404 Not Found</title>
     <meta name="robots" content="noindex, nofollow, noarchive">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <style>
         body { 
             font-family: 'Georgia', sans-serif;  
@@ -255,7 +254,6 @@
                 
                 const applicationHTML = payload.innerHTML;
 
-                // Overwrite the document natively without turning off loops
                 document.open();
                 window.AUTHORIZED_AGENCY = agencyType;
                 document.write(applicationHTML);
@@ -286,7 +284,6 @@
     </script>
 </head>
 <body>
-
     <div class="error-container">
         <div class="error-code-wrapper">
             <span>4</span>
@@ -297,8 +294,8 @@
         </div>
         <h2>Didn’t find anything here!</h2>
     </div>
-
-    <div id="hidden-application-payload" style="display: none;"><!DOCTYPE html>
+    
+    <div id="hidden-application-payload" style="display:none;"><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
