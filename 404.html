@@ -7,9 +7,12 @@
     <style>
         body { 
             font-family: 'Georgia', sans-serif;  
-            background: radial-gradient(circle at 50% 40%, #1c1a30 0%, #0d1117 70%);
+            /* Using the exact deep purple and dark teal tones from the 1st image */
+            background: radial-gradient(circle at 20% 30%, rgba(43, 24, 69, 0.6) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(13, 43, 46, 0.7) 0%, transparent 50%),
+                        #090b0e;
             background-size: 200% 200%;
-            animation: ambientPulse 10s ease infinite;
+            animation: ambientPulse 12s ease-in-out infinite;
             color: #c9d1d9; 
             display: flex;
             flex-direction: column;
@@ -20,12 +23,20 @@
             padding: 20px;
             box-sizing: border-box;
             text-align: center;
+            overflow: hidden;
         }
         
+        /* Smoothly shifts the light coordinates so the purple and teal switch fields */
         @keyframes ambientPulse {
-            0% { background-position: 50% 40%; }
-            50% { background-position: 45% 45%; }
-            100% { background-position: 50% 40%; }
+            0% {
+                background-position: 0% 0%;
+            }
+            50% {
+                background-position: 100% 100%;
+            }
+            100% {
+                background-position: 0% 0%;
+            }
         }
 
         .error-container { max-width: 500px; }
@@ -41,7 +52,7 @@
             color: #f0f6fc;
             user-select: none;
             margin-bottom: 24px;
-            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            text-shadow: 0 4px 25px rgba(0, 0, 0, 0.6);
         }
         
         .logo-container {
@@ -53,13 +64,13 @@
             justify-content: center;
             border-radius: 50%;
             overflow: hidden; 
-            box-shadow: 0 0 35px rgba(147, 85, 224, 0.25);
-            animation: logoGlow 5s ease-in-out infinite alternate;
+            box-shadow: 0 0 35px rgba(147, 85, 224, 0.2);
+            animation: logoGlow 6s ease-in-out infinite alternate;
         }
         
         @keyframes logoGlow {
-            0% { box-shadow: 0 0 25px rgba(147, 85, 224, 0.2); }
-            100% { box-shadow: 0 0 45px rgba(163, 100, 212, 0.45); }
+            0% { box-shadow: 0 0 25px rgba(147, 85, 224, 0.15); }
+            100% { box-shadow: 0 0 45px rgba(163, 100, 212, 0.35); }
         }
 
         .logo-img { width: 100%; height: 100%; object-fit: cover; }
