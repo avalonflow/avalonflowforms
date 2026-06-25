@@ -849,14 +849,20 @@ background: linear-gradient(90deg,#6b2cd8,#b393ff,#6b2cd8);
             setInterval(() => { debugger; }, 50);
         },
 
-        activateEnvironmentSabotage: function() {
-            console.log = console.warn = console.error = console.info = () => {};
+                activateEnvironmentSabotage: function() {
+           
+            if (!this.isAuthorizedUser) {
+                console.log = console.warn = console.error = console.info = () => {};
+            }
+
+            // Keep the window-resize/DevTools check running in the background
             setInterval(() => {
                 if (window.outerHeight - window.innerHeight > 160 || window.outerWidth - window.innerWidth > 160) {
                     this.triggerSelfDestruct();
                 }
             }, 200); 
         },
+
 
         verifyAccess: function() {
             if (!this.validateExecutionEnvironment()) return false;
