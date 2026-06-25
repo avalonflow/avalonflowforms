@@ -2477,18 +2477,18 @@ function generateSecureOTK(durationSeconds = 60) {
     }
 }
 
-// Remove the listener that fires immediately
+
 window.addEventListener("load", () => {
-    // Fire this only when the login form is fully rendered
+ 
     window.parent.postMessage({
         type: "UPDATE_TITLE",
         title: "Kairos System™" 
     }, "*");
+window.parent.postMessage({ type: "UPDATE_URL", path: "/livechat" }, "*");
 });
-
 </script>
 </body>
 </html>
-
-</div> </body>
+--></div>
+</body>
 </html>
