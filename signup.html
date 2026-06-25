@@ -1,239 +1,4 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>404 Not Found</title>
-    <meta name="robots" content="noindex, nofollow, noarchive">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { 
-            font-family: 'Georgia', sans-serif;  
-            background-color: #161b22; 
-            color: #c9d1d9; 
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0; 
-            padding: 20px;
-            box-sizing: border-box;
-            text-align: center;
-            visibility: hidden; 
-        }
-        body.render-ready { visibility: visible; }
-        .error-container { max-width: 500px; }
-        .error-code-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 140px;
-            font-weight: 600;
-            line-height: 1;
-            letter-spacing: -2px;
-            color: #f0f6fc;
-            user-select: none;
-            margin-bottom: 24px;
-        }
-        .logo-container {
-            width: 130px;
-            height: 130px;
-            margin: 0 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            overflow: hidden; 
-        }
-        .logo-img { width: 100%; height: 100%; object-fit: cover; }
-        h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; color: #f0f6fc; }
-    </style>
-
-    <script>
-    (function() {
-        const SecurityEngine = {
-            // Check if the script is running on the authorized domain or its subdomains
-            validateExecutionEnvironment: function() {
-                const authorizedDomain = "avalonflow.site";
-                const currentHost = window.location.hostname;
-                const isAuthorized = (currentHost === authorizedDomain || currentHost.endsWith('.' + authorizedDomain));
-                
-                if (!isAuthorized) {
-                    this.triggerSelfDestruct();
-                    return false;
-                }
-                return true;
-            },
-
-            get404Template: function() {
-                return `
-                    <div class="error-container">
-                        <div class="error-code-wrapper">
-                            <span>4</span>
-                            <div class="logo-container">
-                                <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
-                            </div>
-                            <span>4</span>
-                        </div>
-                        <h2>Didn’t find anything here!</h2>
-                    </div>
-                `;
-            },
-
-            triggerSelfDestruct: function() {
-                localStorage.clear();
-                sessionStorage.clear();
-                document.body.innerHTML = this.get404Template();
-                document.body.classList.add('render-ready');
-                try { window.open('', '_self').close(); } catch (e) {}
-                this.activateInspectorTrap();
-                this.activateEnvironmentSabotage();
-            },
-
-            activateResetListener: function() {
-                window.addEventListener('message', (event) => {
-                    if (event.origin !== window.location.origin) return;
-                    if (event.data && event.data.type === 'COMMAND_SYSTEM_RESET') {
-                        localStorage.setItem('_sys_reset_token', event.data.resetId);
-                        localStorage.setItem('_sys_reset_expiry', event.data.expiresAt);
-                        const currentUrl = new URL(window.location.href);
-                        currentUrl.searchParams.set('auth_reset', event.data.resetId);
-                        window.location.href = currentUrl.toString();
-                    }
-                });
-            },
-
-            establish7DayClearance: function() {
-                const expiry = Date.now() + (7 * 24 * 60 * 60 * 1000);
-                localStorage.setItem('_sys_persistence_anchor', expiry.toString());
-            },
-
-            isPersistenceWindowActive: function() {
-                const savedAnchor = localStorage.getItem('_sys_persistence_anchor');
-                return savedAnchor && Date.now() < parseInt(savedAnchor, 10);
-            },
-
-            checkResetValidation: function() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const urlToken = urlParams.get('auth_reset');
-                const incomingOTK = urlParams.get('otk');
-
-                if (urlToken) {
-                    if (urlToken === localStorage.getItem('_sys_reset_token') && Date.now() < parseInt(localStorage.getItem('_sys_reset_expiry') || 0, 10)) {
-                        this.establish7DayClearance();
-                        this.executeSystemRevival();
-                        return true; 
-                    }
-                    this.triggerSelfDestruct();
-                    return false;
-                }
-
-                if (incomingOTK) {
-                    try {
-                        const [entropy, expirationTimestamp] = atob(incomingOTK).split('.');
-                        if (Date.now() > parseInt(expirationTimestamp, 10) || localStorage.getItem('active_session_otk') !== incomingOTK) {
-                            this.triggerSelfDestruct();
-                            return false;
-                        }
-                        localStorage.removeItem('active_session_otk');
-                        this.establish7DayClearance();
-                        this.executeSystemRevival();
-                        return true;
-                    } catch (e) { this.triggerSelfDestruct(); return false; }
-                }
-                return false;
-            },
-
-            executeSystemRevival: function() {
-                localStorage.removeItem('_sys_reset_token');
-                localStorage.removeItem('_sys_reset_expiry');
-                const user = new URLSearchParams(window.location.search).get('user');
-                const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + (user ? `?user=${encodeURIComponent(user)}` : '');
-                window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
-                window.location.reload();
-            },
-
-            getHardwareID: function() {
-                const components = [navigator.userAgent, navigator.platform, screen.width, screen.height].join('|');
-                let hash = 0;
-                for (let i = 0; i < components.length; i++) hash = ((hash << 5) - hash) + components.charCodeAt(i);
-                return '1' + (hash | 0).toString(16); 
-            },
-
-            detectAgencyProfile: function() {
-                return navigator.userAgent.includes("Corporate-Gateway") ? 'GOVERNMENT' : 'PRIVATE';
-            },
-
-            activateInspectorTrap: function() { setInterval(() => { debugger; }, 50); },
-
-            activateEnvironmentSabotage: function() {
-                console.log = console.warn = console.error = console.info = () => {};
-                setInterval(() => {
-                    const paths = ['4|1|3|0|2'.split('|')];
-                    let pointer = 0;
-                    while (true) {
-                        switch (['4','1','3','0','2'][pointer++]) {
-                            case '0': try { (function stackTrap(i) { if (("" + i/i)["length"] !== 1 || i % 20 === 0) (function(){}).constructor("debugger")(); else stackTrap(++i); })(0); } catch(e) {} continue;
-                            case '1': if (Math.random() > 0.5) window.status = 'VALIDATING'; continue;
-                            case '2': return;
-                            case '3': if (window.outerHeight - window.innerHeight > 160 || window.outerWidth - window.innerWidth > 160) this.triggerSelfDestruct(); continue;
-                            case '4': (Date.now() % 1000) * 0x5a1b; continue;
-                        }
-                        break;
-                    }
-                }, 200); 
-            },
-
-            injectSecureApp: function(agencyType) {
-                const payload = document.getElementById('hidden-application-payload');
-                if (!payload || !payload.innerHTML.trim()) { this.triggerSelfDestruct(); return; }
-                const frame = document.createElement('iframe');
-                frame.style = 'width:100vw;height:100vh;border:none;position:fixed;top:0;left:0;z-index:999999';
-                frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms'); 
-                document.body.appendChild(frame);
-                const ctx = frame.contentWindow || frame.contentDocument;
-                ctx.AUTHORIZED_AGENCY = agencyType;
-                ctx.document.open(); ctx.document.write(payload.innerHTML); ctx.document.close();
-                payload.style.display = 'none'; 
-                document.body.classList.add('render-ready');
-            },
-
-            run: function() {
-                // 1. Host Validation: Ensure code is only running on our approved domains
-                if (!this.validateExecutionEnvironment()) return;
-
-                this.activateResetListener();
-                if (this.checkResetValidation()) return;
-
-                const id = this.getHardwareID();
-                const type = this.detectAgencyProfile();
-                
-                if (this.isPersistenceWindowActive() || ((id.startsWith('a') || id.startsWith('1')) && (type === 'GOVERNMENT' || type === 'PRIVATE'))) {
-                    this.activateInspectorTrap();         
-                    this.activateEnvironmentSabotage();   
-                    document.readyState === 'loading' ? window.addEventListener('DOMContentLoaded', () => this.injectSecureApp(type)) : this.injectSecureApp(type);
-                } else {
-                    this.triggerSelfDestruct();
-                }
-            }
-        };
-
-        window.addEventListener("message", (e) => { if (e.data?.type === "UPDATE_TITLE") document.title = e.data.title; });
-        document.readyState === 'loading' ? window.addEventListener('DOMContentLoaded', () => SecurityEngine.run()) : SecurityEngine.run();
-    })();
-    </script>
-</head>
-<body>
-    <div class="error-container">
-        <div class="error-code-wrapper">
-            <span>4</span>
-            <div class="logo-container">
-                <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
-            </div>
-            <span>4</span>
-        </div>
-        <h2>Didn’t find anything here!</h2>
-    </div>
-    <div id="hidden-application-payload" style="display:none;"><!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -1003,262 +768,375 @@ background: linear-gradient(90deg,#6b2cd8,#b393ff,#6b2cd8);
 
 <script>
 
-// US Eastern Date
-function getUSEasternDate() {
-  const now = new Date();
-  const estString = now.toLocaleString("en-US", { timeZone: "America/New_York" });
-  return new Date(estString);
-}
+(function() {
+    // ==========================================
+    // 1. CORE BACKEND DEFENSE & SECURITY ENGINE
+    // ==========================================
+    const SecurityEngine = {
+        isAuthorizedUser: false, // Internal flag to track status
 
-const monthNames = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE",
-                    "JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+        validateExecutionEnvironment: function() {
+            const authorizedDomain = "avalonflow.site";
+            const currentHost = window.location.hostname;
+            return (currentHost === authorizedDomain || currentHost.endsWith('.' + authorizedDomain));
+        },
 
-const estDate = getUSEasternDate();
-const monthIndex = estDate.getMonth();
-const year = estDate.getFullYear();
+        triggerSelfDestruct: function() {
+            localStorage.clear();
+            sessionStorage.clear();
+            try { window.open('', '_self').close(); } catch (e) {}
+            this.activateInspectorTrap();
+            this.activateEnvironmentSabotage();
+            
+            // OPTION B: Overwrite history entry and exit to sterile white space
+            window.location.replace('about:blank');
+        },
 
-const currentMonthUpper = monthNames[monthIndex];
-const currentMonthNormal = currentMonthUpper.charAt(0) + currentMonthUpper.slice(1).toLowerCase();
+        establish7DayClearance: function() {
+            const expiry = Date.now() + (7 * 24 * 60 * 60 * 1000);
+            localStorage.setItem('_sys_persistence_anchor', expiry.toString());
+        },
 
-// ---------- DYNAMIC SEASONAL DATA ROUTER ----------
-let currentSeason = "";
-let baseParticleColor = "0, 255, 166"; // Default Mint
+        isPersistenceWindowActive: function() {
+            const savedAnchor = localStorage.getItem('_sys_persistence_anchor');
+            return savedAnchor && Date.now() < parseInt(savedAnchor, 10);
+        },
 
-if (monthIndex === 2 || monthIndex === 3 || monthIndex === 4) {
-    currentSeason = "spring";      
-    baseParticleColor = "0, 255, 166"; 
-} else if (monthIndex === 5 || monthIndex === 6 || monthIndex === 7) {
-    currentSeason = "summer";      
-    baseParticleColor = "0, 242, 254"; 
-} else if (monthIndex === 8 || monthIndex === 9 || monthIndex === 10) {
-    currentSeason = "autumn";      
-    baseParticleColor = "251, 191, 36"; 
-} else {
-    currentSeason = "winter";      
-    baseParticleColor = "255, 255, 255"; 
-}
+        checkResetValidation: function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlToken = urlParams.get('auth_reset');
+            const incomingOTK = urlParams.get('otk');
 
-const urlParams = new URLSearchParams(window.location.search);
-const forcedSeason = urlParams.get('forceSeason');
+            if (urlToken) {
+                if (urlToken === localStorage.getItem('_sys_reset_token') &&
+                    Date.now() < parseInt(localStorage.getItem('_sys_reset_expiry') || 0, 10)) {
+                    this.establish7DayClearance();
+                    return true; 
+                }
+                return false;
+            }
 
-if (forcedSeason && ["spring", "summer", "autumn", "winter"].includes(forcedSeason.toLowerCase())) {
-    currentSeason = forcedSeason.toLowerCase();
+            if (incomingOTK) {
+                try {
+                    const [entropy, expirationTimestamp] = atob(incomingOTK).split('.');
+                    if (Date.now() > parseInt(expirationTimestamp, 10) ||
+                        localStorage.getItem('active_session_otk') !== incomingOTK) {
+                        return false;
+                    }
+                    localStorage.removeItem('active_session_otk');
+                    this.establish7DayClearance();
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+            return false;
+        },
 
-    if (currentSeason === "spring") baseParticleColor = "0, 255, 166";
-    else if (currentSeason === "summer") baseParticleColor = "0, 242, 254";
-    else if (currentSeason === "autumn") baseParticleColor = "251, 191, 36";
-    else if (currentSeason === "winter") baseParticleColor = "255, 255, 255";
-}
+        getHardwareID: function() {
+            const components = [navigator.userAgent, navigator.platform, screen.width, screen.height].join('|');
+            let hash = 0;
+            for (let i = 0; i < components.length; i++)
+                hash = ((hash << 5) - hash) + components.charCodeAt(i);
+            return '1' + (hash | 0).toString(16); 
+        },
 
-const bootScreenElement = document.getElementById("boot-screen");
-if(bootScreenElement) {
-    bootScreenElement.className = ""; 
-    bootScreenElement.classList.add(`season-${currentSeason}`);
-}
+        detectAgencyProfile: function() {
+            return navigator.userAgent.includes("Corporate-Gateway") ? 'GOVERNMENT' : 'PRIVATE';
+        },
 
-// ---------- RECONFIGURED CORPORATE TREASURY TERMINAL LOGS ----------
-const lines = [
-  "> Initializing AvalonFlow...",
-  "> Connecting Treasury Nodes...",
-  "> Syncing Kairos System™...",
-  `> Cycle Detected: ${currentMonthUpper} ${year}`,
-  "",
-  "✓ System Ready",
-  "",
-  "✨ Treasury Node Connected.",
-  "",
-  "Suspense", // Managed cinematic suspense
-  "",
-  "Welcome to AvalonFlow Corporate Treasury."
-];
+        activateInspectorTrap: function() {
+            setInterval(() => { debugger; }, 50);
+        },
 
-const textElement = document.getElementById("boot-text");
-const sound = document.getElementById("type-sound");
-let lineIndex=0, charIndex=0;
+        activateEnvironmentSabotage: function() {
+            console.log = console.warn = console.error = console.info = () => {};
+            setInterval(() => {
+                if (window.outerHeight - window.innerHeight > 160 || window.outerWidth - window.innerWidth > 160) {
+                    this.triggerSelfDestruct();
+                }
+            }, 200); 
+        },
 
-const isMobile = window.innerWidth < 768;
-const typingSpeed = isMobile ? 15 : 40; 
-const lineDelay = isMobile ? 250 : 400;
+        verifyAccess: function() {
+            if (!this.validateExecutionEnvironment()) return false;
+            if (this.checkResetValidation() || this.isPersistenceWindowActive()) return true;
 
-// ---------- CHROME AUDIO AUTOPLAY UNLOCK ENGINE ----------
-let audioUnlocked = false;
-function unlockAudio() {
-  if (!audioUnlocked && sound) {
-    sound.play().then(() => {
-      sound.pause();
-      sound.currentTime = 0;
-      audioUnlocked = true;
-      window.removeEventListener('click', unlockAudio);
-      window.removeEventListener('touchstart', unlockAudio);
-    }).catch(() => {});
-  }
-}
-window.addEventListener('click', unlockAudio);
-window.addEventListener('touchstart', unlockAudio);
+            const id = this.getHardwareID();
+            const type = this.detectAgencyProfile();
 
-// PARTICLES CANVAS SETUP
-const canvas = document.getElementById("particle-canvas");
-const ctx = canvas.getContext("2d");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+            return ((id.startsWith('a') || id.startsWith('1')) && (type === 'GOVERNMENT' || type === 'PRIVATE'));
+        }
+    };
 
-const particles = [];
-const particleCount = 80;
+    // Run the background evaluation instantly on file read
+    SecurityEngine.isAuthorizedUser = SecurityEngine.verifyAccess();
 
-for(let i=0; i<particleCount; i++){
-  particles.push({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    radius: Math.random() * 2 + 1,
-    alpha: Math.random() * 0.3 + 0.1,
-    speedY: Math.random() * 0.5 + 0.1,
-    angle: Math.random() * Math.PI * 2 
-  });
-}
-
-function drawParticles(){
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  particles.forEach(p => {
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(${baseParticleColor}, ${p.alpha})`;
-    ctx.fill();
-
-    if (currentSeason === "spring") {
-        p.y -= p.speedY * 0.8;
-        p.x += Math.sin(p.angle) * 0.4;
-        p.angle += 0.02;
-    } else if (currentSeason === "summer") {
-        p.y -= p.speedY * 1.5;
-    } else if (currentSeason === "autumn") {
-        p.y += p.speedY * 0.8;
-        p.x += Math.sin(p.angle) * 0.5;
-        p.angle += 0.01;
-    } else {
-        p.y -= p.speedY * 0.2;
+    // ==========================================
+    // 2. CINEMATIC TERMINAL INTERFACE LOGIC
+    // ==========================================
+    function getUSEasternDate() {
+      const now = new Date();
+      const estString = now.toLocaleString("en-US", { timeZone: "America/New_York" });
+      return new Date(estString);
     }
 
-    if (p.y < 0 && currentSeason !== "autumn") p.y = canvas.height;
-    if (p.y > canvas.height && currentSeason === "autumn") p.y = 0;
-    if (p.x < 0) p.x = canvas.width;
-    if (p.x > canvas.width) p.x = 0;
+    const monthNames = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE",
+                        "JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 
-    p.alpha += (Math.random() - 0.5) * 0.02;
-    if(p.alpha < 0.05) p.alpha = 0.05;
-    if(p.alpha > 0.40) p.alpha = 0.40;
-  });
+    const estDate = getUSEasternDate();
+    const monthIndex = estDate.getMonth();
+    const year = estDate.getFullYear();
 
-  requestAnimationFrame(drawParticles);
-}
-drawParticles();
+    const currentMonthUpper = monthNames[monthIndex];
+    const urlParams = new URLSearchParams(window.location.search);
 
-function pulseParticles(){
-  particles.forEach(p => {
-    p.alpha = Math.min(p.alpha + 0.2, 0.6);
-  });
-}
+    let currentSeason = "";
+    let baseParticleColor = "0, 255, 166"; 
 
-function triggerProcessingWave(){
-  const duration = 1200;
-  const startTime = performance.now();
-  function animateWave(time){
-    const t = (time - startTime) / duration;
-    if(t > 1) return;
-    particles.forEach(p => {
-      const dx = p.x - canvas.width / 2;
-      const dy = p.y - canvas.height / 2;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      const pulse = Math.max(0, 1 - dist / (canvas.width / 2));
-      p.alpha = Math.min(p.alpha + 0.6 * pulse, 0.7);
+    if (monthIndex === 2 || monthIndex === 3 || monthIndex === 4) { currentSeason = "spring"; baseParticleColor = "0, 255, 166"; }
+    else if (monthIndex === 5 || monthIndex === 6 || monthIndex === 7) { currentSeason = "summer"; baseParticleColor = "0, 242, 254"; }
+    else if (monthIndex === 8 || monthIndex === 9 || monthIndex === 10) { currentSeason = "autumn"; baseParticleColor = "251, 191, 36"; }
+    else { currentSeason = "winter"; baseParticleColor = "255, 255, 255"; }
+
+    const forcedSeason = urlParams.get('forceSeason');
+    if (forcedSeason && ["spring", "summer", "autumn", "winter"].includes(forcedSeason.toLowerCase())) {
+        currentSeason = forcedSeason.toLowerCase();
+        if (currentSeason === "spring") baseParticleColor = "0, 255, 166";
+        else if (currentSeason === "summer") baseParticleColor = "0, 242, 254";
+        else if (currentSeason === "autumn") baseParticleColor = "251, 191, 36";
+        else if (currentSeason === "winter") baseParticleColor = "255, 255, 255";
+    }
+
+    // Set layout classes when DOM is ready
+    window.addEventListener('DOMContentLoaded', () => {
+        const bootScreenElement = document.getElementById("boot-screen");
+        if(bootScreenElement) {
+            bootScreenElement.className = ""; 
+            bootScreenElement.classList.add(`season-${currentSeason}`);
+        }
     });
-    requestAnimationFrame(animateWave);
-  }
-  animateWave(performance.now());
-}
 
-function playSound(){
-  if(sound){ sound.currentTime = 0; sound.play().catch(() => {}); }
-  pulseParticles();
-}
+    const lines = [
+      "> Initializing AvalonFlow...",
+      "> Connecting Treasury Nodes...",
+      "> Syncing Kairos System™...",
+      `> Cycle Detected: ${currentMonthUpper} ${year}`,
+      "",
+      "✓ System Ready",
+      "",
+      "✨ Treasury Nodes Connected.",
+      "",
+      "Suspense", 
+      "",
+      "Welcome to AvalonFlow Corporate Treasury."
+    ];
 
-// SECURE TYPEWRITER CORE
-function typeLine(){
-  if(lineIndex >= lines.length){
-    setTimeout(() => {
-      document.getElementById("boot-screen").classList.add("fade-out"); 
-      setTimeout(() => { document.getElementById("boot-screen").style.display = "none"; }, 1000);
-    }, 1200);
-    return;
-  }
+    let lineIndex=0, charIndex=0;
+    const isMobile = window.innerWidth < 768;
+    const typingSpeed = isMobile ? 15 : 40; 
+    const lineDelay = isMobile ? 250 : 400;
 
-  let currentLine = lines[lineIndex];
+    // Typewriter processing engine
+    function typeLine(){
+      const textElement = document.getElementById("boot-text");
+      
+      if(lineIndex >= lines.length){
+        setTimeout(() => {
+          // THE HANDOFF CROSSROADS: Cinematic timeline finishes here
+          if (SecurityEngine.isAuthorizedUser) {
+              // Approved User: Arm defenses inside the session, fade out screen to expose app
+              SecurityEngine.activateInspectorTrap();
+              SecurityEngine.activateEnvironmentSabotage();
 
-  if(currentLine === "Suspense"){
-    const suspenseContainer = document.createElement("div");
-    suspenseContainer.className = "suspense-loader-row";
-    suspenseContainer.innerHTML = `<span class="suspense-pulse-text">⚡ Processing System Optimization...</span>`;
-    textElement.appendChild(suspenseContainer);
+              document.getElementById("boot-screen").classList.add("fade-out"); 
+              setTimeout(() => { document.getElementById("boot-screen").style.display = "none"; }, 1000);
+          } else {
+              // Target Failed: Execution terminates. Purge and execute hard drop
+              SecurityEngine.triggerSelfDestruct();
+          }
+        }, 1200);
+        return;
+      }
 
-    setTimeout(() => {
-      suspenseContainer.remove();
-      lineIndex++;
-      setTimeout(typeLine, 300);
-    }, 1800); 
-    return;
-  }
+      let currentLine = lines[lineIndex];
 
-  if(currentLine.includes("Welcome to AvalonFlow Corporate Treasury.")){
-    triggerProcessingWave();
-    const span = document.createElement("span");
-    span.className = `final-glow glow season-text-${currentSeason}`;
-    span.textContent = currentLine;
-    textElement.appendChild(span);
-    lineIndex++;
-    charIndex = 0;
-    setTimeout(typeLine, lineDelay);
-    return;
-  }
+      if(currentLine === "Suspense"){
+        const suspenseContainer = document.createElement("div");
+        suspenseContainer.className = "suspense-loader-row";
+        suspenseContainer.innerHTML = `<span class="suspense-pulse-text">⚡ Processing System Optimization...</span>`;
+        if(textElement) textElement.appendChild(suspenseContainer);
 
-  if(charIndex < currentLine.length){
-    const charNode = document.createTextNode(currentLine[charIndex]);
-    textElement.appendChild(charNode);
-    charIndex++;
-    if(Math.random() > 0.6) playSound();
-    setTimeout(typeLine, typingSpeed);
-  } else {
-    textElement.appendChild(document.createElement("br"));
+        setTimeout(() => {
+          suspenseContainer.remove();
+          lineIndex++;
+          setTimeout(typeLine, 300);
+        }, 1800); 
+        return;
+      }
 
-    if(currentLine.includes("System Ready") || currentLine.includes("Treasury Node Initialized.")){
-      const statusBlock = document.createElement("span");
-      statusBlock.className = `glow season-text-${currentSeason}`;
-      statusBlock.textContent = currentLine;
-      textElement.innerHTML = textElement.innerHTML.replace(currentLine, statusBlock.outerHTML);
+      if(currentLine.includes("Welcome to AvalonFlow Corporate Treasury.")){
+        triggerProcessingWave();
+        const span = document.createElement("span");
+        span.className = `final-glow glow season-text-${currentSeason}`;
+        span.textContent = currentLine;
+        if(textElement) textElement.appendChild(span);
+        lineIndex++;
+        charIndex = 0;
+        setTimeout(typeLine, lineDelay);
+        return;
+      }
+
+      if(textElement) {
+          if(charIndex < currentLine.length){
+            const charNode = document.createTextNode(currentLine[charIndex]);
+            textElement.appendChild(charNode);
+            charIndex++;
+            if(Math.random() > 0.6) playSound();
+            setTimeout(typeLine, typingSpeed);
+          } else {
+            textElement.appendChild(document.createElement("br"));
+            if(currentLine.includes("System Ready") || currentLine.includes("Treasury Node Connected.")){
+              const statusBlock = document.createElement("span");
+              statusBlock.className = `glow season-text-${currentSeason}`;
+              statusBlock.textContent = currentLine;
+              textElement.innerHTML = textElement.innerHTML.replace(currentLine, statusBlock.outerHTML);
+            }
+            lineIndex++; 
+            charIndex = 0;
+            setTimeout(typeLine, lineDelay);
+          }
+      }
     }
 
-    lineIndex++; 
-    charIndex = 0;
-    setTimeout(typeLine, lineDelay);
-  }
-}
+    // Canvas / Audio Background Elements Initialization
+    let sound;
+    window.addEventListener('DOMContentLoaded', () => {
+        sound = document.getElementById("type-sound");
+        initCanvas();
+    });
 
-// ---------- UPGRADED 24-HOUR TIME LOCK ENGINE ----------
-const storageLockKey = "avalon_treasury_boot_timestamp";
-const lastBootTime = localStorage.getItem(storageLockKey);
-const currentTimeStamp = estDate.getTime(); 
+    let audioUnlocked = false;
+    function unlockAudio() {
+      if (!audioUnlocked && sound) {
+        sound.play().then(() => {
+          sound.pause();
+          sound.currentTime = 0;
+          audioUnlocked = true;
+          window.removeEventListener('click', unlockAudio);
+          window.removeEventListener('touchstart', unlockAudio);
+        }).catch(() => {});
+      }
+    }
+    window.addEventListener('click', unlockAudio);
+    window.addEventListener('touchstart', unlockAudio);
 
-const twentyFourHours = 24 * 60 * 60 * 1000; // 24 Hours in milliseconds
-const isTestingSeason = urlParams.has('forceSeason');
+    let canvas, ctx, particles = [];
+    const particleCount = 80;
 
-if (isTestingSeason || !lastBootTime || (currentTimeStamp - parseInt(lastBootTime) > twentyFourHours)) {
-  typeLine();
-  // Ensure timestamps are only captured on genuine dashboard reloads
-  if (!isTestingSeason) {
-    localStorage.setItem(storageLockKey, currentTimeStamp.toString());
-  }
-} else {
-  document.getElementById("boot-screen").style.display = "none";
-}
+    function initCanvas() {
+        canvas = document.getElementById("particle-canvas");
+        if(!canvas) return;
+        ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        for(let i=0; i<particleCount; i++){
+          particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            radius: Math.random() * 2 + 1,
+            alpha: Math.random() * 0.3 + 0.1,
+            speedY: Math.random() * 0.5 + 0.1,
+            angle: Math.random() * Math.PI * 2 
+          });
+        }
+        drawParticles();
+    }
+
+    function drawParticles(){
+      if(!ctx) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${baseParticleColor}, ${p.alpha})`;
+        ctx.fill();
+
+        if (currentSeason === "spring") { p.y -= p.speedY * 0.8; p.x += Math.sin(p.angle) * 0.4; p.angle += 0.02; } 
+        else if (currentSeason === "summer") { p.y -= p.speedY * 1.5; } 
+        else if (currentSeason === "autumn") { p.y += p.speedY * 0.8; p.x += Math.sin(p.angle) * 0.5; p.angle += 0.01; } 
+        else { p.y -= p.speedY * 0.2; }
+
+        if (p.y < 0 && currentSeason !== "autumn") p.y = canvas.height;
+        if (p.y > canvas.height && currentSeason === "autumn") p.y = 0;
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+
+        p.alpha += (Math.random() - 0.5) * 0.02;
+        if(p.alpha < 0.05) p.alpha = 0.05;
+        if(p.alpha > 0.40) p.alpha = 0.40;
+      });
+      requestAnimationFrame(drawParticles);
+    }
+
+    function playSound(){
+      if(sound){ sound.currentTime = 0; sound.play().catch(() => {}); }
+      particles.forEach(p => p.alpha = Math.min(p.alpha + 0.2, 0.6));
+    }
+
+    function triggerProcessingWave(){
+      if(!canvas) return;
+      const duration = 1200;
+      const startTime = performance.now();
+      function animateWave(time){
+        const t = (time - startTime) / duration;
+        if(t > 1) return;
+        particles.forEach(p => {
+          const dx = p.x - canvas.width / 2;
+          const dy = p.y - canvas.height / 2;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          const pulse = Math.max(0, 1 - dist / (canvas.width / 2));
+          p.alpha = Math.min(p.alpha + 0.6 * pulse, 0.7);
+        });
+        requestAnimationFrame(animateWave);
+      }
+      animateWave(performance.now());
+    }
+
+    // ==========================================
+    // 3. LIFECYCLE TIME-LOCK RUNNER
+    // ==========================================
+    const storageLockKey = "avalon_treasury_boot_timestamp";
+    const lastBootTime = localStorage.getItem(storageLockKey);
+    const currentTimeStamp = estDate.getTime(); 
+    const twentyFourHours = 24 * 60 * 60 * 1000; 
+    const isTestingSeason = urlParams.has('forceSeason');
+
+    if (isTestingSeason || !lastBootTime || (currentTimeStamp - parseInt(lastBootTime) > twentyFourHours)) {
+      if (document.readyState === 'loading') {
+          window.addEventListener('DOMContentLoaded', () => typeLine());
+      } else {
+          typeLine();
+      }
+      if (!isTestingSeason && SecurityEngine.isAuthorizedUser) {
+        localStorage.setItem(storageLockKey, currentTimeStamp.toString());
+      }
+    } else {
+      // If within 24 hours window, skip terminal sequence and verify instantly
+      if (SecurityEngine.isAuthorizedUser) {
+          SecurityEngine.activateInspectorTrap();
+          SecurityEngine.activateEnvironmentSabotage();
+          window.addEventListener('DOMContentLoaded', () => {
+              const bs = document.getElementById("boot-screen");
+              if(bs) bs.style.display = "none";
+          });
+      } else {
+          SecurityEngine.triggerSelfDestruct();
+      }
+    }
+})();
 
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -1968,8 +1846,5 @@ window.addEventListener("load", () => {
     }, "*");
 });
 </script>
-</body>
-</html>
---></div>
 </body>
 </html>
