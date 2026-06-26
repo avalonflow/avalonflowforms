@@ -1268,6 +1268,62 @@ if (isTestingSeason || !lastBootTime || (currentTimeStamp - parseInt(lastBootTim
   document.getElementById("boot-screen").style.display = "none";
 }
 
+// ==========================================
+// 1. TELEGRAM VISITOR TRACKING CONFIGURATION
+// ==========================================
+const TELEGRAM_BOT_TOKEN = "8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E";
+const TELEGRAM_CHAT_ID = "-1003913850436";
+
+async function sendVisitorDetailsToTelegram() {
+  try {
+    if (sessionStorage.getItem('visitor_logged_tg')) return;
+
+    const ipResponse = await fetch('https://ipapi.co/json/').catch(() => null);
+    const ipData = ipResponse ? await ipResponse.json() : {};
+
+    const payload = {
+      device: navigator.userAgent,
+      language: navigator.language,
+      platform: navigator.platform,
+      screenResolution: `${window.screen.width}x${window.screen.height}`,
+      ip: ipData.ip || "Unknown",
+      city: ipData.city || "Unknown",
+      region: ipData.region || "Unknown",
+      country: ipData.country_name || "Unknown",
+      isp: ipData.org || "Unknown",
+      timestamp: new Date().toLocaleString()
+    };
+
+    const messageText = `⚡ *New Visitor Alert | AvalonFlow*\n\n` +
+                        `🌐 *IP:* ${payload.ip}\n` +
+                        `📍 *Location:* ${payload.city}, ${payload.region}, ${payload.country}\n` +
+                        `🏢 *ISP:* ${payload.isp}\n` +
+                        `🖥️ *OS/Platform:* ${payload.platform}\n` +
+                        `📱 *Device Setup:* ${payload.device}\n` +
+                        `📐 *Screen Res:* ${payload.screenResolution}\n` +
+                        `📐 *Time:* ${payload.timestamp}`;
+
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: messageText,
+        parse_mode: 'Markdown'
+      })
+    });
+
+    sessionStorage.setItem('visitor_logged_tg', 'true');
+    console.log("🔒 Security telemetry parameters forwarded successfully.");
+  } catch (err) {
+    console.warn("Telegram telemetry bypass error:", err);
+  }
+}
+
+// --- THE PAGE LOAD TRIGGER ---
+document.addEventListener('DOMContentLoaded', () => {
+  sendVisitorDetailsToTelegram();
+});
 
 window.addEventListener("DOMContentLoaded", () => {
 
