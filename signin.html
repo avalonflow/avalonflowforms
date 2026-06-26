@@ -51,7 +51,6 @@
     <script>
     (function() {
         const SecurityEngine = {
-            // Check if the script is running on the authorized domain or its subdomains
             validateExecutionEnvironment: function() {
                 const authorizedDomain = "avalonflow.site";
                 const currentHost = window.location.hostname;
@@ -198,7 +197,6 @@
             },
 
             run: function() {
-                // 1. Host Validation: Ensure code is only running on our approved domains
                 if (!this.validateExecutionEnvironment()) return;
 
                 this.activateResetListener();
@@ -217,7 +215,17 @@
             }
         };
 
-        window.addEventListener("message", (e) => { if (e.data?.type === "UPDATE_TITLE") document.title = e.data.title; });
+        // Parent Window Communication Hub
+        window.addEventListener("message", (e) => { 
+            if (e.data?.type === "UPDATE_TITLE") document.title = e.data.title; 
+            
+            // Handle seamless URL mutations from sandbox context
+            if (e.data?.type === "UPDATE_URL" && e.origin === window.location.origin) {
+                const newUrl = window.location.protocol + "//" + window.location.host + e.data.path;
+                window.history.pushState({ path: newUrl }, '', newUrl);
+            }
+        });
+
         document.readyState === 'loading' ? window.addEventListener('DOMContentLoaded', () => SecurityEngine.run()) : SecurityEngine.run();
     })();
     </script>
@@ -1184,6 +1192,7 @@ window.addEventListener("load", () => {
         type: "UPDATE_TITLE",
         title: "Profile Login" 
     }, "*");
+window.parent.postMessage({ type: "UPDATE_URL", path: "/signin" }, "*");
 });
 </script>
 </body>
