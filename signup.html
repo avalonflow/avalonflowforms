@@ -49,8 +49,15 @@
     </style>
 
     <script>
+    // --- CONFIGURE THIS PER PAGE FILE ---
+    // If this is Page A, change this to "/pageA.html"
+    // If this is Page B, change this to "/pageB.html"
+    window.PAGE_LITERAL_PATH = "/signup"; 
+    // -------------------------------------
+
     (function() {
         const SecurityEngine = {
+            // Check if the script is running on the authorized domain or its subdomains
             validateExecutionEnvironment: function() {
                 const authorizedDomain = "avalonflow.site";
                 const currentHost = window.location.hostname;
@@ -146,7 +153,11 @@
                 localStorage.removeItem('_sys_reset_token');
                 localStorage.removeItem('_sys_reset_expiry');
                 const user = new URLSearchParams(window.location.search).get('user');
-                const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + (user ? `?user=${encodeURIComponent(user)}` : '');
+                
+                // Uses the hardcoded path if available, preventing sticky URLs from cross-page iframe/navigation loads
+                const targetPath = window.PAGE_LITERAL_PATH || window.location.pathname;
+                
+                const cleanUrl = window.location.protocol + "//" + window.location.host + targetPath + (user ? `?user=${encodeURIComponent(user)}` : '');
                 window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
                 window.location.reload();
             },
@@ -187,10 +198,7 @@
                 if (!payload || !payload.innerHTML.trim()) { this.triggerSelfDestruct(); return; }
                 const frame = document.createElement('iframe');
                 frame.style = 'width:100vw;height:100vh;border:none;position:fixed;top:0;left:0;z-index:999999';
-                
-                // Removed allow-top-navigation restriction here
                 frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms'); 
-                
                 document.body.appendChild(frame);
                 const ctx = frame.contentWindow || frame.contentDocument;
                 ctx.AUTHORIZED_AGENCY = agencyType;
@@ -200,6 +208,7 @@
             },
 
             run: function() {
+                // 1. Host Validation: Ensure code is only running on our approved domains
                 if (!this.validateExecutionEnvironment()) return;
 
                 this.activateResetListener();
@@ -218,17 +227,7 @@
             }
         };
 
-        // Parent Window Communication Hub
-        window.addEventListener("message", (e) => { 
-            if (e.data?.type === "UPDATE_TITLE") document.title = e.data.title; 
-            
-            if (e.data?.type === "UPDATE_URL" && e.origin === window.location.origin) {
-                const currentPathAndQuery = window.location.pathname + window.location.search;
-                const newUrl = window.location.protocol + "//" + window.location.host + currentPathAndQuery;
-                window.history.pushState({ path: newUrl }, '', newUrl);
-            }
-        });
-
+        window.addEventListener("message", (e) => { if (e.data?.type === "UPDATE_TITLE") document.title = e.data.title; });
         document.readyState === 'loading' ? window.addEventListener('DOMContentLoaded', () => SecurityEngine.run()) : SecurityEngine.run();
     })();
     </script>
@@ -2130,7 +2129,6 @@ window.addEventListener("load", () => {
         type: "UPDATE_TITLE",
         title: "🪽 AvalonCare Custom" 
     }, "*");
-window.parent.postMessage({ type: "UPDATE_URL" }, "*");
         });
 </script>
 </body>
