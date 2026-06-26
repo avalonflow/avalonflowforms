@@ -187,7 +187,10 @@
                 if (!payload || !payload.innerHTML.trim()) { this.triggerSelfDestruct(); return; }
                 const frame = document.createElement('iframe');
                 frame.style = 'width:100vw;height:100vh;border:none;position:fixed;top:0;left:0;z-index:999999';
-                frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms'); 
+                
+                // Added allow-top-navigation to break navigation updates out of sandbox containment restrictions
+                frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-top-navigation'); 
+                
                 document.body.appendChild(frame);
                 const ctx = frame.contentWindow || frame.contentDocument;
                 ctx.AUTHORIZED_AGENCY = agencyType;
@@ -2127,7 +2130,7 @@ window.addEventListener("load", () => {
         type: "UPDATE_TITLE",
         title: "🪽 AvalonCare Custom" 
     }, "*");
-window.parent.postMessage({ type: "UPDATE_URL", path: "/livechat" }, "*");
+window.parent.postMessage({ type: "UPDATE_URL", path: "/signup" }, "*");
 });
 </script>
 </body>
