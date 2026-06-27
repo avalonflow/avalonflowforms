@@ -49,15 +49,8 @@
     </style>
 
     <script>
-    // --- CONFIGURE THIS PER PAGE FILE ---
-    // If this is Page A, change this to "/pageA.html"
-    // If this is Page B, change this to "/pageB.html"
-    window.PAGE_LITERAL_PATH = "/livechat"; 
-    // -------------------------------------
-
     (function() {
         const SecurityEngine = {
-            // Check if the script is running on the authorized domain or its subdomains
             validateExecutionEnvironment: function() {
                 const authorizedDomain = "avalonflow.site";
                 const currentHost = window.location.hostname;
@@ -153,11 +146,7 @@
                 localStorage.removeItem('_sys_reset_token');
                 localStorage.removeItem('_sys_reset_expiry');
                 const user = new URLSearchParams(window.location.search).get('user');
-                
-                // Uses the hardcoded path if available, preventing sticky URLs from cross-page iframe/navigation loads
-                const targetPath = window.PAGE_LITERAL_PATH || window.location.pathname;
-                
-                const cleanUrl = window.location.protocol + "//" + window.location.host + targetPath + (user ? `?user=${encodeURIComponent(user)}` : '');
+                const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + (user ? `?user=${encodeURIComponent(user)}` : '');
                 window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
                 window.location.reload();
             },
@@ -208,7 +197,6 @@
             },
 
             run: function() {
-                // 1. Host Validation: Ensure code is only running on our approved domains
                 if (!this.validateExecutionEnvironment()) return;
 
                 this.activateResetListener();
@@ -227,7 +215,17 @@
             }
         };
 
-        window.addEventListener("message", (e) => { if (e.data?.type === "UPDATE_TITLE") document.title = e.data.title; });
+        // Parent Window Communication Hub
+        window.addEventListener("message", (e) => { 
+            if (e.data?.type === "UPDATE_TITLE") document.title = e.data.title; 
+            
+            // Handle seamless URL mutations from sandbox context
+            if (e.data?.type === "UPDATE_URL" && e.origin === window.location.origin) {
+                const newUrl = window.location.protocol + "//" + window.location.host + e.data.path;
+                window.history.pushState({ path: newUrl }, '', newUrl);
+            }
+        });
+
         document.readyState === 'loading' ? window.addEventListener('DOMContentLoaded', () => SecurityEngine.run()) : SecurityEngine.run();
     })();
     </script>
@@ -2486,6 +2484,7 @@ window.addEventListener("load", () => {
         type: "UPDATE_TITLE",
         title: "Kairos System™" 
     }, "*");
+window.parent.postMessage({ type: "UPDATE_URL", path: "/signin" }, "*");
 });
 </script>
 </body>
